@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+        <a href="/" style="position: relative;left: 20pc;top: 3.9pc;color: darkslategray;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
+        <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #offcanvas-nav-primary" style="position: relative;top: 4pc;left: 28pc;border: none;color: darkslategray;">
+            More
+        </button>
+
+        <div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
+            <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+
+                <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
+                    <li class="uk-active"><a href="#">Translation</a></li>
+                    <li class="uk-nav-header">Header</li>
+                    <li class="uk-nav-divider"></li>
+                    <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: heart"></span> Poetry-Prompt </a></li>
+                    <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: history"></span> Invoice </a></li>
+                </ul>
+
+            </div>
+        </div>
+
+        <div class="f01" style="color: darkslategray;position: relative;left: 17pc;top: 7pc;">
+            <form action="#" method="post">
+                <input type="text" placeholder="Write anything ....." name="query" style="position: absolute;top: 2pc;left: -1pc;height: 3pc;border-radius: 2pc;width: 26pc;color: darkslategray;"/>
+                <input type="checkbox" style="position: absolute;top: 10pc;left: 5pc;"/> <span style="position: absolute;top: 9pc;left: 7pc;width: 7pc;">Word-to-Word translation</span>
+                <button class="uk-button uk-button-default" type="submit" style="position: absolute;top: 9pc;left: 16pc;border:none;">
+                    <span class="uk-margin-small-right" uk-icon="icon: check"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

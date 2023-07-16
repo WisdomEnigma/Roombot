@@ -20,6 +20,13 @@ async fn image_learning() -> impl Responder{
 }
 
 
+#[get("/translation")]
+async fn translator() -> impl Responder {
+
+    NamedFile::open_async("./static/translate.html").await
+}
+
+
 #[actix_web::main]
  async fn main() -> std::io::Result<()>{
 
@@ -28,6 +35,7 @@ async fn image_learning() -> impl Responder{
             .service(index)
             .service(image_utopia)
             .service(image_learning)
+            .service(translator)
         })
         .bind(("127.0.0.1", 8080))?
         .run()
