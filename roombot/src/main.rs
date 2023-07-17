@@ -26,6 +26,13 @@ async fn translator() -> impl Responder {
     NamedFile::open_async("./static/translate.html").await
 }
 
+#[get("/user/register")]
+
+async fn register_user() -> impl Responder{
+
+    NamedFile::open_async("./static/register.html").await
+}
+
 
 #[actix_web::main]
  async fn main() -> std::io::Result<()>{
@@ -36,6 +43,7 @@ async fn translator() -> impl Responder {
             .service(image_utopia)
             .service(image_learning)
             .service(translator)
+            .service(register_user)
         })
         .bind(("127.0.0.1", 8080))?
         .run()
