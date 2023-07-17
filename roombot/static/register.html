@@ -23,10 +23,10 @@
     <div class="uk-offcanvas-bar uk-flex uk-flex-column">
 
         <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
-            <li class="uk-active"><a href="#"> Register Your Face </a></li>
+            <li class="uk-active"><a href="/user/register"> Register Your Face </a></li>
             <li class="uk-nav-header">Header</li>
             <li class="uk-nav-divider"></li>
-            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: sign-in"></span> Login </a></li>
+            <li><a href="/user/register"><span class="uk-margin-small-right" uk-icon="icon: sign-in"></span> Login </a></li>
             <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: trash"></span> Delete Account </a></li>
             <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: connect"></span> Connect </a></li>
         </ul>
@@ -90,9 +90,6 @@
          });
 
          document.getElementsByClassName('clear')[0].addEventListener('click', (e) =>{
-
-
-
 
                             video_stream.pause();
                             const context = canvas.getContext("2d");

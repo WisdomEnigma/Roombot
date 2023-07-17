@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+<button class="uk-button uk-button-default tableBtn" type="button" style="position: relative;top: 8pc;left: 15pc;border: none;">
+    <span class="uk-margin-small-right" uk-icon="icon: table"></span>
+</button>
+
+<button class="uk-button uk-button-default pen" type="button" style="position: relative;top: 8pc;left: 15pc;border: none;">
+    <span class="uk-margin-small-right" uk-icon="icon: pencil"></span>
+</button>
+
+<table class="uk-table uk-table-hover uk-table-divider htable" style="position: relative;top: 14pc;visibility: hidden;">
+<thead>
+<tr>
+    <th> UserID </th>
+    <th> Query </th>
+    <th> Response </th>
+    <th> Repeat </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+</tr>
+<tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+</tr>
+<tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+</tr>
+</tbody>
+</table>
+<div class="handwritting" style="visibility : visible;">
+    <p style="font-family: monospace;"></p>
+</div>
+<script>
+    document.getElementsByClassName('tableBtn')[0].addEventListener('click' , (e) => {
+        if (document.getElementsByClassName('htable')[0].style.visibility === 'hidden'){
+            document.getElementsByClassName('htable')[0].style.visibility = 'visible';
+        }else{
+            document.getElementsByClassName('htable')[0].style.visibility = 'hidden';
+        }
+    });
+    document.getElementsByClassName('pen')[0].addEventListener('click' , (e) => {
+        if (document.getElementsByClassName('handwritting')[0].style.visibility === 'hidden'){
+            document.getElementsByClassName('handwritting')[0].style.visibility = 'visible';
+        }else{
+            document.getElementsByClassName('handwritting')[0].style.visibility = 'hidden';
+        }
+    });
+
+</script>
+</body>
+</html>

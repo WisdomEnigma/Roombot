@@ -33,6 +33,13 @@ async fn register_user() -> impl Responder{
     NamedFile::open_async("./static/register.html").await
 }
 
+#[get("/user/history")]
+async fn history() -> impl Responder {
+
+    NamedFile::open_async("./static/history.html").await
+}
+
+
 
 #[actix_web::main]
  async fn main() -> std::io::Result<()>{
@@ -44,6 +51,7 @@ async fn register_user() -> impl Responder{
             .service(image_learning)
             .service(translator)
             .service(register_user)
+            .service(history)
         })
         .bind(("127.0.0.1", 8080))?
         .run()
