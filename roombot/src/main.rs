@@ -45,6 +45,11 @@ async fn invoice() -> impl Responder {
     NamedFile::open_async("./static/invoice.html").await
 }
 
+#[get("/user/poetry/topics")]
+async fn add_topic() -> impl Responder{
+
+    NamedFile::open_async("./static/poetry.html").await
+}
 
 #[actix_web::main]
  async fn main() -> std::io::Result<()>{
@@ -58,6 +63,7 @@ async fn invoice() -> impl Responder {
             .service(register_user)
             .service(history)
             .service(invoice)
+            .service(add_topic)
         })
         .bind(("127.0.0.1", 8080))?
         .run()
