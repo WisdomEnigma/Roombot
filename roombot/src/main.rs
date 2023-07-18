@@ -51,6 +51,12 @@ async fn add_topic() -> impl Responder{
     NamedFile::open_async("./static/poetry.html").await
 }
 
+#[get("/configurations")]
+async fn configurations() -> impl Responder{
+
+    NamedFile::open_async("./static/interactive.html").await
+}
+
 #[actix_web::main]
  async fn main() -> std::io::Result<()>{
 
@@ -64,6 +70,7 @@ async fn add_topic() -> impl Responder{
             .service(history)
             .service(invoice)
             .service(add_topic)
+            .service(configurations)
         })
         .bind(("127.0.0.1", 8080))?
         .run()

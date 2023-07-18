@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+    <h3 style="position: relative;top: 3pc;left: 12pc;color: darkslategray;"> Configurations </h3>
+    <div class="config" style="position: relative;top: 5pc;left: 2pc;">
+        <form action="#" method="post">
+            <div class="option-0">
+                <input type="checkbox" checked="true"/> <span style="position: absolute;left: 18pc;font-size: large; color: darkslategray;">Text to Text </span>
+            </div>
+
+            <button class="uk-button uk-button-default" type="submit" style="position: relative;top: -2pc;left: 55pc;border: none;">
+                <span class="uk-margin-small-right" uk-icon="icon: check"></span>
+            </button>
+
+            <div class="option-1">
+                <input type="checkbox"/> <span style="position: absolute;left: 18pc;font-size: large; color: darkslategray;">Text to Speech </span>
+            </div>
+
+            <button class="uk-button uk-button-default " type="submit" style="position: relative;top: -2pc;left: 55pc;border: none;">
+                <span class="uk-margin-small-right" uk-icon="icon: check"></span>
+            </button>
+            <button class="uk-button uk-button-default reset" type="button" style="position: relative;top: -8pc;left: 49pc;border: none;">
+                <span class="uk-margin-small-right" uk-icon="icon: settings"></span>
+            </button>
+        </form>
+    </div>
+
+<script>
+    document.getElementsByClassName('reset')[0].addEventListener('click', (e) => {
+        if (document.getElementsByClassName('config')[0].children[0].children[0].children[0].checked !== true){
+
+                document.getElementsByClassName('config')[0].children[0].children[0].children[0].checked =  true;
+        }else{
+
+                alert("Reset is not allowed ...");
+
+        }
+    });
+</script>
+</body>
+</html>
