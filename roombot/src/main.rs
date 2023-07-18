@@ -39,6 +39,11 @@ async fn history() -> impl Responder {
     NamedFile::open_async("./static/history.html").await
 }
 
+#[get("/user/invoice")]
+async fn invoice() -> impl Responder {
+
+    NamedFile::open_async("./static/invoice.html").await
+}
 
 
 #[actix_web::main]
@@ -52,6 +57,7 @@ async fn history() -> impl Responder {
             .service(translator)
             .service(register_user)
             .service(history)
+            .service(invoice)
         })
         .bind(("127.0.0.1", 8080))?
         .run()
