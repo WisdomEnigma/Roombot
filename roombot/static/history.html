@@ -21,6 +21,10 @@
     <span class="uk-margin-small-right" uk-icon="icon: pencil"></span>
 </button>
 
+<button class="uk-button uk-button-default deleteAll" type="button" style="position: relative;top: 8pc;left: 15pc;border: none;">
+    <span class="uk-margin-small-right" uk-icon="icon: trash"></span>
+</button>
+
 <table class="uk-table uk-table-hover uk-table-divider htable" style="position: relative;top: 14pc;visibility: hidden;">
 <thead>
 <tr>
@@ -32,29 +36,32 @@
 </thead>
 <tbody>
 <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td> 2455gak1390-56 </td>
+    <td> hola </td>
+    <td> hello </td>
+    <td> no </td>
 </tr>
 <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td> 2455gak1390-55 </td>
+    <td> Shama </td>
+    <td>Name</td>
+    <td> no </td>
 </tr>
 <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td> 2455gak1390-57 </td>
+    <td> Buddy </td>
+    <td> Friend</td>
+    <td> no </td>
 </tr>
 </tbody>
 </table>
+
+<h3 style="position: relative;top: -17pc;left: 14pc;width: 23pc;"> Mindmaps Patterns reside here ... </h3>
 <div class="handwritting" style="visibility : visible;">
     <p style="font-family: monospace;"></p>
 </div>
 <script>
+
     document.getElementsByClassName('tableBtn')[0].addEventListener('click' , (e) => {
         if (document.getElementsByClassName('htable')[0].style.visibility === 'hidden'){
             document.getElementsByClassName('htable')[0].style.visibility = 'visible';
@@ -62,11 +69,36 @@
             document.getElementsByClassName('htable')[0].style.visibility = 'hidden';
         }
     });
+
     document.getElementsByClassName('pen')[0].addEventListener('click' , (e) => {
         if (document.getElementsByClassName('handwritting')[0].style.visibility === 'hidden'){
             document.getElementsByClassName('handwritting')[0].style.visibility = 'visible';
         }else{
             document.getElementsByClassName('handwritting')[0].style.visibility = 'hidden';
+        }
+    });
+
+    document.getElementsByClassName('deleteAll')[0].addEventListener('click' , (e) => {
+
+        if (document.getElementsByClassName('htable')[0].children[1].children[0].children[0].innerHTML !== '' && document.getElementsByClassName('htable')[0].children[1].children[1].children[0].innerHTML !== ''
+                && document.getElementsByClassName('htable')[0].children[1].children[2].children[0].innerHTML !== ''){
+            document.getElementsByClassName('htable')[0].children[1].children[0].children[0].innerHTML = '';
+            document.getElementsByClassName('htable')[0].children[1].children[0].children[1].innerHTML = '';
+            document.getElementsByClassName('htable')[0].children[1].children[0].children[2].innerHTML = '';
+            document.getElementsByClassName('htable')[0].children[1].children[0].children[3].innerHTML = '';
+
+            document.getElementsByClassName('htable')[0].children[1].children[1].children[0].innerHTML = '';
+            document.getElementsByClassName('htable')[0].children[1].children[1].children[1].innerHTML = '';
+            document.getElementsByClassName('htable')[0].children[1].children[1].children[2].innerHTML = '';
+            document.getElementsByClassName('htable')[0].children[1].children[1].children[3].innerHTML = '';
+
+            document.getElementsByClassName('htable')[0].children[1].children[2].children[0].innerHTML = '';
+            document.getElementsByClassName('htable')[0].children[1].children[2].children[1].innerHTML = '';
+            document.getElementsByClassName('htable')[0].children[1].children[2].children[2].innerHTML = '';
+            document.getElementsByClassName('htable')[0].children[1].children[2].children[3].innerHTML = '';
+        }else{
+
+            alert('All data had already deleted ... ')
         }
     });
 
