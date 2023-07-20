@@ -77,3 +77,4 @@ async fn configurations() -> impl Responder{
         .await
 
 }
+
