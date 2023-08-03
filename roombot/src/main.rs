@@ -1,7 +1,7 @@
 use actix_web::{get, post, web, App, HttpServer, Responder, Result};
 use actix_files::{NamedFile};
 use serde::{Deserialize, Serialize};
-
+use gpt_text ::{openai};
 
 
 #[derive(Deserialize)]
@@ -11,7 +11,7 @@ struct TranslateFormData {
     
 }
 
-
+const secret : String = "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".to_string();
 
 #[get("/")]
 async fn index() -> impl Responder {
@@ -47,9 +47,19 @@ async fn word2word(form : web::Form<TranslateFormData>) -> impl Responder{
 
     let input : _ =  &form.query;
 
-    //let secret : _ = "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".to_string();
+    let mut opencall : _ = openai::new(input.to_string(), "".to_string(), input.len().try_into().unwrap());
     
-    format!("Input  = {:?}", input)
+    let response =  match opencall.openai_text_wrapper(secret).await{
+
+        Ok(resp) => resp,
+        Err(e) => panic!("Error = {:?}", e),
+    };
+
+    format!("Output =  {:?}", response)
+
+    
+
+    
 }
 
 #[get("/user/register")]
