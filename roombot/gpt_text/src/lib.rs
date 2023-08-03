@@ -16,17 +16,16 @@ pub mod openai{
         max_token : i32,                        // [0-500] 
     }
 
-    impl OpenAICredentials{
-
-
-        pub fn new(input : String, end_user : String, max_token : i32) -> OpenAICredentials{
+    pub fn new(input : String, end_user : String, max_token : i32) -> OpenAICredentials{
         
-            OpenAICredentials{
-                input,
-                end_user,
-                max_token
-            }
+        OpenAICredentials{
+            input,
+            end_user,
+            max_token
         }
+    }
+
+    impl OpenAICredentials{
 
         /// openai_text_wrapper is a very basic function that solve user query linearly meaning , no additional parameters configuration
         /// similar like web search 

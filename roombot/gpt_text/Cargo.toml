@@ -3,7 +3,18 @@ name = "gpt_text"
 version = "0.1.0"
 edition = "2021"
 
+
+description = "openai text wrapper just encaplusate the functions over one level"
+keyword = "nlp, ai, generative, openai"
+repository = "https://github.com/WisdomEnigma/Roombot/"
+license = "MIT"
+keywords = ["ai", "nlp", "generative"]
+license-file = "LICENSE"
+exclude = ["target"]
+publish = true
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 fieri = "0.7.0"
+
