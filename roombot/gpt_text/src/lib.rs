@@ -36,7 +36,7 @@ pub mod openai{
         pub async fn openai_text_wrapper(&mut self, apikey : String) -> Result<Completion, Error>{
 
 
-            let client_fieri : _ = Client::new().api_key(apikey);
+            let client_fieri : _ = Client::new().api_key(apikey.clone());
             let parameters : _ = CompletionParamBuilder::new("davinci")
             .prompt(self.input.clone())
             .temperature(0.5)
@@ -52,7 +52,7 @@ pub mod openai{
         /// composition of poetry or write blogs. Developer should have created openai key. Visit <http://www.openai.com>    
         pub async fn openai_openend(&mut self, apikey : String) -> Result<Completion, Error>{
 
-            let client_fieri : _ = Client::new().api_key(apikey);
+            let client_fieri : _ = Client::new().api_key(apikey.clone());
             let parameters : _ = CompletionParamBuilder::new("text-Davinci-003")
             .prompt(self.input.clone())
             .top_p(0.92)
@@ -74,7 +74,7 @@ pub mod openai{
         pub async fn openai_text_wrapper_as_json(&mut self, apikey : String) -> Value{
 
             let mut datacall : _ = new(self.input.clone(),self.end_user.clone(), self.max_token);
-            let json_obj : _ = match datacall.openai_text_wrapper(apikey).await{
+            let json_obj : _ = match datacall.openai_text_wrapper(apikey.clone()).await{
 
                 Ok(resp) => resp,
                 Err(err) => panic!("Error = {:?}", err),
