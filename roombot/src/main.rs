@@ -132,10 +132,58 @@ async fn add_topic() -> impl Responder{
     NamedFile::open_async("./static/poetry.html").await
 }
 
-// #[get("/user/poetry/topics/{output}")]
-// async fn poetry() -> HttpResponse{
+#[post("/user/poetry/topics/{output}")]
+async fn poetry(form : web::Form<TranslateFormData>) -> HttpResponse{
 
-// }
+    let input : _ =  &form.query;
+    let apikey : _ = &form.call; 
+
+    let _ = vec!["eval", "echo", "system", "exec", "os", "kill", "script", "wget", "curl", 
+                        "sudo", "cd", "chmod", "rm", "ls","cat", "rmdir", "grep", "tail", 
+                        "mv", "chdir", "chown", "passwd", "unmask", "pwd", "mkdir", "clear", "cp",
+                        "head", "whoami", "copy", "env"];
+
+    let _ = vec!["nude", "porn", "xxx","sexy", "sex", "sexual"];
+
+    let lines = input.lines();
+    let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
+    let xregex = Regex::new(r"\b(nude | porn | xxx | sexy | sex | sexual )").unwrap();
+
+
+    let mut take_action : bool = false;
+
+    for words in lines{
+
+        // for bad actors who invade system
+        if bregex.is_match(words){
+            take_action = true;
+            break
+        }
+
+        // for bad boys
+        if xregex.is_match(words){
+            take_action = true;
+            break
+        }
+    }
+
+    if take_action{
+
+        println!("Queries have some bad words which are not acceptable by model");
+        HttpResponse::BadRequest().body(format!("Queries have some bad words which are not acceptable by model"));
+    }
+
+
+    let mut opencall : _ = openai::new(input.to_string(), "".to_string(), input.len().try_into().unwrap());
+    
+    let response =  match opencall.openai_openend(apikey.to_string()).await{
+
+            Ok(resp) => resp,
+            Err(e) => panic!("Error = {:?}", e),
+    };
+
+    HttpResponse::Ok().body(format!("{:?}, {:?}", input.to_string(), response))
+}
 
 #[get("/configurations")]
 async fn configurations() -> impl Responder{

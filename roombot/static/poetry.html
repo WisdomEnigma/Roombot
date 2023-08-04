@@ -24,7 +24,7 @@
     <div class="uk-offcanvas-bar uk-flex uk-flex-column">
 
         <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
-            <li class="uk-active"><a href="#"> Emotion have very deep echos .. </a></li>
+            <li class="uk-active"><a href="#"> Emotion have deep echos .. </a></li>
             <li class="uk-nav-header">Header</li>
             <li class="uk-nav-divider"></li>
             <li><a href="/user/invoice"><span class="uk-margin-small-right" uk-icon="icon: bag"></span> Invoice </a></li>
@@ -35,10 +35,11 @@
 </div>
 
 <div class="f01" style="color: darkslategray;position: relative;left: 17pc;top: 7pc;">
-    <form action="#" method="post">
+    <form action="/user/poetry/topics/{output}" method="post">
         <input type="text" placeholder="Any emotion [ love , hate , passion ] express it ... " name="query" style="position: absolute;top: 2pc;left: -1pc;height: 3pc;border-radius: 2pc;width: 26pc;color: darkslategray;"/>
         <input type="password" placeholder="Place your openai key ....." name="call" style="position: absolute;top: 6pc;left: 6pc;height: 3pc;border-radius: 2pc;width: 11pc;color: darkslategray;"/>
-        <button class="uk-button uk-button-default" type="submit" style="position: absolute;top: 11pc;left: 9pc;border:none;">
+        <input type="checkbox" name="option" style="position: absolute;top: 12pc;left: 7pc;"/> <span style="position: absolute;top: 12pc;left: 10pc;width: 7pc;"> Pay </span>
+        <button class="uk-button uk-button-default" type="submit" style="position: absolute;top: 11.4pc;left: 12pc;border:none;">
             <span class="uk-margin-small-right" uk-icon="icon: check"></span>
         </button>
     </form>
