@@ -2,7 +2,8 @@ use actix_web::{get, post, web, App, HttpServer, Responder, HttpResponse, Result
 use actix_files::{NamedFile};
 use serde::{Deserialize, Serialize};
 use gpt_text ::{openai};
-use regex::Regex;
+use regex::{Regex};
+
 
 
 
@@ -12,6 +13,7 @@ struct TranslateFormData {
     query : String,
     call   : String,    
 }
+
 
 
 #[get("/")]
@@ -111,6 +113,12 @@ async fn register_user() -> impl Responder{
     NamedFile::open_async("./static/register.html").await
 }
 
+#[post("/user/register/verified")]
+async fn register_face() -> impl Responder{
+
+    format!("Image =")
+}
+
 #[get("/user/history")]
 async fn history() -> impl Responder {
 
@@ -203,6 +211,7 @@ async fn configurations() -> impl Responder{
             .service(translator)
             .service(word2word)
             .service(register_user)
+            .service(register_face)
             .service(history)
             .service(invoice)
             .service(add_topic)

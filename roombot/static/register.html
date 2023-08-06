@@ -45,13 +45,16 @@
         <button class="stop" type="button" style="border: none;background: transparent;position: absolute;top: 16.7pc;left: 8pc;transform: scale(1.5);color: darkslategrey;">
             <span class="uk-margin-small-right" uk-icon="icon: refresh"></span>
         </button>
+        
     </div>
 
     <div class="f01" style="visibility : hidden;">
-        <form action="#" method="post">
-            <img class="frameImage" alt="frame recorded here ..." style="visibility : hidden;position: absolute;width: 19pc;height: 17pc;top: 15pc;left: 39pc;border-radius: 2pc;">
-            <button class="uk-button uk-button-default" type="submit" style="position: absolute;top: 26pc;left: 25pc;border:none;color: darkslategrey;transform: scale(1.5);">
-                <span class="uk-margin-small-right" uk-icon="icon: check"></span>
+        <form action="/user/register/verified" method="post">
+            <img class="frameImage" alt="frame recorded here ..." name="user_avatar" style="visibility : hidden;position: absolute;width: 19pc;height: 17pc;top: 15pc;left: 39pc;border-radius: 2pc;">
+            <button class="uk-button uk-button-default" type="submit" title="register your face" style="position: absolute;top: 27pc;left: 23pc;border:none;color: darkslategrey;transform: scale(1.5);">
+                <span class="uk-margin-small-right" uk-icon="icon: database">
+                    Processing ....
+                </span>
             </button>
         </form>
     </div>
@@ -87,6 +90,7 @@
                     canvas.style.visibility = 'hidden';
                     event.preventDefault();
                 }
+
          });
 
          document.getElementsByClassName('clear')[0].addEventListener('click', (e) =>{
@@ -113,6 +117,8 @@
                     document.getElementsByClassName('cam')[0].style.visibility = 'hidden';
                     document.getElementsByClassName('f01')[0].style.visibility = 'visible';
 
+                    
+
          });
 
         function Snapshot(canvas){
@@ -125,8 +131,17 @@
                         const data = canvas.toDataURL("image/png");
                         document.getElementsByClassName('frameImage')[0].setAttribute('src', data);
                         document.getElementsByClassName('frameImage')[0].style.visibility = 'visible';
+                        const linkElement = document.createElement('a');
+                        linkElement.href = data;
+                        linkElement.download = 'register_face.png';
+                        linkElement.click();
+                        
                     }
         }
+
+
+
+        
 
     </script>
 </body>
