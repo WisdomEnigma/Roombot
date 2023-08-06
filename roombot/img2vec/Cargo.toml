@@ -1,0 +1,21 @@
+[package]
+name = "img2vec"
+version = "0.1.0"
+edition = "2021"
+
+description = "As the name suggested 'ImagetoVector', which allow to operate on images."
+keyword = "images, svd, pca, ndarray, array2, vector"
+repository = "https://github.com/WisdomEnigma/Roombot/"
+license = "MIT"
+keywords = ["images", "vector", "computation", "async"]
+license-file = "LICENSE"
+exclude = ["target"]
+
+publish = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+image = "0.24.6"
+ndarray = "0.15.6"
+ndarray-linalg = "0.16.0"
