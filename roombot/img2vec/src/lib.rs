@@ -52,11 +52,11 @@ pub mod imagetovecformat{
 
         /// This function takes image and tranform into mathematical notion called vectors. This function depend 
         /// on private functions "image_to_vec" & calculate_pca 
-        pub async fn image_to_vec(&mut self, components : usize) {
+        pub async fn image_to_vec(&mut self, components : usize) -> Array2<f64> {
 
             let platte : _ =  self.image_2_rgba_vec().await;
             
-            Self::calculate_pca(&platte, components).await;
+            Self::calculate_pca(&platte, components).await
         }
 
 
