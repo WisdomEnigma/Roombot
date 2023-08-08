@@ -1,0 +1,19 @@
+[package]
+name = "vec_security"
+version = "0.1.0"
+edition = "2021"
+
+
+description = "Vector_security ensure that user data remain secure. security is a key component of development"
+keyword = "authorization, hashing, vector, authenication, security"
+repository = "https://github.com/WisdomEnigma/Roombot/"
+license = "MIT"
+keywords = ["authorization", "vector", "computation", "async", "hashing"]
+license-file = "LICENSE"
+exclude = ["target"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+crypto-hash = "0.3.4"
+regex = "1.9.3"
