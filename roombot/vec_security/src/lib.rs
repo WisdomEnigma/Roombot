@@ -28,7 +28,7 @@ pub mod vec_security {
 
 
         /// Create new hash which is act as receiver and return vector.  
-        pub async fn create_new_hash(&mut self) -> Vec::<u8>{
+        pub fn create_new_hash(&mut self) -> Vec::<u8>{
 
             let mut hash_data : _ = Hasher::new(Algorithm::SHA256);
             let _ = hash_data.write_all((self.data).as_bytes());
@@ -38,7 +38,7 @@ pub mod vec_security {
 
 
         /// verified is a special function that return signature is authorize or not 
-        pub async fn verified(&mut self, data : Vec::<u8>) -> bool{
+        pub fn verified(&mut self, data : Vec::<u8>) -> bool{
 
             
 
