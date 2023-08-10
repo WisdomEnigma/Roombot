@@ -12,10 +12,6 @@
         cargo add img2vec
 
 
-# Documentation
-
-        cargo doc --open
-
 
 # Module 
 

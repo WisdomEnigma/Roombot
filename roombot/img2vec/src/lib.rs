@@ -2,16 +2,7 @@
 /// Image2Vector Format transform any picture in vector .. There are following advanatages over 
 /// Data already in compression mode . Data easily store in vector database. Mathematically data is encrypted but for mathematicans data easily extract.Less security enchancement techniques should applied.    
 
-
-///   Tasks of this module 
-/// 1. read image 
-/// 2. transform into vector form
-/// 3. save in vector database
-/// 4. hashing 
-/// 5. regenerated vector database back image
-/// 6. face landmarks detect
-/// 7. face landmarks remove 
-/// 8. comparsion functionality    
+    
 
 pub mod imagetovecformat{
 
@@ -19,9 +10,6 @@ pub mod imagetovecformat{
     use image::{DynamicImage, GenericImageView};
     use ndarray::{Axis, Array2,s};
     use ndarray_linalg::SVD;
-    
-
-
     
     /// read image from disk. This function return image,
     ///  if exist in a directory otherwise it report error
@@ -122,7 +110,7 @@ pub mod vec_middleware{
     use crate::{imagetovecformat};
     use vec_security::vec_security::{new_auth,Authorization};
     use ndarray::{Array2};
-    use sled::{Db};
+    use sled::{Db,IVec};
     
     /// Middleware require three fields (data = String, signature, verify = bool).
     #[derive(Debug)]
@@ -135,8 +123,8 @@ pub mod vec_middleware{
     }
 
 
-    /// Register face is a public asyncronous function which register your face in our database. 
-    pub async fn register_face() -> Result<(), std::io::Error> {
+    /// Register face is a public asyncronous function which will register your face in our database. 
+    pub async fn register_face(db : Db) -> Result<(), std::io::Error> {
 
         // read download directory and search for avatar.png
        let img : _ = imagetovecformat::open_image("~/Downloads/avatar.png".to_string());
@@ -162,7 +150,7 @@ pub mod vec_middleware{
        let member = register_data(face, "".to_string(), false);
 
         // store user face in the database   
-       let _ = member.await.add_value(authenicate.await);
+       let _ = member.await.add_value(authenicate.await, db);
 
         // return Result
        Ok(())
@@ -209,6 +197,8 @@ pub mod vec_middleware{
         
         Unauthorized,
         Unverified,
+        NotExit,
+        Duplicate,
         None,
     }
 
@@ -217,10 +207,7 @@ pub mod vec_middleware{
     impl Middleware{
 
         /// Middleware provide definition of add_value function which allow to store data in database.
-        pub async fn add_value(&mut self, mut authenicate : Authorization) -> std::io::Result<()> {
-
-            // create database sled client object 
-            let db : _ = create_index();
+        pub async fn add_value(&mut self, mut authenicate : Authorization, db : Db) -> std::io::Result<()> {
     
             // get hash of a datablock
             let new_hash : _ = authenicate.create_new_hash();
@@ -236,16 +223,48 @@ pub mod vec_middleware{
 
             if !verify{
 
-                
                 panic!("Error : {:?}", Errors::Unauthorized);
             }
 
             // db insert operation have high priority ; user data added in database
-            db.await.insert((self.data).as_bytes(), encrypted.as_bytes());
+            let _ = db.insert((self.data).as_bytes(), encrypted.as_bytes());
 
             // return ok result
             Ok(())
     
+        }
+
+        // search allow to return boolean state if key is present, otherwise return negate state
+        fn search_value(&mut self, client : Db) -> bool {
+
+
+            // result hold db value against paticular key
+            let result : _ = &client.get((self.data).as_bytes()).unwrap().unwrap();
+            
+            // create empty reference 
+            let empty : _ = " ";
+
+            // if IVec return nothing then return false otherwise some operation.
+            if result.eq(&empty) {
+                return false
+            }
+
+            true
+        }
+
+        /// get is a sled operation which ensure data exist or throw valid exception if data not found
+        pub async fn get_value(&mut self, client : Db) -> std::io::Result<IVec> {
+
+            let x : _ = self.data.clone();
+            let db = client.clone();
+
+            // check search function return true or false; if false then report error
+            if !Self::search_value(self,client){
+                panic!("Error : {:?}", Errors::NotExit);
+            }
+
+            // otherwise return Result::<IVec>
+            Ok(db.get(x.as_bytes()).unwrap().unwrap())
         }
 
     }
