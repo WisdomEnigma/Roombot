@@ -19,6 +19,7 @@ pub mod imagetovecformat{
     use image::{DynamicImage, GenericImageView};
     use ndarray::{Axis, Array2,s};
     use ndarray_linalg::SVD;
+    
 
 
     
@@ -119,7 +120,9 @@ pub mod vec_middleware{
 
     // import 
     use crate::{imagetovecformat};
-    
+    use vec_security::vec_security::{new_auth,Authorization};
+    use ndarray::{Array2};
+    use sled::{Db};
     
     /// Middleware require three fields (data = String, signature, verify = bool).
     #[derive(Debug)]
@@ -147,23 +150,108 @@ pub mod vec_middleware{
        let array : _ = temp_img.image_to_vec(100);
        
         // convert &Array[f64] into string    
-       let conv : _ = array.await.as_slice().unwrap().iter().map(|x| format!("{:?}", x)).collect::<Vec::<String>>().join("");
+       let face = set_data(array.await);
 
-        //    let member = new_member(conv, "".to_string(), false);
-    
-        
+        // get face object as copy     
+       let x : _ = face.clone();
+       
+        // use copy as argument     
+       let authenicate : _ =  new_auth(x);
+
+        // create Middleware object     
+       let member = register_data(face, "".to_string(), false);
+
+        // store user face in the database   
+       let _ = member.await.add_value(authenicate.await);
+
         // return Result
        Ok(())
     }
 
-    /// this is a private function which create object called Middleware 
-    async fn encrypt_face(data : String, signature : String, verify : bool) -> Member{
-        Member{
-            data,
+    // create Middleware object
+    async fn register_data(data : String, signature : String, verify : bool) -> Middleware{
+        Middleware{
+            data, 
             signature,
             verify,
         }
     }
+
+    // set_data is a private function which will convert ndarray::Array2 into String 
+    fn set_data(array : Array2<f64>) -> String {
+
+        // apply slice on array, there may be possible that any error reported 
+        // if not  then iterate , each value of array then map into string 
+        // then array transform into vector of string and after that 
+        // apply join function which transform vector of string into string
+        array.as_slice().unwrap().iter().map(|x| format!("{:?}", x)).collect::<Vec::<String>>().join("")
+    }
+
+    // vector (array) unsigned 8-bit convert into String. 
+    fn vecu8_to_string(data : Vec::<u8>) -> String{
+
+        // apply slice on data then iterate over data vector, then map into string, collect all values in vector form and transform into string
+        data.as_slice().iter().map(|x| format!("{:?}", x)).collect::<Vec::<String>>().join("")
+    }
+
+
+    /// create sled database object and return object. Here async is used in a function means, other tasks or process continue their work unless io, network
+    /// async use await command which allow to pause the process till awaited process completed.    
+    pub async fn create_index() -> Db{
+
+        sled::open("user_Account").unwrap()
+    }
+
+
+    /// Errors_enums are easy way to report error
+    #[derive(Debug)]
+    pub enum Errors {
+        
+        Unauthorized,
+        Unverified,
+        None,
+    }
+
+
+    //  Middleware provide sled functionalities insert, get, search and remove on data 
+    impl Middleware{
+
+        /// Middleware provide definition of add_value function which allow to store data in database.
+        pub async fn add_value(&mut self, mut authenicate : Authorization) -> std::io::Result<()> {
+
+            // create database sled client object 
+            let db : _ = create_index();
+    
+            // get hash of a datablock
+            let new_hash : _ = authenicate.create_new_hash();
+            
+            // copy datablock into x.
+            let x : _ = new_hash.clone();
+            
+            // verify datablock hash is valid 
+            let verify : _  = authenicate.verified(new_hash);
+
+            // retrive hash as string
+            let encrypted : _ = vecu8_to_string(x);
+
+            if !verify{
+
+                
+                panic!("Error : {:?}", Errors::Unauthorized);
+            }
+
+            // db insert operation have high priority ; user data added in database
+            db.await.insert((self.data).as_bytes(), encrypted.as_bytes());
+
+            // return ok result
+            Ok(())
+    
+        }
+
+    }
+
+    
+    
 }
 
 

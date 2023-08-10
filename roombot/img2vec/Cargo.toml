@@ -1,13 +1,13 @@
 [package]
 name = "img2vec"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 
 description = "As the name suggested 'ImagetoVector', which allow to operate on images."
-keyword = "images, svd, pca, ndarray, array2, vector"
+keyword = "images, svd, pca, ndarray, array2, vector, sled:db"
 repository = "https://github.com/WisdomEnigma/Roombot/"
 license = "MIT"
-keywords = ["images", "vector", "computation", "async"]
+keywords = ["images", "vector", "computation", "async", "db"]
 license-file = "LICENSE"
 exclude = ["target"]
 
@@ -19,3 +19,5 @@ publish = true
 image = "0.24.6"
 ndarray = "0.15.6"
 ndarray-linalg = "0.16.0"
+sled = "0.34.7"
+vec_security = "0.1.1"
