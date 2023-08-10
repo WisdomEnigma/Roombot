@@ -156,6 +156,42 @@ pub mod vec_middleware{
        Ok(())
     }
 
+
+    /// unlock enure that record exit in our database and also unlock the account ; if user provide authenicate information 
+
+    pub async fn unlock_account(db : Db) -> std::io::Result<()>{
+
+        // read download directory and search for avatar.png
+       let img : _ = imagetovecformat::open_image("~/Downloads/avatar_unlock.png".to_string());
+       
+       // store avatar image     
+      let mut temp_img : _ = imagetovecformat::ImagesVec{
+           dy_image : img.await,
+      };
+
+       // maximum pca components     
+      let array : _ = temp_img.image_to_vec(100);
+      
+       // convert &Array[f64] into string    
+      let face = set_data(array.await);
+
+      // create Middleware object     
+     let member = register_data(face, "".to_string(), false);
+
+     // retreive value by using key 
+     let value = match member.await.get_value(db).await{
+        Ok(data) =>  data,
+        Err(e) => panic!("Error: {:?}", e), 
+     };
+
+     if value == " ".as_bytes() {
+
+        panic!("Error : {:?}", Errors::NotExit);
+     }
+
+      Ok(())
+    }
+
     // create Middleware object
     async fn register_data(data : String, signature : String, verify : bool) -> Middleware{
         Middleware{
@@ -242,10 +278,10 @@ pub mod vec_middleware{
             let result : _ = &client.get((self.data).as_bytes()).unwrap().unwrap();
             
             // create empty reference 
-            let empty : _ = " ";
+            let empty : _ = " ".as_bytes();
 
             // if IVec return nothing then return false otherwise some operation.
-            if result.eq(&empty) {
+            if result == empty {
                 return false
             }
 
