@@ -29,11 +29,25 @@
 
         vec_middleware
 
-                pub async fn register_face() -> Result<(), std::io::Error>  // register face
-                pub async fn create_index() -> Db  // create index in sled database 
-
                         // insert value in sled database
-                pub async fn add_value(&mut self, mut authenicate : Authorization) -> std::io::Result<()>
+                pub async fn add_value(&mut self, mut authenicate : Authorization, db : Db) -> std::io::Result<()> 
+
+                        // get value from sled database
+                pub async fn get_value(&mut self, client : Db) -> std::io::Result<IVec>
+
+        pub async fn register_face() -> Result<(), std::io::Error>  // register face
+        pub async fn create_index() -> Db  // create index in sled database 
+        pub async fn unlock_account(db : Db) -> std::io::Result<()> // unlock account
+
+
+# native-dependenices 
+
+        Img2vec is only compactible with linux distos because linux features are linked. Soon this module avaible for other operating systems as well. 
+
+        OS              Supported               Upcoming
+        Linux               Yes                 Optimized
+        Mac                 No                  Optimized + native-lib
+        Windows             No                  Optimized + native-lib
 
 # Maintainance 
 
