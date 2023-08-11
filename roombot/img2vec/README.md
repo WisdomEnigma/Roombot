@@ -4,8 +4,8 @@
 
         Read images from Disk
         Convert images into vector notion.
-        Register Face
-
+        Register your Face
+        Login through your Face
 
 # Install
 
@@ -48,6 +48,12 @@
         Linux               Yes                 Optimized
         Mac                 No                  Optimized + native-lib
         Windows             No                  Optimized + native-lib
+
+
+        Make sure libopenblas-dev already installed on your linux machine.
+        
+        :~$ sudo apt install libopenblas-dev 
+
 
 # Maintainance 
 
