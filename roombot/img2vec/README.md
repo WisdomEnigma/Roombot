@@ -42,7 +42,7 @@
 
 # native-dependenices 
 
-        Img2vec is only compactible with linux distos because linux features are linked. Soon this module avaible for other operating systems as well. 
+        Img2vec is only compactible with linux distos because ndarray-linalg native (openblas) linux features are linked. Soon this module avaible for other operating systems as well. 
 
         OS              Supported               Upcoming
         Linux               Yes                 Optimized
