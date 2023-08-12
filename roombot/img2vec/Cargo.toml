@@ -1,6 +1,6 @@
 [package]
 name = "img2vec"
-version = "0.1.5"
+version = "0.2.5"
 edition = "2021"
 
 description = "As the name suggested 'ImagetoVector', which allow to operate on images."
@@ -16,6 +16,7 @@ publish = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+directories = "5.0.1"
 image = "0.24.6"
 ndarray = "0.15.6"
 ndarray-linalg = { version = "0.16.0", features = ["openblas-system"]}

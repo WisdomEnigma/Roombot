@@ -111,6 +111,7 @@ pub mod vec_middleware{
     use vec_security::vec_security::{new_auth,Authorization};
     use ndarray::{Array2};
     use sled::{Db,IVec};
+    use directories::{UserDirs};
     
     /// Middleware require three fields (data = String, signature, verify = bool).
     #[derive(Debug)]
@@ -125,44 +126,56 @@ pub mod vec_middleware{
 
     /// Register face is a public asyncronous function which will register your face in our database. 
     pub async fn register_face(db : Db) -> Result<(), std::io::Error> {
+ 
+        // get all d
+       if let Some(user_dir) = UserDirs::new(){
+        
+        if let Some(_) = user_dir.download_dir(){
 
-        // read download directory and search for avatar.png
-       let img : _ = imagetovecformat::open_image("~/Downloads/avatar.png".to_string());
+            if std::path::Path::new("/home/ali/Downloads/register_face.png").exists(){
+
+                panic!("Error {:?}", Errors::Duplicate);
+            }
+                // read download directory and search for avatar.png
+                let img : _ = imagetovecformat::open_image("/home/ali/Downloads/register_face.png".to_string());
        
-        // store avatar image     
-       let mut temp_img : _ = imagetovecformat::ImagesVec{
-            dy_image : img.await,
-       };
+                // store avatar image     
+                let mut temp_img : _ = imagetovecformat::ImagesVec{
+                    dy_image : img.await,
+                };
 
-        // maximum pca components     
-       let array : _ = temp_img.image_to_vec(100);
+                // maximum pca components     
+                let array : _ = temp_img.image_to_vec(100);
        
-        // convert &Array[f64] into string    
-       let face = set_data(array.await);
+                // convert &Array[f64] into string    
+                let face = set_data(array.await);
 
-        // get face object as copy     
-       let x : _ = face.clone();
+                // get face object as copy     
+                let x : _ = face.clone();
        
-        // use copy as argument     
-       let authenicate : _ =  new_auth(x);
+                // use copy as argument     
+                let authenicate : _ =  new_auth(x);
 
-        // create Middleware object     
-       let member = register_data(face, "".to_string(), false);
+                // create Middleware object     
+                let member = register_data(face, "".to_string(), false);
 
-        // store user face in the database   
-       let _ = member.await.add_value(authenicate.await, db);
-
-        // return Result
+                // store user face in the database   
+                let _ = member.await.add_value(authenicate.await, db);
+            }
+        }
+        
+    // return Result
        Ok(())
+    
     }
 
+    
 
     /// unlock enure that record exit in our database and also unlock the account ; if user provide authenicate information 
-
     pub async fn unlock_account(db : Db) -> std::io::Result<()>{
 
         // read download directory and search for avatar.png
-       let img : _ = imagetovecformat::open_image("~/Downloads/avatar_unlock.png".to_string());
+       let img : _ = imagetovecformat::open_image("~home/Home/Downloads/avatar_unlock.png".to_string());
        
        // store avatar image     
       let mut temp_img : _ = imagetovecformat::ImagesVec{
