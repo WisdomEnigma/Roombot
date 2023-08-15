@@ -127,46 +127,51 @@ pub mod vec_middleware{
     /// Register face is a public asyncronous function which will register your face in our database. 
     pub async fn register_face(db : Db) -> Result<(), std::io::Error> {
  
-        // get all d
+        // get directories from memory and create directory object. 
        if let Some(user_dir) = UserDirs::new(){
+
+        // access download directory 
         
         if let Some(_) = user_dir.download_dir(){
 
-            if std::path::Path::new("/home/ali/Downloads/register_face.png").exists(){
-
-                panic!("Error {:?}", Errors::Duplicate);
+            // if download don't have face then throw error.
+            if !std::path::Path::new("/home/ali/Downloads/register_face.png").exists(){
+                panic!("Error : {:?}", Errors::NotExit);
             }
-                // read download directory and search for avatar.png
-                let img : _ = imagetovecformat::open_image("/home/ali/Downloads/register_face.png".to_string());
+
+            // read download directory and search for avatar.png
+            let img : _ = imagetovecformat::open_image("/home/ali/Downloads/register_face.png".to_string());
        
-                // store avatar image     
-                let mut temp_img : _ = imagetovecformat::ImagesVec{
-                    dy_image : img.await,
-                };
+            // store avatar image     
+            let mut temp_img : _ = imagetovecformat::ImagesVec{
+                dy_image : img.await,
+            };
 
-                // maximum pca components     
-                let array : _ = temp_img.image_to_vec(100);
-       
-                // convert &Array[f64] into string    
-                let face = set_data(array.await);
+            // maximum pca components     
+            let array : _ = temp_img.image_to_vec(100);
+   
+            // convert &Array[f64] into string    
+            let face = set_data(array.await);
 
-                // get face object as copy     
-                let x : _ = face.clone();
-       
-                // use copy as argument     
-                let authenicate : _ =  new_auth(x);
+            // get face object as copy     
+            let x : _ = face.clone();
+   
+            // use copy as argument     
+            let authenicate : _ =  new_auth(x);
 
-                // create Middleware object     
-                let member = register_data(face, "".to_string(), false);
+            // create Middleware object     
+            let member = register_data(face, "".to_string(), false);
 
-                // store user face in the database   
-                let _ = member.await.add_value(authenicate.await, db);
-            }
-        }
+            // store user face in the database   
+            let _ = member.await.add_value(authenicate.await, db);
         
-    // return Result
-       Ok(())
-    
+            }
+        
+        }
+
+        // return Result
+        Ok(())
+                            
     }
 
     
@@ -174,35 +179,73 @@ pub mod vec_middleware{
     /// unlock enure that record exit in our database and also unlock the account ; if user provide authenicate information 
     pub async fn unlock_account(db : Db) -> std::io::Result<()>{
 
-        // read download directory and search for avatar.png
-       let img : _ = imagetovecformat::open_image("~home/Home/Downloads/avatar_unlock.png".to_string());
+
+        // get directories from memory and create directory object. 
+       if let Some(user_dir) = UserDirs::new(){
+
+        // access download directory 
+        
+        if let Some(_) = user_dir.download_dir(){
+
+            // if download don't have face then throw error.
+            if !std::path::Path::new("/home/ali/Downloads/avatar_unlock.png").exists(){
+                panic!("Error : {:?}", Errors::NotExit);
+            }
+
+            if !std::path::Path::new("/home/ali/Downloads/register_face.png").exists(){
+                panic!("Error : {:?}", Errors::Unauthorized);
+            }
+        
+            // read download directory and search for avatar.png
        
-       // store avatar image     
-      let mut temp_img : _ = imagetovecformat::ImagesVec{
-           dy_image : img.await,
-      };
-
-       // maximum pca components     
-      let array : _ = temp_img.image_to_vec(100);
+            let img : _ = imagetovecformat::open_image("~/home/ali/Downloads/avatar_unlock.png".to_string());
+       
+       
+            // store avatar image     
       
-       // convert &Array[f64] into string    
-      let face = set_data(array.await);
+            let mut temp_img : _ = imagetovecformat::ImagesVec{
+           
+                dy_image : img.await,
+      
+              };
 
-      // create Middleware object     
-     let member = register_data(face, "".to_string(), false);
+       
+              // maximum pca components     
+      
+              let array : _ = temp_img.image_to_vec(100);
+      
+       
+              // convert &Array[f64] into string    
+      
+              let face = set_data(array.await);
 
-     // retreive value by using key 
-     let value = match member.await.get_value(db).await{
-        Ok(data) =>  data,
-        Err(e) => panic!("Error: {:?}", e), 
-     };
+      
+              // create Middleware object     
+     
+              let member = register_data(face, "".to_string(), false);
 
-     if value == " ".as_bytes() {
+     
+              // retreive value by using key 
+     
+             let value = match member.await.get_value(db).await{
+    
+                Ok(data) =>  data,
+    
+                Err(e) => panic!("Error: {:?}", e), 
+    
+            };
 
-        panic!("Error : {:?}", Errors::NotExit);
-     }
+    
+            if value == " ".as_bytes() {
 
-      Ok(())
+    
+                panic!("Error : {:?}", Errors::NotExit);
+    
+            }
+        }
+    }
+     
+            Ok(())
     }
 
     // create Middleware object
