@@ -1,9 +1,10 @@
 use actix_web::{get, post, web, App, HttpServer, Responder, HttpResponse, Result};
 use actix_files::{NamedFile};
 use serde::{Deserialize, Serialize};
-use gpt_text ::{openai};
+use gpt_text::{openai};
 use regex::{Regex};
-
+use img2vec::{vec_middleware};
+use handlebars::{Handlebars};
 
 
 
@@ -12,6 +13,20 @@ struct TranslateFormData {
 
     query : String,
     call   : String,    
+}
+
+#[derive(Serialize)]
+struct ResponseTranslateForm{
+
+    query : String,
+    response : String,
+}
+
+
+#[derive(Serialize)]
+struct ImageTemp{
+
+    image : String,
 }
 
 
@@ -26,8 +41,13 @@ async fn index() -> impl Responder {
 #[get("/utopia")]
 async fn image_utopia() -> impl Responder{
 
-    
     NamedFile::open_async("./static/assets/utopia.jpg").await
+}
+
+#[get("/user_avatar")]
+async fn avatari() -> impl Responder{
+
+    NamedFile::open_async("/home/ali/Downloads/register_face.png").await
 }
 
 #[get("/futuristic")]
@@ -46,7 +66,7 @@ async fn translator() -> impl Responder {
 }
 
 #[post("/translation/user/{output}")]
-async fn word2word(form : web::Form<TranslateFormData>) -> HttpResponse{
+async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
     let input : _ =  &form.query;
     let apikey : _ = &form.call; 
@@ -83,26 +103,35 @@ async fn word2word(form : web::Form<TranslateFormData>) -> HttpResponse{
     if take_action{
 
         println!("Queries have some bad words which are not acceptable by model");
-        HttpResponse::BadRequest().body(format!("Queries have some bad words which are not acceptable by model"));
+        
+        HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
+            query : "".to_string(),
+            response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
+        }).unwrap());
     }
 
 
     if !input.contains("translation") || !input.contains("translate"){
 
-        println!("Sorry translation prompt will translate message for you ");
-        HttpResponse::BadRequest().body(format!("Sorry translation prompt will translate message for you "));
+        HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
+            query : "".to_string(),
+            response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
+        }).unwrap());
     }
 
 
     let mut opencall : _ = openai::new(input.to_string(), "".to_string(), input.len().try_into().unwrap());
     
-    let response =  match opencall.openai_text_wrapper(apikey.to_string()).await{
+    let responses =  match opencall.openai_text_wrapper(apikey.to_string()).await{
 
-            Ok(resp) => resp,
+            Ok(resp) => format!("{:?}", resp),
             Err(e) => panic!("Error = {:?}", e),
     };
 
-    HttpResponse::Ok().body(format!("{:?}, {:?}", input.to_string(), response))
+    HttpResponse::Ok().body(hbr.render("translate", &ResponseTranslateForm{
+        query : input.to_string(),
+        response : responses,
+    }).unwrap())
 
 }
 
@@ -114,9 +143,21 @@ async fn register_user() -> impl Responder{
 }
 
 #[post("/user/register/verified")]
-async fn register_face() -> impl Responder{
+async fn register_face(hbr : web::Data<Handlebars<'_>>) -> impl Responder{
 
-    format!("Image =")
+    let db : _ = vec_middleware::create_index();
+
+    let  _ = match vec_middleware::register_face(db.await).await {
+
+        Err(err) => panic!("Error : {:?}", err),
+        Ok(_) => {},
+    };
+
+    HttpResponse::Ok().body(hbr.render("register", &ImageTemp{
+        image : "/user_avata".to_string(),        
+    }).unwrap())
+
+
 }
 
 #[get("/user/history")]
@@ -141,7 +182,7 @@ async fn add_topic() -> impl Responder{
 }
 
 #[post("/user/poetry/topics/{output}")]
-async fn poetry(form : web::Form<TranslateFormData>) -> HttpResponse{
+async fn poetry(form : web::Form<TranslateFormData>, hbr : web::Data::<Handlebars<'_>>) -> HttpResponse{
 
     let input : _ =  &form.query;
     let apikey : _ = &form.call; 
@@ -177,20 +218,25 @@ async fn poetry(form : web::Form<TranslateFormData>) -> HttpResponse{
 
     if take_action{
 
-        println!("Queries have some bad words which are not acceptable by model");
-        HttpResponse::BadRequest().body(format!("Queries have some bad words which are not acceptable by model"));
+        HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
+            query : "".to_string(),
+            response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
+        }).unwrap());
     }
 
 
     let mut opencall : _ = openai::new(input.to_string(), "".to_string(), input.len().try_into().unwrap());
     
-    let response =  match opencall.openai_openend(apikey.to_string()).await{
+    let responses =  match opencall.openai_openend(apikey.to_string()).await{
 
-            Ok(resp) => resp,
+            Ok(resp) => format!("{:?}", resp),
             Err(e) => panic!("Error = {:?}", e),
     };
 
-    HttpResponse::Ok().body(format!("{:?}, {:?}", input.to_string(), response))
+    HttpResponse::Ok().body(hbr.render("translate", &ResponseTranslateForm{
+        query : input.to_string(),
+        response : responses,
+    }).unwrap())
 }
 
 #[get("/configurations")]
@@ -203,8 +249,20 @@ async fn configurations() -> impl Responder{
 #[actix_web::main]
  async fn main() -> std::io::Result<()>{
 
-    HttpServer::new(|| {
+    // create handlebar new object, direct towards template directory. This direct used as reference for direction purpose.
+    let mut handlebars_obj = Handlebars::new();
+    handlebars_obj
+            .register_templates_directory(".html", "./static/templates")
+            .unwrap();
+
+    // server hold handlebar template directory object value.
+    let handlebars_ref = web::Data::new(handlebars_obj);
+    
+    
+    // now server supported templates. These templates are render application state when a query execute.
+    HttpServer::new( move || {
             App::new()
+            .app_data(handlebars_ref.clone())
             .service(index)
             .service(image_utopia)
             .service(image_learning)
@@ -214,6 +272,7 @@ async fn configurations() -> impl Responder{
             .service(register_face)
             .service(history)
             .service(invoice)
+            .service(avatari)
             .service(add_topic)
             .service(configurations)
         })
