@@ -10,14 +10,12 @@ pub mod imagetovecformat{
     use image::{DynamicImage, GenericImageView};
     use ndarray::{Axis, Array2,s};
     use ndarray_linalg::SVD;
+    use std::path::{Path};
     
-    /// read image from disk. This function return image,
-    ///  if exist in a directory otherwise it report error
-    pub async fn open_image<'a>(path : String) -> DynamicImage {
+    /// open image allow to read image and return back. There may be possible image not exit or any other error then error reported
+    pub async fn open_image<'a>(path : &Path) -> DynamicImage {
 
         // open image in a specific path (such as ~/Downloads) and extract value from Result
-        // there may be possible [ok] return image or (error) throw error
-
         let img : _ =  match image::open(path){
 
             Ok(image) => image,
@@ -34,6 +32,8 @@ pub mod imagetovecformat{
         pub dy_image : DynamicImage
     }
 
+
+    /// new function allow to create a ImageVec class object. 
     pub async fn new(dy_image : DynamicImage) -> ImagesVec{
         ImagesVec{dy_image : dy_image}
     }
@@ -42,8 +42,8 @@ pub mod imagetovecformat{
     impl ImagesVec {
 
 
-        /// This function takes image and tranform into mathematical notion called vectors. This function depend 
-        /// on private functions "image_to_vec" & calculate_pca 
+        /// This function takes image and tranform into mathematical notion called vectors. The Algorithm is simple..
+        /// Convert picture into rgba pixels ; these pixels convert into pca value   
         pub async fn image_to_vec(&mut self, components : usize) -> Array2<f64> {
 
             // create and store rgba of a picture
@@ -54,7 +54,6 @@ pub mod imagetovecformat{
         }
 
         /// This function calculate rgba value of an image and return Array2<f64>. 
-        /// Array2 provide definition by ndarray crate.
         async fn image_2_rgba_vec(&mut self) -> Array2<f64>{
 
             // read image dimensions i.e width, height
@@ -112,6 +111,7 @@ pub mod vec_middleware{
     use ndarray::{Array2};
     use sled::{Db,IVec};
     use directories::{UserDirs};
+    use std::path::{Path};
     
     /// Middleware require three fields (data = String, signature, verify = bool).
     #[derive(Debug)]
@@ -132,15 +132,19 @@ pub mod vec_middleware{
 
         // access download directory 
         
-        if let Some(_) = user_dir.download_dir(){
+        if let Some(path) = user_dir.download_dir(){
+
+            let p = path.clone();
 
             // if download don't have face then throw error.
-            if !std::path::Path::new("/home/ali/Downloads/register_face.png").exists(){
+            if !p.join(std::path::Path::new("register_face.png")).exists(){
                 panic!("Error : {:?}", Errors::NotExit);
             }
 
+            let joined = path.join(Path::new("register_face.png"));
+
             // read download directory and search for avatar.png
-            let img : _ = imagetovecformat::open_image("/home/ali/Downloads/register_face.png".to_string());
+            let img = imagetovecformat::open_image(&joined);
        
             // store avatar image     
             let mut temp_img : _ = imagetovecformat::ImagesVec{
@@ -177,28 +181,33 @@ pub mod vec_middleware{
     
 
     /// unlock enure that record exit in our database and also unlock the account ; if user provide authenicate information 
-    pub async fn unlock_account(db : Db) -> std::io::Result<()>{
+    pub async fn unlock_account(db : Db) -> Option<IVec>{
 
+
+        let mut v : Option<IVec> = Some(IVec::from(vec![0]));
 
         // get directories from memory and create directory object. 
        if let Some(user_dir) = UserDirs::new(){
 
         // access download directory 
         
-        if let Some(_) = user_dir.download_dir(){
+        if let Some(path) = user_dir.download_dir(){
 
+            
+            let p = path;
             // if download don't have face then throw error.
-            if !std::path::Path::new("/home/ali/Downloads/avatar_unlock.png").exists(){
+            if !path.join(std::path::Path::new("avatar_unlock.png")).exists(){
                 panic!("Error : {:?}", Errors::NotExit);
             }
 
-            if !std::path::Path::new("/home/ali/Downloads/register_face.png").exists(){
+            if !path.join(std::path::Path::new("register_face.png")).exists(){
                 panic!("Error : {:?}", Errors::Unauthorized);
             }
         
+
+            let joined = p.join(Path::new("avatar_unlock.png"));
             // read download directory and search for avatar.png
-       
-            let img : _ = imagetovecformat::open_image("~/home/ali/Downloads/avatar_unlock.png".to_string());
+            let img : _ = imagetovecformat::open_image(&joined);
        
        
             // store avatar image     
@@ -223,30 +232,18 @@ pub mod vec_middleware{
               // create Middleware object     
      
               let member = register_data(face, "".to_string(), false);
-
      
               // retreive value by using key 
      
-             let value = match member.await.get_value(db).await{
-    
-                Ok(data) =>  data,
-    
-                Err(e) => panic!("Error: {:?}", e), 
-    
-            };
-
-    
-            if value == " ".as_bytes() {
-
-    
-                panic!("Error : {:?}", Errors::NotExit);
-    
-            }
+             let value = member.await.get_value(db).await;        
+            
+             v = value;
         }
     }
-     
-            Ok(())
-    }
+
+    v
+    
+}
 
     // create Middleware object
     async fn register_data(data : String, signature : String, verify : bool) -> Middleware{
@@ -256,6 +253,8 @@ pub mod vec_middleware{
             verify,
         }
     }
+
+    
 
     // set_data is a private function which will convert ndarray::Array2 into String 
     fn set_data(array : Array2<f64>) -> String {
@@ -274,6 +273,8 @@ pub mod vec_middleware{
         data.as_slice().iter().map(|x| format!("{:?}", x)).collect::<Vec::<String>>().join("")
     }
 
+    
+
 
     /// create sled database object and return object. Here async is used in a function means, other tasks or process continue their work unless io, network
     /// async use await command which allow to pause the process till awaited process completed.    
@@ -287,11 +288,11 @@ pub mod vec_middleware{
     #[derive(Debug)]
     pub enum Errors {
         
-        Unauthorized,
-        Unverified,
-        NotExit,
-        Duplicate,
-        None,
+        Unauthorized,  //not allowed 
+        Unverified,     // account still unverified ; sooner account will be disable,
+        NotExit,        // data is not found 
+        Duplicate,      // data replication
+        None,           // all clear
     }
 
 
@@ -313,6 +314,7 @@ pub mod vec_middleware{
             // retrive hash as string
             let encrypted : _ = vecu8_to_string(x);
 
+            // if verify return false then return unauthorized error
             if !verify{
 
                 panic!("Error : {:?}", Errors::Unauthorized);
@@ -326,37 +328,15 @@ pub mod vec_middleware{
     
         }
 
-        // search allow to return boolean state if key is present, otherwise return negate state
-        fn search_value(&mut self, client : Db) -> bool {
-
-
-            // result hold db value against paticular key
-            let result : _ = &client.get((self.data).as_bytes()).unwrap().unwrap();
-            
-            // create empty reference 
-            let empty : _ = " ".as_bytes();
-
-            // if IVec return nothing then return false otherwise some operation.
-            if result == empty {
-                return false
-            }
-
-            true
-        }
-
         /// get is a sled operation which ensure data exist or throw valid exception if data not found
-        pub async fn get_value(&mut self, client : Db) -> std::io::Result<IVec> {
+        pub async fn get_value(&mut self, client : Db) -> Option<IVec> {
 
-            let x : _ = self.data.clone();
-            let db = client.clone();
-
-            // check search function return true or false; if false then report error
-            if !Self::search_value(self,client){
-                panic!("Error : {:?}", Errors::NotExit);
-            }
+            // allocate memory 
+            let dataresult = &client.get(self.data.as_bytes()).unwrap().unwrap();
 
             // otherwise return Result::<IVec>
-            Ok(db.get(x.as_bytes()).unwrap().unwrap())
+            Some(dataresult.clone())
+
         }
 
     }
