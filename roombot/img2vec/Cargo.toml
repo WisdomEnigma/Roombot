@@ -1,6 +1,6 @@
 [package]
 name = "img2vec"
-version = "0.2.13"
+version = "0.2.16"
 edition = "2021"
 
 description = "As the name suggested 'ImagetoVector', which allow to operate on images."

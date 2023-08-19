@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+<a href="/" style="position: relative;left: 20pc;top: 3.9pc;color: darkslategray;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
+<button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #offcanvas-nav-primary" style="position: relative;top: 4pc;left: 28pc;border: none;color: darkslategray;">
+    More
+</button>
+
+<div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+
+        <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
+            <li class="uk-active"><a href="#"> Keep on dreaming even if it break your heart! </a></li>
+            <li class="uk-nav-header">Header</li>
+            <li class="uk-nav-divider"></li>
+            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: cloud-upload"></span> Artists </a></li>
+            <!-- <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: play-circle"></span> New Release </a></li>
+            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: album"></span> Podcasts </a></li> -->
+        </ul>
+    </div>
+</div>
+
+<div class="uk-container" style="position: relative;top: 9pc;left: 3pc;width: 33pc;height: 11pc;">
+    <form method="post" action="#" style="position: relative;width: 20pc;height: 8pc;left: 0pc;">
+        <input type="text" placeholder="search any song ..." name="songname" class="uk-form-success" style="position: relative;left: -8pc;width: 30pc;height: 2pc;border-radius: 9px;border: 1px;">
+        <button class="uk-button-dark" type="submit" style="position: relative;top: -1.6pc;left: 25pc;border: none;background: transparent;">
+            <span class="uk-margin-small-right" uk-icon="icon: search"></span>
+        </button>
+    </form>
+</div>
+</body>
+</html>

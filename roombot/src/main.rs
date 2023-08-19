@@ -1,10 +1,10 @@
 use actix_web::{get, post, web, App, HttpServer, Responder, HttpResponse, Result};
-use actix_files::{NamedFile};
+use actix_files::NamedFile;
 use serde::{Deserialize, Serialize};
-use gpt_text::{openai};
-use regex::{Regex};
-use img2vec::{vec_middleware};
-use handlebars::{Handlebars};
+use gpt_text::openai;
+use regex::Regex;
+use img2vec::vec_middleware;
+use handlebars::Handlebars;
 
 
 
@@ -22,6 +22,12 @@ struct ResponseTranslateForm{
     response : String,
 }
 
+#[derive(Serialize)]
+struct Authorize{
+
+    compress : String,
+}
+
 
 #[derive(Serialize)]
 struct ImageTemp{
@@ -34,7 +40,6 @@ struct ImageTemp{
 #[get("/")]
 async fn index() -> impl Responder {
 
-    
     NamedFile::open_async("./static/index.html").await
 }
 
@@ -135,35 +140,54 @@ async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handleba
 
 }
 
-#[get("/user/register")]
-async fn register_user() -> impl Responder{
+// #[get("/user/register")]
+// async fn register_user() -> impl Responder{
+   
+//     NamedFile::open_async("./static/register.html").await
+// }
 
-    
-    NamedFile::open_async("./static/register.html").await
-}
+// #[post("/user/register/verified")]
+// async fn register_face(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
-#[post("/user/register/verified")]
-async fn register_face(hbr : web::Data<Handlebars<'_>>) -> impl Responder{
+//     let db : _ = vec_middleware::create_index();
 
-    let db : _ = vec_middleware::create_index();
+//     let  _ = match vec_middleware::register_face(db.await).await {
 
-    let  _ = match vec_middleware::register_face(db.await).await {
+//         Err(err) => panic!("Error : {:?}", err),
+//         Ok(_) => {},
+//     };
 
-        Err(err) => panic!("Error : {:?}", err),
-        Ok(_) => {},
-    };
-
-    HttpResponse::Ok().body(hbr.render("register", &ImageTemp{
-        image : "/user_avata".to_string(),        
-    }).unwrap())
+//     HttpResponse::Ok().body(hbr.render("register", &ImageTemp{
+//         image : "/user_avatar".to_string(),        
+//     }).unwrap())
 
 
-}
+// }
+
+// #[get("/user/login")]
+// async fn login() -> impl Responder{
+   
+//     NamedFile::open_async("./static/login.html").await
+// }
+
+
+// #[post("/user/login/verified")]
+// async fn login_account(hbr : web::Data<Handlebars<'_>>) -> impl Responder{
+
+//     let db : _ = vec_middleware::create_index();
+
+//     let value = vec_middleware::unlock_account(db.await).await;
+
+//     format!("output = {:?}", value)
+
+//     //HttpResponse::Ok().body(hbr.render("login", &Authorize{compress : value}).unwrap())
+
+// }
+
 
 #[get("/user/history")]
 async fn history() -> impl Responder {
 
-    
     NamedFile::open_async("./static/history.html").await
 }
 
@@ -268,8 +292,10 @@ async fn configurations() -> impl Responder{
             .service(image_learning)
             .service(translator)
             .service(word2word)
-            .service(register_user)
-            .service(register_face)
+            // .service(register_user)
+            // .service(register_face)
+            // .service(login)
+            // .service(login_account)
             .service(history)
             .service(invoice)
             .service(avatari)

@@ -26,7 +26,7 @@
             <li class="uk-active"><a href="#"> To Infinity and Beyond! </a></li>
             <li class="uk-nav-header">Header</li>
             <li class="uk-nav-divider"></li>
-            <li><a href="/user/login"><span class="uk-margin-small-right" uk-icon="icon: sign-in"></span> Login </a></li>
+            <li><a href="/user/register"><span class="uk-margin-small-right" uk-icon="icon: plus"></span> Signup </a></li>
             <!-- <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: trash"></span> Delete Account </a></li>
             <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: connect"></span> Connect </a></li> -->
         </ul>
@@ -49,7 +49,7 @@
     </div>
 
     <div class="f01" style="visibility : hidden;">
-        <form action="/user/register/verified" method="post">
+        <form action="/user/login/verified" method="post">
             <img class="frameImage" alt="frame recorded here ..." name="user_avatar" style="visibility : hidden;position: absolute;width: 19pc;height: 17pc;top: 15pc;left: 39pc;border-radius: 2pc;">
             <button class="uk-button uk-button-default" type="submit" title="register your face" style="position: absolute;top: 27pc;left: 23pc;border:none;color: darkslategrey;transform: scale(1.5);">
                 <span class="uk-margin-small-right" uk-icon="icon: database">
@@ -133,7 +133,7 @@
                         document.getElementsByClassName('frameImage')[0].style.visibility = 'visible';
                         const linkElement = document.createElement('a');
                         linkElement.href = data;
-                        linkElement.download = 'register_face.png';
+                        linkElement.download = 'avatar_unlock.png';
                         linkElement.click();
                         
                     }

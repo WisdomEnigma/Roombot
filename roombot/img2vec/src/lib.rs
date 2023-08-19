@@ -10,7 +10,7 @@ pub mod imagetovecformat{
     use image::{DynamicImage, GenericImageView};
     use ndarray::{Axis, Array2,s};
     use ndarray_linalg::SVD;
-    use std::path::{Path};
+    use std::path::Path;
     
     /// open image allow to read image and return back. There may be possible image not exit or any other error then error reported
     pub async fn open_image<'a>(path : &Path) -> DynamicImage {
@@ -106,12 +106,13 @@ pub mod imagetovecformat{
 pub mod vec_middleware{
 
     // import 
-    use crate::{imagetovecformat};
+    use crate::imagetovecformat;
     use vec_security::vec_security::{new_auth,Authorization};
-    use ndarray::{Array2};
+    use ndarray::Array2;
     use sled::{Db,IVec};
-    use directories::{UserDirs};
-    use std::path::{Path};
+    use directories::UserDirs;
+    use std::path::Path;
+    use image::imageops;
     
     /// Middleware require three fields (data = String, signature, verify = bool).
     #[derive(Debug)]
@@ -145,33 +146,40 @@ pub mod vec_middleware{
 
             // read download directory and search for avatar.png
             let img = imagetovecformat::open_image(&joined);
+
        
-            // store avatar image     
-            let mut temp_img : _ = imagetovecformat::ImagesVec{
-                dy_image : img.await,
-            };
+            // // store avatar image     
+            // let mut temp_img : _ = imagetovecformat::ImagesVec{
+            //     dy_image : img.await,
+            // };
 
-            // maximum pca components     
-            let array : _ = temp_img.image_to_vec(100);
+            // // maximum pca components     
+            // let array : _ = temp_img.image_to_vec(20);
    
-            // convert &Array[f64] into string    
-            let face = set_data(array.await);
+            // // convert &Array[f64] into string    
+            // let face = set_data(array.await);
 
-            // get face object as copy     
-            let x : _ = face.clone();
+            // // get face object as copy     
+            // let x : _ = face.clone();
    
-            // use copy as argument     
-            let authenicate : _ =  new_auth(x);
+            // // use copy as argument     
+            // let authenicate : _ =  new_auth(x);
 
-            // create Middleware object     
-            let member = register_data(face, "".to_string(), false);
 
-            // store user face in the database   
-            let _ = member.await.add_value(authenicate.await, db);
+            // // signature on your data
+            // let auth_clone = authenicate;
+
+            // let hash = auth_clone.create_new_hash();
+
+            // // create Middleware object     
+            // let member = register_data(face, hash.to_string() , false);
+
+            // // store user face in the database   
+            // let _ = member.await.add_value(authenicate.await, db);
+
+        }        
         
-            }
-        
-        }
+    }
 
         // return Result
         Ok(())
@@ -205,8 +213,9 @@ pub mod vec_middleware{
             }
         
 
-            let joined = p.join(Path::new("avatar_unlock.png"));
             // read download directory and search for avatar.png
+            let joined = p.join(Path::new("avatar_unlock.png"));
+            
             let img : _ = imagetovecformat::open_image(&joined);
        
        
@@ -332,10 +341,10 @@ pub mod vec_middleware{
         pub async fn get_value(&mut self, client : Db) -> Option<IVec> {
 
             // allocate memory 
-            let dataresult = &client.get(self.data.as_bytes()).unwrap().unwrap();
+            let dataresult = &client.get((self.data).as_bytes()).unwrap();
 
             // otherwise return Result::<IVec>
-            Some(dataresult.clone())
+            dataresult.clone()
 
         }
 
