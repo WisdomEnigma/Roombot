@@ -5,6 +5,10 @@ use gpt_text::openai;
 use regex::Regex;
 use img2vec::vec_middleware;
 use handlebars::Handlebars;
+use std::{path::PathBuf, collections::HashMap, io::BufReader};
+use std::fs::File;
+use directories::UserDirs;
+use rodio::{Decoder,OutputStream};
 
 
 
@@ -34,6 +38,28 @@ struct ImageTemp{
 
     image : String,
 }
+
+#[derive(Serialize)]
+struct AudioSearchResults{
+
+    audioname : String,
+    isplay : bool,
+}
+
+#[derive(Serialize)]
+struct AudioSearchError{
+
+    error : String,
+}
+
+#[derive(Deserialize)]
+struct SearchPlaylist{
+
+    songname : String,
+}
+
+static mut AUDIO : Vec<HashMap<String, bool>> = Vec::new();
+
 
 
 
@@ -185,6 +211,272 @@ async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handleba
 // }
 
 
+#[get("/user/my/playlist")]
+async fn playlist() -> impl Responder{
+
+    NamedFile::open_async("./static/music.html").await
+}
+
+#[post("/user/my/playlist/{search}")]
+async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse {
+
+    let query : _ = &form.songname;
+    let audiomp3 = query.to_owned() + &".mp3";
+    let audiowav = query.to_owned() + &".wav";
+    let mut source : HashMap<String, bool> = HashMap::new();
+
+    
+
+    if let Some(dir) = UserDirs::new() {
+        
+        if let Some(file) = dir.audio_dir(){
+            
+            let mut file_ext = "".to_string();
+
+            if PathBuf::from(&file.join(audiomp3.to_owned())).exists(){
+
+                file_ext = PathBuf::from(&file.join(audiomp3)).display().to_string();
+
+                let audio = file_ext.clone();
+                
+                source.insert(file_ext, true);
+
+                set_audio(source);
+
+                let datablock = get_audio();
+
+                let object = match datablock.get_key_value(&audio){
+
+                        Some(data) => {data},
+                        None => {
+                                    panic!("Error No Content in your playlist")
+                        },
+                };
+                
+                    let mut flag_audio : bool = false;
+
+                    if object.1 != &true{
+                                flag_audio = false;
+                    }else{
+                                flag_audio = true;
+                    }
+
+                    return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+                        audioname: format!("{:?}", object.0), 
+                        isplay: flag_audio}
+                    ).unwrap());
+                
+                               
+            }else if PathBuf::from(&file.join(audiowav.to_owned())).exists(){
+
+                file_ext = PathBuf::from(&file.join(audiowav)).display().to_string();
+
+                let file = file_ext.clone();
+                source.insert(file_ext, true);
+
+                set_audio(source);
+
+                let datablock = get_audio();
+
+                let object = match datablock.get_key_value(&file){
+
+                        Some(data) => {data},
+                        None => {
+                                    panic!("Error No Content in your playlist")
+                        },
+                };
+                
+                    let mut flag_audio : bool = false;
+
+                    if object.1 != &true{
+                                flag_audio = false;
+                    }else{
+                                flag_audio = true;
+                    }
+
+                    return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+                        audioname: format!("{:?}", object.0), 
+                        isplay: flag_audio}
+                    ).unwrap());
+            
+            }else{
+
+                panic!("Format is not supported");
+            }
+
+            
+        }
+    }
+
+    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+        error : "This song not available in the content".to_string(),
+    }).unwrap())
+
+
+    
+}
+
+#[post("/user/my/playlist/{search}/play")]
+async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let audio = get_audio();
+    for i in audio.keys(){
+        
+        let file = BufReader::new(File::open(i).unwrap());
+        let clip = stream_handle.play_once(file).unwrap();
+
+        clip.set_volume(1.0);
+        clip.play();
+        clip.detach();
+        std::thread::sleep(std::time::Duration::from_secs(60*5));
+
+        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+            audioname: i.to_string(), 
+            isplay: true}
+        ).unwrap());
+    }
+
+    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+        error : "Song is already playing".to_string(),
+    }).unwrap())
+    
+}
+
+#[post("/user/my/playlist/{search}/paused")]
+async fn paused_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let audio = get_audio();
+    for i in audio.keys(){
+        
+        let file = BufReader::new(File::open(i).unwrap());
+        let clip = stream_handle.play_once(file).unwrap();
+
+        clip.set_volume(1.0);
+        clip.pause();
+        clip.detach();
+        std::thread::sleep(std::time::Duration::from_secs(60*5));
+
+        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+            audioname: i.to_string(), 
+            isplay: true}
+        ).unwrap());
+    }
+
+    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+        error : "Song is already playing".to_string(),
+    }).unwrap())
+    
+}
+
+#[post("/user/my/playlist/{search}/stop")]
+async fn stop_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let audio = get_audio();
+    for i in audio.keys(){
+        
+        let file = BufReader::new(File::open(i).unwrap());
+        let clip = stream_handle.play_once(file).unwrap();
+
+        clip.set_volume(1.0);
+        clip.stop();
+        clip.detach();
+        std::thread::sleep(std::time::Duration::from_secs(60*3));
+        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+            audioname: i.to_string(), 
+            isplay: true}
+        ).unwrap());
+    }
+
+    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+        error : "Song had stopped".to_string(),
+    }).unwrap())
+}
+
+#[post("/user/my/playlist/{search}/stepforward")]
+async fn stepforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let audio = get_audio();
+    for i in audio.keys(){
+        
+        let file = BufReader::new(File::open(i).unwrap());
+
+        let clip = stream_handle.play_once(file).unwrap();
+
+        clip.set_volume(1.0);
+        clip.skip_one();
+        clip.detach();
+        std::thread::sleep(std::time::Duration::from_secs(60*3));
+        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+            audioname: i.to_string(), 
+            isplay: true}
+        ).unwrap());
+    }
+
+    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+        error : "No Song left".to_string(),
+    }).unwrap())
+}
+
+
+
+#[post("/user/my/playlist/{search}/fastforward")]
+async fn fastforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let audio = get_audio();
+    for i in audio.keys(){
+        
+        let file = BufReader::new(File::open(i).unwrap());
+
+        let clip = stream_handle.play_once(file).unwrap();
+
+        clip.set_volume(1.0);
+        clip.set_speed(2.0);
+        clip.detach();
+        std::thread::sleep(std::time::Duration::from_secs(60*3));
+        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+            audioname: i.to_string(), 
+            isplay: true}
+        ).unwrap());
+    }
+
+    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+        error : "No Song left".to_string(),
+    }).unwrap())
+}
+
+#[post("/user/my/playlist/{search}/fastbackward")]
+async fn fastbackward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let audio = get_audio();
+    for i in audio.keys(){
+        
+        let file = BufReader::new(File::open(i).unwrap());
+
+        let clip = stream_handle.play_once(file).unwrap();
+
+        clip.set_volume(1.0);
+        clip.set_speed(0.7);
+        clip.detach();
+        std::thread::sleep(std::time::Duration::from_secs(60*3));
+        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+            audioname: i.to_string(), 
+            isplay: true}
+        ).unwrap());
+    }
+
+    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+        error : "No Song left".to_string(),
+    }).unwrap())
+}
+
+
+
 #[get("/user/history")]
 async fn history() -> impl Responder {
 
@@ -200,10 +492,11 @@ async fn invoice() -> impl Responder {
 
 #[get("/user/poetry/topics")]
 async fn add_topic() -> impl Responder{
-
     
     NamedFile::open_async("./static/poetry.html").await
 }
+
+
 
 #[post("/user/poetry/topics/{output}")]
 async fn poetry(form : web::Form<TranslateFormData>, hbr : web::Data::<Handlebars<'_>>) -> HttpResponse{
@@ -266,7 +559,6 @@ async fn poetry(form : web::Form<TranslateFormData>, hbr : web::Data::<Handlebar
 #[get("/configurations")]
 async fn configurations() -> impl Responder{
 
-    
     NamedFile::open_async("./static/interactive.html").await
 }
 
@@ -287,20 +579,29 @@ async fn configurations() -> impl Responder{
     HttpServer::new( move || {
             App::new()
             .app_data(handlebars_ref.clone())
-            .service(index)
             .service(image_utopia)
             .service(image_learning)
+            .service(avatari)
+            .service(index)
             .service(translator)
             .service(word2word)
+            .service(playlist)
+            .service(search_playlist)
+            .service(play_audio)
+            .service(stop_audio)
+            .service(stepforward_audio)
+            .service(fastforward_audio)
+            .service(fastbackward_audio)
+            .service(paused_audio)
+            .service(add_topic)
+            .service(poetry)
+            .service(history)
+            .service(invoice)
+            .service(configurations)
             // .service(register_user)
             // .service(register_face)
             // .service(login)
             // .service(login_account)
-            .service(history)
-            .service(invoice)
-            .service(avatari)
-            .service(add_topic)
-            .service(configurations)
         })
         .bind(("127.0.0.1", 8080))?
         .run()
@@ -308,3 +609,33 @@ async fn configurations() -> impl Responder{
 
 }
 
+
+
+fn set_audio(source : HashMap<String, bool>){
+
+    unsafe{
+        AUDIO.push(source);
+    }
+}
+
+
+fn get_audio() -> HashMap<String, bool> {
+
+    let mut value : HashMap<String, bool> = HashMap::new();
+    unsafe{
+        
+
+        for i in 0..AUDIO.len(){
+
+            let key = match AUDIO.get(i){
+               Some(k) => k,
+               None => panic!("Error reporting"), 
+            };
+
+            value = key.clone();
+            
+        }
+    }
+
+    value
+}

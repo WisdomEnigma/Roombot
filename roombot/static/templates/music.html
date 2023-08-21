@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+    <div class="container" style="position: relative;top: 13pc;left: 16pc;font-size: large;color: slategray;">
+        <span style="position: relative;top: 3pc;left: 4pc;color: darkslategray;font-size: larger;">
+            {{audioname}}
+        </span>
+        <form method="post" action="/user/my/playlist/{search}/play">
+            <button type="submit" class="light" style="position: relative;top: 5pc;left: -1pc;border: none;background: transparent;color: lightslategray;font-size: inherit;">
+                <i class="fa fa-play" aria-hidden="true"></i>
+            </button>
+        </form>
+        <form method="post" action="/user/my/playlist/{search}/stop">
+            <button type="submit" class="light" style="position: relative;top: 3.3pc;left: 4pc;border: none;background: transparent;color: lightslategray;font-size: inherit;">
+                <i class="fa fa-stop" aria-hidden="true"></i>
+            </button>
+        </form>
+        <form method="post" action="/user/my/playlist/{search}/stepforward">
+            <button type="submit" class="light" style="position: relative;top: 26.5px;left: 9.2pc;border: none;background: transparent;color: lightslategray;font-size: inherit;">
+                <i class="fa fa-step-forward" aria-hidden="true"></i>
+            </button>
+        </form>
+        <form method="post" action="/user/my/playlist/{search}/fastforward">
+            <button type="submit" class="light" style="position: relative;top: -0.5px;left: 13.8pc;border: none;background: transparent;color: lightslategray;font-size: inherit;">
+                <i class="fa fa-fast-forward" aria-hidden="true"></i>
+            </button>
+        </form>
+        <form method="post" action="#">
+            <button type="submit" class="light" style="position: relative;top: -27.5px;left: 18.2pc;border: none;background: transparent;color: lightslategray;font-size: inherit;">
+                <i class="fa fa-step-backward" aria-hidden="true"></i>
+            </button>
+        </form>
+        <form method="post" action="/user/my/playlist/{search}/fastbackward">
+            <button type="submit" class="light" style="position: relative;top: -53.5px;left: 22.8pc;border: none;background: transparent;color: lightslategray;font-size: inherit;">
+                <i class="fa fa-fast-backward" aria-hidden="true"></i>
+            </button>
+        </form>
+        <form method="post" action="/user/my/playlist/{search}/paused">
+            <button type="submit" class="light" style="position: relative;top: -80.5px;left: 27.8pc;border: none;background: transparent;color: lightslategray;font-size: inherit;">
+                <i class="fa fa-pause" aria-hidden="true"></i>
+            </button>
+        </form>
+    </div>
+</body>
+</html>
