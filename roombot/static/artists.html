@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+<a href="/" style="position: relative;left: 20pc;top: 3.9pc;color: darkslategray;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
+<button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #offcanvas-nav-primary" style="position: relative;top: 4pc;left: 28pc;border: none;color: darkslategray;">
+    More
+</button>
+
+<div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+
+        <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
+            <li class="uk-active"><a href="#"> Art is the way of survival ! </a></li>
+            <li class="uk-nav-header">Header</li>
+            <li class="uk-nav-divider"></li>
+            <!-- <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: play-circle"></span> New Release </a></li>
+            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: album"></span> Podcasts </a></li> -->
+        </ul>
+    </div>
+</div>
+
+<div class="uk-container" style="position: relative;top: 9pc;left: 22pc;">
+    <form action="/user/composer/newsong" method="post">
+        <div class="uk-container-expand">
+            <label for="ifile"> Add Music Cover </label>
+            <input type="file" placeholder="Add music cover" name="cover" accept="image/png, image/jpeg" style="position: relative;top: 3pc;left: -8pc;">
+            <input type="text" placeholder="Artist name length should be 10" name="artist" style="position: relative;top: 3pc;">
+        </div>
+        
+        <div class="uk-container-expand">
+            <label for="mfile" style="position: relative;top: 5pc;left: 0pc;"> Add Music </label>
+            <input type="file" placeholder="Add music" name="mfile" accept="audio/mp3, audio/wav" style="position: relative;top: 8pc;left: -5pc;">
+        </div>
+        
+        <div class="uk-container-expand">
+            <input type="datetime-local" placeholder="Release date" name="date" style="position: relative;top: 6pc;left: 24pc;width: 11pc;" title="Release-time">
+            <input type="text" placeholder="Song Genre" name="genre" style="position: relative;top: 10pc;left: -11.6pc;">
+        </div>
+        
+        <div class="uk-container-expand">
+            <input type="text" placeholder="Composer name" name="composer" style="position: relative;top: 8.45pc;left: 11.4pc;">
+            <input type="text" placeholder="Lyricst name" name="lyricst" style="position: relative;top: 8.45pc;left: 11.4pc;">
+        </div>
+        
+        <div class="uk-container-expand">
+            <input type="text" placeholder="Production Studio name" name="studio" style="position: relative;top: 11pc;left: 0.4pc;">
+            <input type="url" placeholder="Production Studio Website" name="website" style="position: relative;top: 11pc;left: 0.4pc;">
+            <input type="text" placeholder="Brand endorsment" name="brand" style="position: relative;top: 11pc;left: 0.4pc;">
+        </div>
+        
+        <div class="uk-container-expand">
+            <input type="radio" name="royalty" style="position: relative;top: 13pc;left: 32.4pc;"> 
+            <span style="position: relative;top: 13pc;left: -1pc;"> Do you accept royalty in crypto? </span>
+        </div>
+
+        <div class="uk-container-expand">
+            <input type="radio" name="ltbtc" style="position: relative;top: 15pc;left: 32pc;"> 
+            <span style="position: relative;top: 15pc;left: -1pc;"> Do you have lighting-node address? </span>
+            <input type="text" placeholder="redchillies@getalby.com (lighting-node address should be 14 before @)" name="lightnode" style="position: relative;top: 18.45pc;left: -0.6pc;">
+        </div>
+
+        <div class="uk-container-expand">
+            <input type="radio" name="work" style="position: relative;top: 342px;left: 32pc;"> 
+            <span style="position: relative;top: 20pc;left: -1pc;"> Do you agree on your work is one of my best creative innovation and earn decent income from work used as digital assets? </span>
+        </div>
+
+        <div class="uk-container-expand">
+            <input type="radio" name="future" style="position: relative;top: 392px;left: 32pc;"> 
+            <span style="position: relative;top: 23pc;left: -1pc;"> Do you agree on we will used your vocal as test data in future.To ensure that your vocal keep <br> protect from deep vocal fake attack ? </span>
+            <a href="https://www.protocol.com/enterprise/deepfake-voice-cyberattack-ai-audio" style="position: relative;top: 400px;color: black;">
+                Deep Voice Cyber attack
+            </a>
+        </div>
+        <div class="uk-container-expand">
+            <input type="radio" name="ownership" style="position: relative;top: 550px;left: 20pc;"> 
+            <span style="position: relative;top: 26pc;left: -1pc;"> Do you agree on artist will pay 40% profit for acquire royalty on every song. Every year +10% increase in profit. Recording business <br> should patent any creative innvovation of the artist. Artist used lighting-node to make any transaction. Production Studio will <br> pay 40% profit, if artist will not paid.
+            Song will availbale for users , after the transaction from  artist or production studio will be made. <br> Company will collect 270$ for 1000 songs. Artist will receive (270 * number of downloads per year) - 40% after an <br> year + royalty ownership which is generate from digial assets. Artist will pay 5000$ per consultant service. 
+            </span>
+            <input type="email" name="email" placeholder="Enter your Company email address? email address should be 26" style="position: relative;top: 488px;left: -36pc;width: 20pc;">
+        </div>
+        <button type="submit" style="left: 21pc;position: relative;top: 31pc;border: none;background: transparent;">
+            <i class="fa fa-check" aria-hidden="true"></i>
+        </button>
+    </form>
+</div>
+
+
+</body>
+</html>

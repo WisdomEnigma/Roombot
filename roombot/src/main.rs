@@ -5,11 +5,13 @@ use gpt_text::openai;
 use regex::Regex;
 use img2vec::vec_middleware;
 use handlebars::Handlebars;
+use core::panic;
 use std::{path::PathBuf, collections::HashMap, io::BufReader};
 use std::fs::File;
 use directories::UserDirs;
-use rodio::{Decoder,OutputStream};
-
+use rodio::OutputStream;
+use actix_multipart::Multipart;
+use futures_util::StreamExt;
 
 
 #[derive(Deserialize)]
@@ -57,6 +59,8 @@ struct SearchPlaylist{
 
     songname : String,
 }
+
+
 
 static mut AUDIO : Vec<HashMap<String, bool>> = Vec::new();
 
@@ -476,6 +480,142 @@ async fn fastbackward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 }
 
 
+#[get("/user/composer")]
+async fn artist() -> impl Responder{
+
+    NamedFile::open_async("./static/artists.html").await
+}
+
+
+#[post("/user/composer/newsong")]
+async fn newsong_record(hbr : web::Data<Handlebars<'_>>, mut payload : web::Payload) -> impl Responder{
+    
+    
+
+        let load = match payload.next().await{
+            Some(data) => data,
+            None => panic!("Error report"),
+        };
+
+        let res = match load{
+            Ok(data) => data,
+            Err(err) => panic!("Error report {:?}", err),
+        };
+
+
+        let res_value = match std::str::from_utf8(&res){
+            Ok(value) => value,
+            Err(err) => panic!("{:?}", err),
+        };
+
+        let cover_img = match res_value.get(5..36){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let artists = match res_value.get(44..55){
+
+            Some(req) => req.replace("+", " "),
+            None => panic!("Error report"),
+        };
+
+        let music_file = match res_value.get(62..80){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let date = match res_value.get(88..99){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let genre = match res_value.get(113..123){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let compose = match res_value.get(133..140){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let lyrics = match res_value.get(149..158){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let studio = match res_value.get(164..171){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let website = match res_value.get(180..214){
+
+            Some(req) => req.replace("%3A%2F%2F","://"),
+            None => panic!("Error report"),
+        };
+
+        let endrosment = match res_value.get(221..223){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let royalty = match res_value.get(232..234){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let lightnode = match res_value.get(241..243){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let lightnode_add = match res_value.get(254..282){
+
+            Some(req) => req.replace("%40", "@"),
+            None => panic!("Error report"),
+        };
+
+
+        let work = match res_value.get(288..290){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };  
+
+        let future = match res_value.get(290..292){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        let ownership = match res_value.get(298..300){
+
+            Some(req) => req,
+            None => panic!("Error report"),
+        };
+
+        
+        let email = match res_value.get(320..){
+
+            Some(req) => req.replace("%40", "@"),
+            None => panic!("Error report"),
+        };
+
+        format!("email {:?}, {:?}", email,  res_value.get(..).to_owned())
+    
+}
+
 
 #[get("/user/history")]
 async fn history() -> impl Responder {
@@ -593,6 +733,8 @@ async fn configurations() -> impl Responder{
             .service(fastforward_audio)
             .service(fastbackward_audio)
             .service(paused_audio)
+            .service(artist)
+            .service(newsong_record)
             .service(add_topic)
             .service(poetry)
             .service(history)
