@@ -18,8 +18,7 @@ pub mod ipinata{
 
     /// Distibuted Content have following requirements 
     /// File : which file you want to upload ; where it locate (relative path)
-    /// Content_type : which type of content [json, xml, text]
-    /// PriceperWork : how much cost of your work. [1Btc]
+    /// PriceperWork : how much cost of your work.
     /// cidversion : [0, 1]
     /// Delicated Network :  [Special , ROUTINE]
     pub struct DistributedContent<'a>{
@@ -71,7 +70,7 @@ pub mod ipinata{
     }
 
 
-    // create payload return request payload. However this function is public 
+    /// create payload return request payload. However this function is public 
     pub fn create_payload<'a>() -> &'a str{
 
         const PAYLOAD : &'static str = "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"cidVersion\"\r\n\r\n0\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"wrapWithDirectory\"\r\n\r\nfalse\r\n-----011000010111000001101001--\r\n\r\n";
@@ -80,12 +79,13 @@ pub mod ipinata{
     }
 
 
-    /// Distributed Content provide definition of upload and download on pinata data.
-    /// By definition upload is an asynchronous function and require distributed content object. Initally file must be 
-    /// exist , otherwise throw error. Read image file and create new form that will submitted back to 
-    /// pinata. Payload attached with request. Check whether response return success , otherwise throw back error.    
+    /// Distributed Content provide definition of upload and download on pinata data.    
     impl <'a> DistributedContent<'a>{
 
+
+        /// By definition upload is an asynchronous function and require distributed content object. Initally file must be 
+    /// exist , otherwise throw error. Read image file and create new form that will submitted back to 
+    /// pinata. Payload attached with request. Check whether response return success , otherwise throw back error.
         pub async fn upload_images(&mut self) -> Result<StatusCode, Box<dyn std::error::Error>> {
 
             let mut file = match File::open(self.file){

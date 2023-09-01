@@ -3,6 +3,16 @@ name = "pinata_ipfs"
 version = "0.1.0"
 edition = "2021"
 
+description = "Pinata peer to peer distributed storage where images are stored in the form of cdr. "
+keyword = "peer-peer, distributed storage, blob, cdr, pinata"
+repository = "https://github.com/WisdomEnigma/Roombot/"
+license = "MIT"
+keywords = ["peer-peer", "storage", "ipfs", "cdr"]
+license-file = "LICENSE"
+exclude = ["target"]
+
+publish = true
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
