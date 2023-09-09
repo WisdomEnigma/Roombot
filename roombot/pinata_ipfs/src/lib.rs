@@ -1,63 +1,35 @@
-
-
-/// IPINTATA is a wrapper module allow to upload and download content from Pinata IPFS. 
-/// IPINATA contain Distributed Content object which is futhermore depend on Gateway.
 pub mod ipinata{
 
     use std::path::Path;
-    use reqwest::multipart::{Part,Form};
-    use reqwest::Client;
-    use std::fs::File;
-    use std::io::Read;
-    use reqwest::StatusCode;
-    use reqwest::header::HeaderMap;
+    use pinata_sdk::{PinataApi,PinByFile, PinnedObject, ApiError};
+    
+    
+    pub struct Blob<'a>{
 
-    /// Pinata url used for upload & download assets from pinata
-
-    const PINATA_URL : &'static str = "https://api.pinata.cloud/pinning/pinFileToIPFS";
-
-    /// Distibuted Content have following requirements 
-    /// File : which file you want to upload ; where it locate (relative path)
-    /// PriceperWork : how much cost of your work.
-    /// cidversion : [0, 1]
-    /// Delicated Network :  [Special , ROUTINE]
-    pub struct DistributedContent<'a>{
-
-        pub file : &'a Path,
-        pub priceperwork : f64,
-        pub cidversion : i32,
-        pub delicated_network : Gateway,
-        pub file_name : &'a str,
-
-        apikey : &'a str,
-        secret : &'a str,
-        jwt : &'a str,  
+        file : &'a Path,
+        api : &'a str,
+        token : &'a str,
+        status : FileStatus
     }
 
 
-    /// Gateway ensure Routine for all people while Special for secure and special network
-    pub enum Gateway{
-        SPECIAL_PURPOSE,
-        ROUTLINE_DATA,
+    pub enum FileStatus{
+        Pin,
+        Unpin,
     }
 
-    /// new a public function which create distributed content. new function require string literals. 
-    pub fn new<'a>(file : &'a Path, price : f64, network : Gateway, file_name : &'a str) -> DistributedContent<'a>{
 
-        let (primary, partial, forgein) = create_credentials();
+    pub fn new_bolb_object<'a>(file : &'a Path, operation : FileStatus) -> Blob<'a>{
 
-        DistributedContent{
+        let (key, pass, _) = create_credentials();
+        
+        Blob{
             file : file,
-            priceperwork : price,
-            cidversion : 0,
-            delicated_network : network,
-            file_name,
-
-            apikey : &primary,
-            secret : &partial,
-            jwt : &forgein,
+            api : key,
+            token : pass,
+            status : operation
         }
-    }
+    }    
 
 
     // create credentials is a private function which only accessible within module. This function return string literals as arguments.
@@ -70,60 +42,19 @@ pub mod ipinata{
     }
 
 
-    /// create payload return request payload. However this function is public 
-    pub fn create_payload<'a>() -> &'a str{
+    impl <'a> Blob<'a>{
 
-        const PAYLOAD : &'static str = "-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"cidVersion\"\r\n\r\n0\r\n-----011000010111000001101001\r\nContent-Disposition: form-data; name=\"wrapWithDirectory\"\r\n\r\nfalse\r\n-----011000010111000001101001--\r\n\r\n";
+        pub fn pinta_client(&mut self) -> PinataApi {
 
-        PAYLOAD
-    }
-
-
-    /// Distributed Content provide definition of upload and download on pinata data.    
-    impl <'a> DistributedContent<'a>{
-
-
-        /// By definition upload is an asynchronous function and require distributed content object. Initally file must be 
-    /// exist , otherwise throw error. Read image file and create new form that will submitted back to 
-    /// pinata. Payload attached with request. Check whether response return success , otherwise throw back error.
-        pub async fn upload_images(&mut self) -> Result<StatusCode, Box<dyn std::error::Error>> {
-
-            let mut file = match File::open(self.file){
-
-                Ok(file) => file,
-                Err(e) => panic!("Error {:?}", e),
-            };
-
-            let mut header_map = HeaderMap::new();
-            header_map.insert("accept", "application/json".parse().unwrap());
-            header_map.insert("content-type", "multipart/form-data; boundary=---011000010111000001101001".parse().unwrap());
-
-            let mut image_data = Vec::new();
-
-            let _ = file.read_to_end(&mut image_data);
-            let client = Client::new();
-            let cid = "{".to_owned() +"cidversion : " + "0}";
-
-            let form = Form::new()
-                                .text("pinata_api_key", self.apikey.to_string())
-                                .text("pinata_secret_key", self.secret.to_string())
-                                .text("pinataOptions", cid)
-                                .part("image", Part::bytes(image_data));
-
-            let response = client.post(PINATA_URL).headers(header_map).multipart(form).send().await;
-
-            let response_body = match response{
-                Ok(response) => response,
-                Err(e) => panic!("{:?}", e), 
-            };
-            
-            if !response_body.status().is_success(){
-                panic!("Error : process fail while upload data {:?}", StatusCode::NOT_FOUND);
-            }
-
-            Ok(StatusCode::OK)
+           PinataApi::new(self.api, self.token).unwrap()
         }
 
+        pub async fn upload_content <'b>(&mut self, client : PinataApi, rpath : String) -> Result<PinnedObject,ApiError> {
+
+            client.pin_file(PinByFile::new(rpath)).await
+        }
+        
+                
     }
 
 }

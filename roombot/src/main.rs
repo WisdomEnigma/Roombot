@@ -3,15 +3,17 @@ use actix_files::NamedFile;
 use serde::{Deserialize, Serialize};
 use gpt_text::openai;
 use regex::Regex;
-use img2vec::vec_middleware;
+// use img2vec::vec_middleware;
 use handlebars::Handlebars;
 use core::panic;
-use std::{path::PathBuf, collections::HashMap, io::BufReader};
-use std::fs::File;
+use std::path::Path;
+use std::{path::PathBuf, collections::HashMap, io::BufReader, fs::File};
+use std::fs;
 use directories::UserDirs;
 use rodio::OutputStream;
-use actix_multipart::Multipart;
 use futures_util::StreamExt;
+use pinata_ipfs::ipinata;
+use music_stream::music;
 
 
 #[derive(Deserialize)]
@@ -61,6 +63,31 @@ struct SearchPlaylist{
 }
 
 
+#[derive(Deserialize)]
+
+struct MusicStream{
+    cover : String,
+    artist : String,
+    mfile : String,
+    date : String,
+    genre : String,
+    composer: String,
+
+    lyricst : String,
+    studio : String,
+    website : String,
+    brand : String,
+    royalty : String,
+    ltbtc : String,
+
+    lightnode : String,
+    work : String,
+    future : String,
+    ownership : String,
+    email : String,
+}
+
+// static variables 
 
 static mut AUDIO : Vec<HashMap<String, bool>> = Vec::new();
 
@@ -486,133 +513,135 @@ async fn artist() -> impl Responder{
     NamedFile::open_async("./static/artists.html").await
 }
 
+// mut payload : web::Payload
 
 #[post("/user/composer/newsong")]
-async fn newsong_record(hbr : web::Data<Handlebars<'_>>, mut payload : web::Payload) -> impl Responder{
+async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicStream>) -> impl Responder{
     
     
+    
 
-        let load = match payload.next().await{
-            Some(data) => data,
-            None => panic!("Error report"),
-        };
+        // let load = match payload.next().await{
+        //     Some(data) => data,
+        //     None => panic!("Error report"),
+        // };
 
-        let res = match load{
-            Ok(data) => data,
-            Err(err) => panic!("Error report {:?}", err),
-        };
-
-
-        let res_value = match std::str::from_utf8(&res){
-            Ok(value) => value,
-            Err(err) => panic!("{:?}", err),
-        };
-
-        let cover_img = match res_value.get(5..36){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let artists = match res_value.get(44..55){
-
-            Some(req) => req.replace("+", " "),
-            None => panic!("Error report"),
-        };
-
-        let music_file = match res_value.get(62..80){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let date = match res_value.get(88..99){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let genre = match res_value.get(113..123){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let compose = match res_value.get(133..140){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let lyrics = match res_value.get(149..158){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let studio = match res_value.get(164..171){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let website = match res_value.get(180..214){
-
-            Some(req) => req.replace("%3A%2F%2F","://"),
-            None => panic!("Error report"),
-        };
-
-        let endrosment = match res_value.get(221..223){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let royalty = match res_value.get(232..234){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let lightnode = match res_value.get(241..243){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let lightnode_add = match res_value.get(254..282){
-
-            Some(req) => req.replace("%40", "@"),
-            None => panic!("Error report"),
-        };
+        // let res = match load{
+        //     Ok(data) => data,
+        //     Err(err) => panic!("Error report {:?}", err),
+        // };
 
 
-        let work = match res_value.get(288..290){
+        // let res_value = match std::str::from_utf8(&res){
+        //     Ok(value) => value,
+        //     Err(err) => panic!("{:?}", err),
+        // };
 
-            Some(req) => req,
-            None => panic!("Error report"),
-        };  
+        let cover_img = &form.cover;
 
-        let future = match res_value.get(290..292){
+        let artists = &form.artist;
 
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
-
-        let ownership = match res_value.get(298..300){
-
-            Some(req) => req,
-            None => panic!("Error report"),
-        };
+        let music_file = &form.mfile;
 
         
-        let email = match res_value.get(320..){
 
-            Some(req) => req.replace("%40", "@"),
-            None => panic!("Error report"),
-        };
+        let date = &form.date;
 
-        format!("email {:?}, {:?}", email,  res_value.get(..).to_owned())
+        let genre = &form.genre;
+
+        let compose = &form.composer;
+
+        let lyrics = &form.lyricst;
+
+        let studio = &form.studio; 
+
+        let website = &form.website;
+
+        let endrosment = &form.brand;
+
+        let royalty = &form.royalty; 
+
+        let lightnode = &form.ltbtc;
+
+        let lightnode_add = &form.lightnode;
+
+
+        let work = &form.work;  
+
+        let future = &form.future;
+
+        let ownership = &form.ownership; 
+
+        
+        let email = &form.email; 
+
+
+        if let Some(down_dir) = UserDirs::new(){
+
+            if let Some(path) = down_dir.download_dir(){
+                
+                if !path.join(PathBuf::from(cover_img.to_owned())).exists(){
+
+                    panic!("Error this file may be moved");
+                }
+
+                let mut art : Vec::<String> = Vec::<_>::new();
+                art.push(artists.to_string());
+
+                let mut earn : bool = false;
+                let mut node : bool = false;
+                let mut asset : bool = false;
+                let mut fut : bool = false;
+                let mut owner : bool = false;
+                if royalty == "on" && lightnode == "on" && work == "on" && future == "on" && ownership == "on"{
+                    earn = true;
+                    node = true;
+                    asset = true;
+                    fut = true;
+                    owner = true;
+                }
+                
+                let mut record = music::new_beat(music_file.to_string(), 
+                art,cover_img.to_string(), music::PintaStatus::Pin, 
+                lightnode_add.to_string(), date.to_string(),lyrics.to_string(),
+                studio.to_string(),genre.to_string(),compose.to_string(),
+                website.to_string(), endrosment.to_string(),earn,node,asset,fut,owner,email.to_string());
+                
+                let client = match record.create_mongo_connection().await {
+
+                    Ok(list) => list,
+                    Err(e) => panic!("{:?}", e),
+                };
+
+                let db = client.database(music::MUSIC_RECORD);
+
+                let collection = match record.create_collection(db).await{
+                    Ok(collect) => collect,
+                    Err(e) => panic!("{:?}", e),
+                };
+
+                let dpath = path.join(cover_img.to_owned());
+                
+                let mut blob = ipinata::new_bolb_object(&dpath, ipinata::FileStatus::Pin);
+                let pin_client = blob.pinta_client();
+
+                let auth = pin_client.test_authentication().await;
+                let content = blob.upload_content(pin_client, path.join(cover_img.to_owned()).display().to_string()).await;
+
+                let mut cid : String = "".to_string(); 
+                if let Ok(object) = content {
+                    cid = object.ipfs_hash;
+                }
+                
+                println!("Content Indentifier {:?}", cid);
+                return format!("Database created {:?}, pinata connection {:?}", collection, auth);
+                
+            }
+
+        }
+
+
+        format!("Error report")
     
 }
 
@@ -781,3 +810,5 @@ fn get_audio() -> HashMap<String, bool> {
 
     value
 }
+
+
