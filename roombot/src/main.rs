@@ -3,17 +3,18 @@ use actix_files::NamedFile;
 use serde::{Deserialize, Serialize};
 use gpt_text::openai;
 use regex::Regex;
+use auth::Gatekeeper;
 // use img2vec::vec_middleware;
 use handlebars::Handlebars;
 use core::panic;
+use futures_util::stream::TryStreamExt;
 use std::path::Path;
 use std::{path::PathBuf, collections::HashMap, io::BufReader, fs::File};
-use std::fs;
 use directories::UserDirs;
 use rodio::OutputStream;
-use futures_util::StreamExt;
 use pinata_ipfs::ipinata;
 use music_stream::music;
+
 
 
 #[derive(Deserialize)]
@@ -64,7 +65,6 @@ struct SearchPlaylist{
 
 
 #[derive(Deserialize)]
-
 struct MusicStream{
     cover : String,
     artist : String,
@@ -85,6 +85,14 @@ struct MusicStream{
     future : String,
     ownership : String,
     email : String,
+}
+
+#[derive(Deserialize, Debug)]
+
+struct Authenicate{
+    username : String, 
+    email : String
+
 }
 
 // static variables 
@@ -133,12 +141,7 @@ async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handleba
     let input : _ =  &form.query;
     let apikey : _ = &form.call; 
 
-    let _ = vec!["eval", "echo", "system", "exec", "os", "kill", "script", "wget", "curl", 
-                        "sudo", "cd", "chmod", "rm", "ls","cat", "rmdir", "grep", "tail", 
-                        "mv", "chdir", "chown", "passwd", "unmask", "pwd", "mkdir", "clear", "cp",
-                        "head", "whoami", "copy", "env"];
-
-    let _ = vec!["nude", "porn", "xxx","sexy", "sex", "sexual"];
+    
 
     let lines = input.lines();
     let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
@@ -645,6 +648,34 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
     
 }
 
+#[get("/user/sociallink")]
+async fn sociallink() -> impl Responder {
+
+    NamedFile::open_async("./static/authlink.html").await
+}
+
+#[post("/user/sociallink/profile")]
+async fn profile(form : web::Form<Authenicate>, hbr : web::Data<Handlebars<'_>> ) -> impl Responder{
+
+    let username = &form.username;
+    let email = &form.email;
+
+   let auth_code = Gatekeeper::active_hash(&Gatekeeper::new_profile(email.to_string(), username.to_string()));
+
+   let mut auth = Gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string());
+
+    let client = match Gatekeeper::mongodb_client().await {
+
+        Ok(list) => list,
+        Err(e) => panic!("{:?}", e),
+    };
+
+    let db = client.database(music::MUSIC_RECORD);
+    let _ = auth.create_record(db).await;
+    
+    format!("Find User ")
+
+}
 
 #[get("/user/history")]
 async fn history() -> impl Responder {
@@ -673,12 +704,7 @@ async fn poetry(form : web::Form<TranslateFormData>, hbr : web::Data::<Handlebar
     let input : _ =  &form.query;
     let apikey : _ = &form.call; 
 
-    let _ = vec!["eval", "echo", "system", "exec", "os", "kill", "script", "wget", "curl", 
-                        "sudo", "cd", "chmod", "rm", "ls","cat", "rmdir", "grep", "tail", 
-                        "mv", "chdir", "chown", "passwd", "unmask", "pwd", "mkdir", "clear", "cp",
-                        "head", "whoami", "copy", "env"];
-
-    let _ = vec!["nude", "porn", "xxx","sexy", "sex", "sexual"];
+    
 
     let lines = input.lines();
     let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
@@ -769,6 +795,8 @@ async fn configurations() -> impl Responder{
             .service(history)
             .service(invoice)
             .service(configurations)
+            .service(sociallink)
+            .service(profile)
             // .service(register_user)
             // .service(register_face)
             // .service(login)
@@ -810,5 +838,6 @@ fn get_audio() -> HashMap<String, bool> {
 
     value
 }
+
 
 

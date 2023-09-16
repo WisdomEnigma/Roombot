@@ -11,7 +11,6 @@ actix-files = "0.6.2"
 actix-multipart = "0.6.0"
 actix-web = "4.3.1"
 directories = "5.0.1"
-futures-util = "0.3.28"
 gpt_text = "0.1.6"
 handlebars = {version = "4.3.7", features = ["dir_source"]}
 # img2vec = "0.2.15"
@@ -21,3 +20,7 @@ regex = "1.9.1"
 reqwest = "0.11.18"
 rodio = "0.17.1"
 serde = { version = "1.0.180" , features = ["derive"] }
+auth = {path = "auth"}
+futures-util = "0.3.28"
+
+

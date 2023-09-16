@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+<a href="/" style="position: relative;left: 20pc;top: 3.9pc;color: darkslategray;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
+<button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #offcanvas-nav-primary" style="position: relative;top: 4pc;left: 28pc;border: none;color: darkslategray;">
+    More
+</button>
+
+<div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+
+        <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
+            <li class="uk-active"><a href="#"> Have you notice we both have deep connection? </a></li>
+            <li class="uk-nav-header">Header</li>
+            <li class="uk-nav-divider"></li>
+            <li><a href="/"><span class="uk-margin-small-right" uk-icon="icon: home"></span> Home </a></li>
+            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: instagram"></span> Instagram </a></li>
+            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: facebook"></span> Facebook </a></li>
+        </ul>
+    </div>
+</div>
+<div class="feature_0" style="position: relative;top: 14pc;left: 25pc;">
+    <form method="post" action="/user/sociallink/profile">
+    <input type="text" placeholder="Enter your username" name="username" style="width: 20pc;height: 2pc;border: none;"/>
+    <input type="email" placeholder="Enter email address" name="email" style="width: 20pc;height: 2pc;border: none;">
+    <button type="submit" style="position: relative;top: 4pc;left:-28pc;border: none;background: transparent;color: darkslategray;font-size: large;">
+        <i class="fa fa-check" aria-hidden="true"></i>
+    </button>
+    </form>
+</div>
+
+
+</body>
+</html>
