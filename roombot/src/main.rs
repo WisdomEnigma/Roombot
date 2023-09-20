@@ -14,6 +14,7 @@ use directories::UserDirs;
 use rodio::OutputStream;
 use pinata_ipfs::ipinata;
 use music_stream::music;
+use music_stream::music_blob;
 
 
 
@@ -604,8 +605,8 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                     owner = true;
                 }
                 
-                let mut record = music::new_beat(music_file.to_string(), 
-                art,cover_img.to_string(), music::PintaStatus::Pin, 
+                let mut record = music::new_beat(music_file.to_owned().to_string(), 
+                art,cover_img.to_string(), 
                 lightnode_add.to_string(), date.to_string(),lyrics.to_string(),
                 studio.to_string(),genre.to_string(),compose.to_string(),
                 website.to_string(), endrosment.to_string(),earn,node,asset,fut,owner,email.to_string());
@@ -635,6 +636,16 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                 if let Ok(object) = content {
                     cid = object.ipfs_hash;
                 }
+
+                // let mut uplink_ob = uplink_config::new_uplink();
+                let connect = music_blob::connect_with_uplink();
+
+                if connect.error != std::ptr::null_mut(){
+
+                    panic!("Error connection with uplink {:?}", connect.error);
+                }
+
+                
                 
                 println!("Content Indentifier {:?}", cid);
                 return format!("Database created {:?}, pinata connection {:?}", collection, auth);
