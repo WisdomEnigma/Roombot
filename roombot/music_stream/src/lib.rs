@@ -7,7 +7,8 @@ pub mod music{
 
 
     pub static MUSIC_RECORD : & str = "Artists_Record";
-    static SongDB : &str = "songs";
+    static Song_DB : &str = "songs";
+    
 
     
     #[derive(Debug,Deserialize, Serialize, Clone)]
@@ -31,6 +32,7 @@ pub mod music{
         research : bool,
         ownership : bool,
         email : String,
+        session : String,
     }
     
     pub enum PintaStatus{
@@ -40,7 +42,7 @@ pub mod music{
     
     
     
-    pub fn new_beat(song : String, oartist : Vec::<String>, img : String, addr : String , date : String, lyrics_artist : String, studio : String, genre : String, compose : String, website: String, collobarate : String, royalty : bool, lightnode : bool, asset : bool, research : bool, ownership : bool, email : String) -> MusicRecord{
+    pub fn new_beat(song : String, oartist : Vec::<String>, img : String, addr : String , date : String, lyrics_artist : String, studio : String, genre : String, compose : String, website: String, collobarate : String, royalty : bool, lightnode : bool, asset : bool, research : bool, ownership : bool, email : String, id : String) -> MusicRecord{
     
         MusicRecord { 
             song_name: song, 
@@ -60,7 +62,8 @@ pub mod music{
             asset: asset, 
             research: research, 
             ownership: ownership,
-            email: email 
+            email: email,
+            session : id, 
         }
     }
 
@@ -79,9 +82,9 @@ pub mod music{
 
         pub async fn create_collection(&mut self, db : mongodb::Database) -> std::io::Result<()> {
 
-          let collects = db.collection::<MusicRecord>(SongDB);
+          let collects = db.collection::<MusicRecord>(Song_DB);
           
-          let result = self.find_with_song(self.song_name.to_string(), db).await;
+          let result = self.find_with_song(db).await;
           
           if !self.matches(result){
 
@@ -105,7 +108,7 @@ pub mod music{
                     research : self.research,
                     ownership : self.ownership, 
                     email : self.email.to_string(),
-                    
+                    session : self.session.to_string(),
                 },
                 
             ];
@@ -117,12 +120,12 @@ pub mod music{
           Ok(())
         }
 
-        pub async fn find_with_song(&mut self, value : String, database : mongodb::Database) -> String {
+        pub async fn find_with_song(&mut self, database : mongodb::Database) -> String {
 
             let mut query : String = "".to_string(); 
-            let collection = database.collection::<MusicRecord>(SongDB);
+            let collection = database.collection::<MusicRecord>(Song_DB);
             
-            let filter = doc!{ "song_name" : value.to_owned()};
+            let filter = doc!{ "song_name" : self.song_name.to_owned()};
 
             let find_opts = FindOptions::builder().sort(doc!{ "song_name" : 1}).build();
             let mut cursor = collection.find(filter, find_opts).await.unwrap();
@@ -134,7 +137,7 @@ pub mod music{
                     panic!("Unforuente query must be empty ");
                 }
 
-                if record.song_name != value{
+                if record.song_name != self.song_name{
 
                     panic!("No Data found ");
                 }
@@ -147,7 +150,7 @@ pub mod music{
 
         fn matches(&mut self, beat_2 : String) -> bool {
 
-            println!("beat_1 = {:?}, beat_2 = {:?}", self.song_name.to_owned(), beat_2);
+            
             if self.song_name.to_owned() != beat_2.to_owned(){ 
                 return false; 
             }
@@ -171,28 +174,104 @@ pub mod music{
     
 }
 
+pub mod Pinata_Content{
+    use std::panic;
 
-pub mod music_blob{
+    use mongodb::{Client, options::{ClientOptions,FindOptions}, bson::Document, bson::doc, results::{InsertOneResult, InsertManyResult}, Database};
+    use futures_util::{stream::TryStreamExt, future::ok};
+    use serde::{Deserialize, Serialize};
 
+    static COLLECTION : &str = "playlist";
 
-    use uplink_sys;
-    use uplink_sys::UplinkAccessResult;
-    use std::ffi::CString;
-    
-        pub fn connect_with_uplink() -> UplinkAccessResult {
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct Content{
 
-            let satellite_address : CString = CString::new("12L9ZFwhzVpuEKMUNUqkaTLGzwY9G24tbiigLiXpmZWKwmcNDDs@eu1.storj.io:7777").expect("Address might be wrong");
-            let apikey : CString  = CString::new("122VG4fJ9LA8BUQN55eQyfj5944VDam9Anbc95euDv1VfEL1QDkCJskmcfmABvBFZS4v5zGpSF8Ch44SynQoeRRh7WWwYYDnzdxPX1XoWv2kVsfhm8c3HMja59QjryphLiQLYnpP").expect("api key parse");
-            let passphrase : CString = CString::new("word pluck pool device range current clinic blast submit approve fluid arrange").expect("passphrase expire");
-            unsafe{
-
-                uplink_sys::uplink_request_access_with_passphrase(
-                    satellite_address.as_ptr() as *mut uplink_sys::uplink_const_char,
-                    apikey.as_ptr() as *mut uplink_sys::uplink_const_char,
-                    passphrase.as_ptr() as *mut uplink_sys::uplink_const_char,
-                )
-
-            }
-             
+        session : String,
+        cid_icontent : String, // images
+        cid_mcontent : String, // music
     }
+
+    impl Content{
+
+        pub fn new(id : String, imghash : String, audiohash : String) -> Self{
+            Self { session: id.to_string(), cid_icontent: imghash.to_string(), cid_mcontent: audiohash.to_string() }
+        }
+
+        pub async fn music_collection(&mut self, db : Database) -> std::io::Result<()>{
+
+            let collect = db.collection::<Content>(COLLECTION);
+
+            let query = match self.find_playlist_with_session(db).await{
+
+                Ok(query) => query,
+                Err(e) => panic!("{:?}", e),
+            };
+
+            
+
+            if self.session != query.session{
+
+                let doc = vec![
+                    Content{
+
+                        session : self.session.to_string(),
+                        cid_icontent : self.cid_icontent.to_string(),
+                        cid_mcontent : self.cid_mcontent.to_string(),
+                    },
+                ];
+
+                let _ = collect.insert_many(doc, None).await;
+            }
+            
+            
+            Ok(())            
+        }
+
+    
+        async fn find_playlist_with_session(&mut self, db : Database) -> std::io::Result<Content>{
+
+        
+            let collect = db.collection::<Content>(COLLECTION);
+
+            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string() };
+
+            
+            let filter = doc!{ "session" : self.session.to_owned()};
+            let find_opts = FindOptions::builder().sort(doc!{ "session" : 1}).build();
+            let mut cursor = collect.find(filter, find_opts).await.unwrap();
+
+            
+            while let Some(record) = cursor.try_next().await.unwrap(){
+
+                
+                if record.session == " "{
+                    panic!("Unforuente query must be empty ");
+                }
+
+                playlist = record;        
+            }
+
+            Ok(playlist)
+        }
+
+        pub async fn get_playlist(&mut self, db : Database) -> Content{
+
+            let mut playlist = Content{
+                session : ("".to_string()), 
+                cid_icontent : ("".to_string()),
+                cid_mcontent : ("".to_string()),
+            };
+
+            
+            // let collect = db.collection::<Content>(COLLECTION);
+            let query = self.find_playlist_with_session(db).await;
+            if let Ok(content) = query{
+
+                playlist = content;
+            }
+
+            playlist 
+        }
+    }
+
 }

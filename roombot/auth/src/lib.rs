@@ -52,7 +52,7 @@ pub mod Gatekeeper{
         client
     }
 
-    #[derive(Debug,Deserialize, Serialize)]
+    #[derive(Debug,Deserialize, Serialize,Clone)]
     pub struct Authenicate{
 
         pub username : String,

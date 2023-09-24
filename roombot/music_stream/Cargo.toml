@@ -9,6 +9,6 @@ edition = "2021"
 mongodb = {version = "2.6.1", default-features = false, features = ["async-std-runtime"]}
 futures-util = "0.3.28"
 serde = { version = "1.0.188", features = ["derive"]}
-uplink-sys = "0.5.2"
+
 
 

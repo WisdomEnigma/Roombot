@@ -13,8 +13,10 @@ use std::{path::PathBuf, collections::HashMap, io::BufReader, fs::File};
 use directories::UserDirs;
 use rodio::OutputStream;
 use pinata_ipfs::ipinata;
-use music_stream::music;
-use music_stream::music_blob;
+use music_stream::{music, Pinata_Content};
+
+
+static mut ME : u64 = 0;
 
 
 
@@ -38,7 +40,6 @@ struct Authorize{
     compress : String,
 }
 
-
 #[derive(Serialize)]
 struct ImageTemp{
 
@@ -53,9 +54,20 @@ struct AudioSearchResults{
 }
 
 #[derive(Serialize)]
-struct AudioSearchError{
+struct RequestError{
 
     error : String,
+}
+
+
+#[derive(Serialize)]
+
+struct Nftmint{
+
+    session : String,
+    song : String,
+    cid_image : String,
+    cid_music : String,
 }
 
 #[derive(Deserialize)]
@@ -63,6 +75,7 @@ struct SearchPlaylist{
 
     songname : String,
 }
+
 
 
 #[derive(Deserialize)]
@@ -95,6 +108,11 @@ struct Authenicate{
     email : String
 
 }
+
+
+#[derive(Serialize)]
+
+struct homepage;
 
 // static variables 
 
@@ -343,7 +361,7 @@ async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handl
         }
     }
 
-    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
         error : "This song not available in the content".to_string(),
     }).unwrap())
 
@@ -372,7 +390,7 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         ).unwrap());
     }
 
-    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
         error : "Song is already playing".to_string(),
     }).unwrap())
     
@@ -399,7 +417,7 @@ async fn paused_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         ).unwrap());
     }
 
-    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
         error : "Song is already playing".to_string(),
     }).unwrap())
     
@@ -425,7 +443,7 @@ async fn stop_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         ).unwrap());
     }
 
-    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
         error : "Song had stopped".to_string(),
     }).unwrap())
 }
@@ -451,7 +469,7 @@ async fn stepforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         ).unwrap());
     }
 
-    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
         error : "No Song left".to_string(),
     }).unwrap())
 }
@@ -479,7 +497,7 @@ async fn fastforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         ).unwrap());
     }
 
-    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
         error : "No Song left".to_string(),
     }).unwrap())
 }
@@ -505,7 +523,7 @@ async fn fastbackward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         ).unwrap());
     }
 
-    HttpResponse::Ok().body(hbr.render("music_error", &AudioSearchError{
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
         error : "No Song left".to_string(),
     }).unwrap())
 }
@@ -520,7 +538,7 @@ async fn artist() -> impl Responder{
 // mut payload : web::Payload
 
 #[post("/user/composer/newsong")]
-async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicStream>) -> impl Responder{
+async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicStream>) -> HttpResponse{
     
     
     
@@ -580,13 +598,27 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
         let email = &form.email; 
 
 
+        unsafe{
+                    
+            if ME == 0{
+                
+                return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+                    error : "Login session already expired".to_string(),
+                }).unwrap());
+            }
+        }
+
+
         if let Some(down_dir) = UserDirs::new(){
 
             if let Some(path) = down_dir.download_dir(){
                 
                 if !path.join(PathBuf::from(cover_img.to_owned())).exists(){
 
-                    panic!("Error this file may be moved");
+                    return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+                        error : "Content might be moved".to_string(),
+                    }).unwrap());
+                    
                 }
 
                 let mut art : Vec::<String> = Vec::<_>::new();
@@ -605,57 +637,114 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                     owner = true;
                 }
                 
-                let mut record = music::new_beat(music_file.to_owned().to_string(), 
-                art,cover_img.to_string(), 
-                lightnode_add.to_string(), date.to_string(),lyrics.to_string(),
-                studio.to_string(),genre.to_string(),compose.to_string(),
-                website.to_string(), endrosment.to_string(),earn,node,asset,fut,owner,email.to_string());
+                unsafe{
+
+                    let mut record = music::new_beat(music_file.to_owned().to_string(), 
+                        art,cover_img.to_string(), 
+                        lightnode_add.to_string(), 
+                        date.to_string(),
+                        lyrics.to_string(),
+                        studio.to_string(),
+                        genre.to_string(),
+                        compose.to_string(),
+                        website.to_string(), 
+                        endrosment.to_string(),
+                        earn,
+                        node,
+                        asset,
+                        fut,
+                        owner,
+                        email.to_string(), 
+                        ME.to_string());
                 
-                let client = match record.create_mongo_connection().await {
+                    let client = match record.create_mongo_connection().await {
 
-                    Ok(list) => list,
-                    Err(e) => panic!("{:?}", e),
-                };
+                        Ok(list) => list,
+                        Err(e) => panic!("{:?}", e),
+                    };
 
-                let db = client.database(music::MUSIC_RECORD);
+                    let db = client.database(music::MUSIC_RECORD);
 
-                let collection = match record.create_collection(db).await{
-                    Ok(collect) => collect,
-                    Err(e) => panic!("{:?}", e),
-                };
+                    let _ = match record.create_collection(db).await{
+                        Ok(collect) => collect,
+                        Err(e) => panic!("{:?}", e),
+                    };
 
-                let dpath = path.join(cover_img.to_owned());
                 
-                let mut blob = ipinata::new_bolb_object(&dpath, ipinata::FileStatus::Pin);
-                let pin_client = blob.pinta_client();
+                
+                    let mut blob = ipinata::new_bolb_object(&path, ipinata::FileStatus::Pin);
+                    let pin_client = blob.pinta_client();
 
-                let auth = pin_client.test_authentication().await;
-                let content = blob.upload_content(pin_client, path.join(cover_img.to_owned()).display().to_string()).await;
+                    let _auth = pin_client.test_authentication().await;
+                    let content = blob.upload_content(pin_client, cover_img.to_string()).await;
 
-                let mut cid : String = "".to_string(); 
-                if let Ok(object) = content {
-                    cid = object.ipfs_hash;
+                    let mut cid_image : String = "".to_string(); 
+                    if let Ok(object) = content {
+                        cid_image = object.ipfs_hash;
+                    }
+
+                    println!("Image Content Indentifier {:?}", cid_image);
+
+                    let mut cid_music: String = "".to_string();
+
+                    if cid_image == ""{
+
+                        return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+                                    error : "Content failed to process".to_string(),
+                        }).unwrap());
+                    
+                    }
+
+                    let mpfile = ipinata::change_path(down_dir.to_owned(), music_file.to_owned());
+
+                    let mp_path = PathBuf::from(mpfile);
+
+                    let mut mp_blob  = ipinata::new_bolb_object(&mp_path, ipinata::FileStatus::Pin);
+                    let connection = mp_blob.pinta_client();
+
+                    let mp_content = mp_blob.upload_content(connection, music_file.to_string()).await;
+
+                
+                
+                    if let Ok(objects) = mp_content {
+                        cid_music = objects.ipfs_hash;
+                    }
+                
+                    println!("Music Content Indentifier {:?}", cid_music);
+
+                    let client = Gatekeeper::mongodb_client().await;
+
+                    if let Ok(c) = client{
+                        let mut content = Pinata_Content::Content::new(ME.to_string(), cid_image.to_owned().to_string(), cid_music.to_owned().to_string());
+                        let db = c.database(music::MUSIC_RECORD);
+                        
+                        if let Ok(_) = content.music_collection(db).await{
+
+                            println!("Please wait content upload processing not take much time ");
+                        }else{
+                            
+                            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+                                error : "Content ownership issue ! ".to_string(),
+                            }).unwrap());
+                        }
+
+                        return HttpResponse::Ok().body(hbr.render("artists", &Nftmint{
+                            session : ME.to_string(),
+                            song : music_file.to_owned().to_string(),
+                            cid_image : cid_image.to_owned().to_string(),
+                            cid_music : cid_music.to_owned().to_string(),
+                        }).unwrap());
+                    }
                 }
-
-                // let mut uplink_ob = uplink_config::new_uplink();
-                let connect = music_blob::connect_with_uplink();
-
-                if connect.error != std::ptr::null_mut(){
-
-                    panic!("Error connection with uplink {:?}", connect.error);
-                }
-
-                
-                
-                println!("Content Indentifier {:?}", cid);
-                return format!("Database created {:?}, pinata connection {:?}", collection, auth);
                 
             }
 
         }
 
 
-        format!("Error report")
+        HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+            error : "Content should be in Downloads or Music Directory".to_string(),
+        }).unwrap())
     
 }
 
@@ -666,7 +755,7 @@ async fn sociallink() -> impl Responder {
 }
 
 #[post("/user/sociallink/profile")]
-async fn profile(form : web::Form<Authenicate>, hbr : web::Data<Handlebars<'_>> ) -> impl Responder{
+async fn profile(form : web::Form<Authenicate>, hbr : web::Data<Handlebars<'_>> ) -> HttpResponse{
 
     let username = &form.username;
     let email = &form.email;
@@ -674,6 +763,10 @@ async fn profile(form : web::Form<Authenicate>, hbr : web::Data<Handlebars<'_>> 
    let auth_code = Gatekeeper::active_hash(&Gatekeeper::new_profile(email.to_string(), username.to_string()));
 
    let mut auth = Gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string());
+
+   unsafe {
+        ME = auth_code;
+    }
 
     let client = match Gatekeeper::mongodb_client().await {
 
@@ -684,7 +777,7 @@ async fn profile(form : web::Form<Authenicate>, hbr : web::Data<Handlebars<'_>> 
     let db = client.database(music::MUSIC_RECORD);
     let _ = auth.create_record(db).await;
     
-    format!("Find User ")
+    HttpResponse::Ok().body(hbr.render("home", &homepage{}).unwrap())
 
 }
 

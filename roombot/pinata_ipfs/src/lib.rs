@@ -1,9 +1,9 @@
 pub mod ipinata{
 
-    use std::path::Path;
+    use std::{path::Path, path::PathBuf};
     use pinata_sdk::{PinataApi,PinByFile, PinnedObject, ApiError};
-    
-    
+    use directories::UserDirs;
+        
     pub struct Blob<'a>{
 
         file : &'a Path,
@@ -49,12 +49,34 @@ pub mod ipinata{
            PinataApi::new(self.api, self.token).unwrap()
         }
 
-        pub async fn upload_content <'b>(&mut self, client : PinataApi, rpath : String) -> Result<PinnedObject,ApiError> {
+        pub async fn upload_content <'b>(&mut self, client : PinataApi, filename : String) -> Result<PinnedObject,ApiError> {
 
-            client.pin_file(PinByFile::new(rpath)).await
+            let content = self.file.join(filename.to_owned()).display().to_string();
+            client.pin_file(PinByFile::new(content)).await
+        }
+
+        pub fn delete_content<'b>(&mut self, client : PinataApi, hash : &'b str) -> std::io::Result<()>{
+
+            let _ = client.unpin(hash);
+            Ok(())
         }
         
-                
+    }
+
+    pub fn change_path(dir : UserDirs, song : String) -> String{
+
+        let mut relative_path : String = "".to_string();
+        if let Some(path) = dir.audio_dir(){
+
+            if !path.join(PathBuf::from(song.to_owned())).exists(){
+
+                panic!("Error this file may be moved");
+            }
+
+            relative_path = path.display().to_string();
+        }
+
+        relative_path
     }
 
 }
