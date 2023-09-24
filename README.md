@@ -30,8 +30,7 @@
                     direct payment
                     2x time fast because of automation.
 
-                awesome.Another big news that we want to share in a moment, 
-                please repeat "Cool Music Studio, Marvelous Translate Prompt and Athestic Peering Payment" and these three software's are only available in one software                    called roombot.Please add testimonials.   
+                awesome.   
 
 
 # Contact 
