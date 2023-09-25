@@ -16,9 +16,7 @@ use pinata_ipfs::ipinata;
 use music_stream::{music, Pinata_Content};
 
 
-static mut ME : u64 = 0;
-
-
+// private structures
 
 #[derive(Deserialize)]
 struct TranslateFormData {
@@ -117,10 +115,10 @@ struct homepage;
 // static variables 
 
 static mut AUDIO : Vec<HashMap<String, bool>> = Vec::new();
+static mut ME : u64 = 0;
 
 
-
-
+// routes
 #[get("/")]
 async fn index() -> impl Responder {
 
@@ -157,37 +155,34 @@ async fn translator() -> impl Responder {
 #[post("/translation/user/{output}")]
 async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
+
+    // parse input values 
     let input : _ =  &form.query;
     let apikey : _ = &form.call; 
 
     
+    let action = generative(input.to_string());
+    
 
-    let lines = input.lines();
-    let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
-    let xregex = Regex::new(r"\b(nude | porn | xxx | sexy | sex | sexual )").unwrap();
+    // check whether any bad word exist in a text
+    if let Ok(take_action) = action  {
 
+        if take_action{
 
-    let mut take_action : bool = false;
-
-    for words in lines{
-
-        // for bad actors who invade system
-        if bregex.is_match(words){
-            take_action = true;
-            break
-        }
-
-        // for bad boys
-        if xregex.is_match(words){
-            take_action = true;
-            break
-        }
-    }
-
-    if take_action{
-
-        println!("Queries have some bad words which are not acceptable by model");
+            println!("Queries have some bad words which are not acceptable by model");
         
+            HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
+                    query : "".to_string(),
+                    response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
+            }).unwrap());
+        }
+        
+    }
+
+
+    // validate keyword transalation or translate 
+    if !input.contains("translation") || !input.contains("translate") && !input.contains("Translation") || !input.contains("Translate"){
+
         HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
             query : "".to_string(),
             response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
@@ -195,15 +190,7 @@ async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handleba
     }
 
 
-    if !input.contains("translation") || !input.contains("translate"){
-
-        HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
-            query : "".to_string(),
-            response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
-        }).unwrap());
-    }
-
-
+    // engage openai call 
     let mut opencall : _ = openai::new(input.to_string(), "".to_string(), input.len().try_into().unwrap());
     
     let responses =  match opencall.openai_text_wrapper(apikey.to_string()).await{
@@ -273,18 +260,25 @@ async fn playlist() -> impl Responder{
 #[post("/user/my/playlist/{search}")]
 async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse {
 
+
+    // parse input values 
     let query : _ = &form.songname;
     let audiomp3 = query.to_owned() + &".mp3";
     let audiowav = query.to_owned() + &".wav";
+    
+    
+    // single source for storing audio search results ; in upcoming version multiple songs will be searched 
     let mut source : HashMap<String, bool> = HashMap::new();
 
-    
-
+    // get file from directory and if found store in the source
     if let Some(dir) = UserDirs::new() {
         
         if let Some(file) = dir.audio_dir(){
             
             let mut file_ext = "".to_string();
+
+
+            // whether audio mp3 or wav
 
             if PathBuf::from(&file.join(audiomp3.to_owned())).exists(){
 
@@ -372,6 +366,9 @@ async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handl
 #[post("/user/my/playlist/{search}/play")]
 async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
+
+    // open audio file, with how many times audio will be played.
+    // run the audio file ; if exist 
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let audio = get_audio();
     for i in audio.keys(){
@@ -396,89 +393,92 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
     
 }
 
-#[post("/user/my/playlist/{search}/paused")]
-async fn paused_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+// #[post("/user/my/playlist/{search}/paused")]
+// async fn paused_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let audio = get_audio();
-    for i in audio.keys(){
+//     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+//     let audio = get_audio();
+//     for i in audio.keys(){
         
-        let file = BufReader::new(File::open(i).unwrap());
-        let clip = stream_handle.play_once(file).unwrap();
+//         let file = BufReader::new(File::open(i).unwrap());
+//         let clip = stream_handle.play_once(file).unwrap();
 
-        clip.set_volume(1.0);
-        clip.pause();
-        clip.detach();
-        std::thread::sleep(std::time::Duration::from_secs(60*5));
+//         clip.set_volume(1.0);
+//         clip.pause();
+//         clip.detach();
+//         std::thread::sleep(std::time::Duration::from_secs(60*5));
 
-        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-            audioname: i.to_string(), 
-            isplay: true}
-        ).unwrap());
-    }
+//         return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+//             audioname: i.to_string(), 
+//             isplay: true}
+//         ).unwrap());
+//     }
 
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-        error : "Song is already playing".to_string(),
-    }).unwrap())
+//     HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+//         error : "Song is already playing".to_string(),
+//     }).unwrap())
     
-}
+// }
 
-#[post("/user/my/playlist/{search}/stop")]
-async fn stop_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+// #[post("/user/my/playlist/{search}/stop")]
+// async fn stop_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let audio = get_audio();
-    for i in audio.keys(){
+//     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+//     let audio = get_audio();
+//     for i in audio.keys(){
         
-        let file = BufReader::new(File::open(i).unwrap());
-        let clip = stream_handle.play_once(file).unwrap();
+//         let file = BufReader::new(File::open(i).unwrap());
+//         let clip = stream_handle.play_once(file).unwrap();
 
-        clip.set_volume(1.0);
-        clip.stop();
-        clip.detach();
-        std::thread::sleep(std::time::Duration::from_secs(60*3));
-        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-            audioname: i.to_string(), 
-            isplay: true}
-        ).unwrap());
-    }
+//         clip.set_volume(1.0);
+//         clip.stop();
+//         clip.detach();
+//         std::thread::sleep(std::time::Duration::from_secs(60*3));
+//         return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+//             audioname: i.to_string(), 
+//             isplay: true}
+//         ).unwrap());
+//     }
 
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-        error : "Song had stopped".to_string(),
-    }).unwrap())
-}
+//     HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+//         error : "Song had stopped".to_string(),
+//     }).unwrap())
+// }
 
-#[post("/user/my/playlist/{search}/stepforward")]
-async fn stepforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+// #[post("/user/my/playlist/{search}/stepforward")]
+// async fn stepforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let audio = get_audio();
-    for i in audio.keys(){
+//     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+//     let audio = get_audio();
+//     for i in audio.keys(){
         
-        let file = BufReader::new(File::open(i).unwrap());
+//         let file = BufReader::new(File::open(i).unwrap());
 
-        let clip = stream_handle.play_once(file).unwrap();
+//         let clip = stream_handle.play_once(file).unwrap();
 
-        clip.set_volume(1.0);
-        clip.skip_one();
-        clip.detach();
-        std::thread::sleep(std::time::Duration::from_secs(60*3));
-        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-            audioname: i.to_string(), 
-            isplay: true}
-        ).unwrap());
-    }
+//         clip.set_volume(1.0);
+//         clip.skip_one();
+//         clip.detach();
+//         std::thread::sleep(std::time::Duration::from_secs(60*3));
+//         return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
+//             audioname: i.to_string(), 
+//             isplay: true}
+//         ).unwrap());
+//     }
 
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-        error : "No Song left".to_string(),
-    }).unwrap())
-}
+//     HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+//         error : "No Song left".to_string(),
+//     }).unwrap())
+// }
 
 
 
 #[post("/user/my/playlist/{search}/fastforward")]
 async fn fastforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
+
+    // open audio file, with how many times audio will be played.
+    // this function will increase the speed of audio file and then play it.
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let audio = get_audio();
     for i in audio.keys(){
@@ -505,6 +505,9 @@ async fn fastforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 #[post("/user/my/playlist/{search}/fastbackward")]
 async fn fastbackward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
+
+    // open audio file, with how many times audio will be played.
+    // this function will decrease the speed of audio file and then play it.
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let audio = get_audio();
     for i in audio.keys(){
@@ -559,6 +562,10 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
         //     Err(err) => panic!("{:?}", err),
         // };
 
+
+
+        // parse input values
+
         let cover_img = &form.cover;
 
         let artists = &form.artist;
@@ -598,17 +605,25 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
         let email = &form.email; 
 
 
-        unsafe{
-                    
-            if ME == 0{
-                
-                return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                    error : "Login session already expired".to_string(),
-                }).unwrap());
-            }
+        // check whether session expire 
+
+        let expire = login_expire();
+
+        if expire{
+
+            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+                error : "Login session already expired".to_string(),
+            }).unwrap());
         }
 
 
+
+        // read specific music file which is in music directory. If file is not in music diectory then throw error.
+        // create music file record {music name, artists name, song type , production name etc}.
+        // read cover image from download directory if exist;
+
+        // store coverimage, music file on peer network and create content identifier address ;
+        // which is then store back in database against session.
         if let Some(down_dir) = UserDirs::new(){
 
             if let Some(path) = down_dir.download_dir(){
@@ -671,7 +686,7 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                     };
 
                 
-                
+                    
                     let mut blob = ipinata::new_bolb_object(&path, ipinata::FileStatus::Pin);
                     let pin_client = blob.pinta_client();
 
@@ -757,8 +772,17 @@ async fn sociallink() -> impl Responder {
 #[post("/user/sociallink/profile")]
 async fn profile(form : web::Form<Authenicate>, hbr : web::Data<Handlebars<'_>> ) -> HttpResponse{
 
+
+    // parse input values
     let username = &form.username;
     let email = &form.email;
+
+
+    // transalate user input into secret code.
+    // this code worked as account in our application 
+    // this code have many benefits ; code is used as authenication, authorization and validation 
+
+    //  that code sent back to database for future .
 
    let auth_code = Gatekeeper::active_hash(&Gatekeeper::new_profile(email.to_string(), username.to_string()));
 
@@ -805,41 +829,31 @@ async fn add_topic() -> impl Responder{
 #[post("/user/poetry/topics/{output}")]
 async fn poetry(form : web::Form<TranslateFormData>, hbr : web::Data::<Handlebars<'_>>) -> HttpResponse{
 
+
+    // parse input values
     let input : _ =  &form.query;
     let apikey : _ = &form.call; 
 
     
+    // check whether any bad words exist in a query. then throw error
+    let action = generative(input.to_string());
+    
 
-    let lines = input.lines();
-    let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
-    let xregex = Regex::new(r"\b(nude | porn | xxx | sexy | sex | sexual )").unwrap();
+    if let Ok(take_action) = action  {
 
+        if take_action{
 
-    let mut take_action : bool = false;
-
-    for words in lines{
-
-        // for bad actors who invade system
-        if bregex.is_match(words){
-            take_action = true;
-            break
+            println!("Queries have some bad words which are not acceptable by model");
+        
+            HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
+                    query : "".to_string(),
+                    response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
+            }).unwrap());
         }
-
-        // for bad boys
-        if xregex.is_match(words){
-            take_action = true;
-            break
-        }
+        
     }
 
-    if take_action{
-
-        HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
-            query : "".to_string(),
-            response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
-        }).unwrap());
-    }
-
+    // connect with openai call and complete the process
 
     let mut opencall : _ = openai::new(input.to_string(), "".to_string(), input.len().try_into().unwrap());
     
@@ -887,11 +901,11 @@ async fn configurations() -> impl Responder{
             .service(playlist)
             .service(search_playlist)
             .service(play_audio)
-            .service(stop_audio)
-            .service(stepforward_audio)
+            // .service(stop_audio)
+            // .service(stepforward_audio)
             .service(fastforward_audio)
             .service(fastbackward_audio)
-            .service(paused_audio)
+            // .service(paused_audio)
             .service(artist)
             .service(newsong_record)
             .service(add_topic)
@@ -943,5 +957,42 @@ fn get_audio() -> HashMap<String, bool> {
     value
 }
 
+fn generative(input : String ) -> std::io::Result<bool>{
+
+    let lines = input.lines();
+    let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
+    let xregex = Regex::new(r"\b(nude | porn | xxx | sexy | sex | sexual )").unwrap();
 
 
+    let mut take_action : bool = false;
+
+    for words in lines{
+
+        // for bad actors who invade system
+        if bregex.is_match(words){
+            take_action = true;
+            break
+        }
+
+        // for bad boys
+        if xregex.is_match(words){
+            take_action = true;
+            break
+        }
+    }
+
+    Ok(take_action)
+}
+
+fn login_expire() -> bool{
+
+    unsafe{
+                    
+        if ME == 0{
+            
+            return false;
+        }
+    }
+
+    true
+}

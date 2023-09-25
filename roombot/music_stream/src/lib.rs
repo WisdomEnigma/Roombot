@@ -209,7 +209,7 @@ pub mod Pinata_Content{
 
             
 
-            if self.session != query.session{
+            if self.cid_icontent != query.cid_icontent && self.cid_mcontent != query.cid_mcontent {
 
                 let doc = vec![
                     Content{
