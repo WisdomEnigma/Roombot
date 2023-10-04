@@ -14,6 +14,8 @@ use directories::UserDirs;
 use rodio::OutputStream;
 use pinata_ipfs::ipinata;
 use music_stream::{music, Pinata_Content};
+use once_cell::sync::OnceCell;
+
 
 
 // private structures
@@ -112,10 +114,33 @@ struct Authenicate{
 
 struct homepage;
 
+#[derive(Serialize)]
+struct SongEngine{
+    
+    pmusic_artist :String ,
+    pmusic_compose : String,
+    pmusic_lyric : String,
+    pmusic_genre : String,
+    pnumic_production : String,
+    pmusic_ilink : String,
+    pmusic_mlink : String,
+    session : String,
+    name : String,
+    favourite : bool,
+    favourite_count : i64,
+    played : i64,
+    emotion : Pinata_Content::Emotionfilter,
+
+}
+
 // static variables 
 
 static mut AUDIO : Vec<HashMap<String, bool>> = Vec::new();
 static mut ME : u64 = 0;
+static mut LIKES : i64 = 0;
+static  mut COLORED : bool = false;
+static mut PLAY : i64 = 0;
+static GLOBAL_SONG : OnceCell<String> = OnceCell::new();
 
 
 // routes
@@ -307,6 +332,7 @@ async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handl
                     }else{
                                 flag_audio = true;
                     }
+
 
                     return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
                         audioname: format!("{:?}", object.0), 
@@ -531,6 +557,182 @@ async fn fastbackward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
     }).unwrap())
 }
 
+#[get("/user/library")]
+async fn library() -> impl Responder{
+
+    NamedFile::open_async("./static/collection.html").await
+}
+
+#[post("/user/library/{searchbycollection}")]
+async fn collection(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    // parse input values 
+    let query = &form.songname;
+
+    // replace space with hypen 
+    // let q = &query.replace(" ", "-");
+    let mut mp_player = query.to_owned() + ".mp3";
+
+    // validate user session
+    let expire = login_expire();
+
+    if expire{
+
+            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+                error : "Login session already expired".to_string(),
+            }).unwrap());
+    }
+
+
+    // Here unsafe have a reason because of static calls.
+    // The real problem is that retrive paticular song from library or collection, inorder to solve this problem
+    // another problem we have faced called user might be skip format of song. 
+
+    // Query = [Lovely morning ] <=>  Record [Lovely-morning.mp3] 
+
+    
+
+    unsafe{
+
+        match mp_player.contains(".mp3") {
+            true => {
+
+                let mut record = music::new_beat(mp_player.to_owned().to_string(), 
+                Vec::<String>::new(),
+                "".to_string(), 
+                "".to_string(), 
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(), 
+                "".to_string(),
+                false,
+                false,
+                false,
+                false,
+                false,
+                "".to_string(), 
+                ME.to_string(), 0.0);
+    
+                let client = match record.create_mongo_connection().await {
+
+                    Ok(list) => list,
+                    Err(e) => panic!("{:?}", e),
+                };
+
+                let db = client.database(music::MUSIC_RECORD);
+
+                let stream_record =  record.get_song_from_playlist(db).await;
+
+                let mut content = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), stream_record.to_owned().song_name, Pinata_Content::Emotionfilter::None,false, 0,0);
+
+                let client = match Gatekeeper::mongodb_client().await {
+
+                        Ok(list) => list,
+                        Err(e) => panic!("{:?}", e),
+                };
+    
+                let db = client.database(music::MUSIC_RECORD);
+        
+                let list = content.get_playlist(db).await;
+
+
+                let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+                
+                
+
+                return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
+                    pmusic_artist : stream_record.artist[0].to_owned(),
+                    pmusic_compose : stream_record.compose.to_owned(),
+                    pmusic_genre : stream_record.genre.to_owned(),
+                    pmusic_ilink : list.cid_icontent.to_owned(),
+                    pmusic_lyric : stream_record.lyrics.to_owned(),
+                    session : ME.to_string(),
+                    name : stream_record.song_name.to_owned(),
+                    pmusic_mlink : list.cid_mcontent.to_owned(),
+                    pnumic_production : stream_record.studio_name.to_owned(),
+                    favourite : list.like.to_owned(),
+                    favourite_count : list.like_count.to_owned(),
+                    played : list.play_count.to_owned(),
+                    emotion : list.emotion.to_owned(),
+                }).unwrap());
+                
+            }
+            false => {
+
+                mp_player = mp_player.replace(".mp3", ".wav");
+                let mut record = music::new_beat(mp_player.to_owned().to_string(), 
+                Vec::<String>::new(),
+                "".to_string(), 
+                "".to_string(), 
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(), 
+                "".to_string(),
+                false,
+                false,
+                false,
+                false,
+                false,
+                "".to_string(), 
+                ME.to_string(), 0.0);
+    
+                let client = match record.create_mongo_connection().await {
+
+                    Ok(list) => list,
+                    Err(e) => panic!("{:?}", e),
+                };
+
+                let db = client.database(music::MUSIC_RECORD);
+
+                let stream_record =  record.get_song_from_playlist(db).await;
+
+                let mut content = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), stream_record.to_owned().song_name, genre_to_emotions(stream_record.genre.to_owned().to_string()), false, 0, 0);
+
+                let client = match Gatekeeper::mongodb_client().await {
+
+                        Ok(list) => list,
+                        Err(e) => panic!("{:?}", e),
+                };
+    
+                let db = client.database(music::MUSIC_RECORD);
+        
+                let list = content.get_playlist(db).await;               
+
+                let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+
+
+                return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
+                    pmusic_artist : stream_record.artist[0].to_owned(),
+                    pmusic_compose : stream_record.compose.to_owned(),
+                    pmusic_genre : stream_record.genre.to_owned(),
+                    pmusic_ilink : list.cid_icontent.to_owned(),
+                    pmusic_lyric : stream_record.lyrics.to_owned(),
+                    session : ME.to_string(),
+                    name : stream_record.song_name.to_owned(),
+                    pmusic_mlink : list.cid_mcontent.to_owned(),
+                    pnumic_production : stream_record.studio_name.to_owned(),
+                    favourite : list.like.to_owned(),
+                    favourite_count : list.like_count.to_owned(),
+                    played : list.play_count.to_owned(),
+                    emotion : list.emotion.to_owned(),
+                }).unwrap());
+            },
+        }
+        
+
+        
+
+        
+    }
+    
+
+}
 
 #[get("/user/composer")]
 async fn artist() -> impl Responder{
@@ -544,8 +746,6 @@ async fn artist() -> impl Responder{
 async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicStream>) -> HttpResponse{
     
     
-    
-
         // let load = match payload.next().await{
         //     Some(data) => data,
         //     None => panic!("Error report"),
@@ -603,6 +803,9 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
 
         
         let email = &form.email; 
+
+        // replace space with hypen 
+        // let q = &music_file.replace(" ", "-");
 
 
         // check whether session expire 
@@ -670,7 +873,7 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                         fut,
                         owner,
                         email.to_string(), 
-                        ME.to_string());
+                        ME.to_string(), 0.0);
                 
                     let client = match record.create_mongo_connection().await {
 
@@ -717,7 +920,7 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                     let mut mp_blob  = ipinata::new_bolb_object(&mp_path, ipinata::FileStatus::Pin);
                     let connection = mp_blob.pinta_client();
 
-                    let mp_content = mp_blob.upload_content(connection, music_file.to_string()).await;
+                    let mp_content = mp_blob.upload_content(connection, music_file.to_owned().to_string()).await;
 
                 
                 
@@ -730,18 +933,22 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                     let client = Gatekeeper::mongodb_client().await;
 
                     if let Ok(c) = client{
-                        let mut content = Pinata_Content::Content::new(ME.to_string(), cid_image.to_owned().to_string(), cid_music.to_owned().to_string());
-                        let db = c.database(music::MUSIC_RECORD);
-                        
-                        if let Ok(_) = content.music_collection(db).await{
 
-                            println!("Please wait content upload processing not take much time ");
-                        }else{
+                            let mut content = Pinata_Content::Content::new(ME.to_string(), cid_image.to_owned().to_string(), cid_music.to_owned().to_string(), music_file.to_owned().to_string(), genre_to_emotions(genre.to_owned().to_string()), false, 0,0);
+                            let db = c.database(music::MUSIC_RECORD);
                             
-                            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                                error : "Content ownership issue ! ".to_string(),
-                            }).unwrap());
-                        }
+                            
+                            
+                            if let Ok(_) = content.music_collection(db).await{
+
+                                println!("Please wait content upload processing not take much time ");
+                            }else{
+                                
+                                return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+                                    error : "Content ownership issue ! ".to_string(),
+                                }).unwrap());
+                            }
+                        
 
                         return HttpResponse::Ok().body(hbr.render("artists", &Nftmint{
                             session : ME.to_string(),
@@ -761,6 +968,80 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
             error : "Content should be in Downloads or Music Directory".to_string(),
         }).unwrap())
     
+}
+
+
+#[post("/me/like")]
+async fn like_work(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+
+
+    let client = match Gatekeeper::mongodb_client().await {
+
+        Ok(list) => list,
+        Err(e) => panic!("{:?}", e),
+    };
+
+    let db = client.database(music::MUSIC_RECORD);
+
+    
+
+    unsafe{
+            
+        
+        
+        if let Some(data) = GLOBAL_SONG.get(){
+
+            if data.to_owned().to_string() == ""{
+    
+                return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
+                    error : " Empty Query  ! ".to_string(),
+                }).unwrap());
+            }
+
+
+            let mut content = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, false, 0, 0);
+            let old = content.get_playlist_by_song(db.to_owned()).await;
+
+            LIKES = old.like_count;
+            COLORED = old.like;
+            PLAY = old.play_count;
+
+
+            if LIKES == 0 && !COLORED {
+
+                LIKES +=1;
+                COLORED = true;
+                PLAY +=1;
+
+                let mut update_cont = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, COLORED, LIKES, PLAY);
+
+                let updater =  update_cont.update_song_info(db.to_owned()).await;
+
+                print!("Content update {:?}", updater);
+            }else{
+
+                LIKES -=1;
+                COLORED = false;
+                PLAY +=1;
+
+                let mut update_cont = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, COLORED, LIKES, PLAY);
+
+                let updater =  update_cont.update_song_info(db.to_owned()).await;
+
+                print!("Content update {:?}", updater);
+            }
+
+            
+
+        }
+       
+    }
+
+    
+    
+
+    HttpResponse::Ok().body(hbr.render("home", &homepage{}).unwrap())
+
 }
 
 #[get("/user/sociallink")]
@@ -810,6 +1091,9 @@ async fn history() -> impl Responder {
 
     NamedFile::open_async("./static/history.html").await
 }
+
+
+
 
 #[get("/user/invoice")]
 async fn invoice() -> impl Responder {
@@ -884,6 +1168,7 @@ async fn configurations() -> impl Responder{
             .register_templates_directory(".html", "./static/templates")
             .unwrap();
 
+
     // server hold handlebar template directory object value.
     let handlebars_ref = web::Data::new(handlebars_obj);
     
@@ -901,6 +1186,9 @@ async fn configurations() -> impl Responder{
             .service(playlist)
             .service(search_playlist)
             .service(play_audio)
+            .service(library)
+            .service(collection)
+            .service(like_work)
             // .service(stop_audio)
             // .service(stepforward_audio)
             .service(fastforward_audio)
@@ -990,9 +1278,40 @@ fn login_expire() -> bool{
                     
         if ME == 0{
             
-            return false;
+            return true;
         }
+
+        false
     }
 
-    true
+    
+}
+
+
+fn genre_to_emotions(genre : String) -> Pinata_Content::Emotionfilter{
+
+    if genre.contains("rock") || genre.contains("Rock") || genre.contains("Pop rock") || genre.contains("pop rock") || genre.contains("classical music") || genre.contains("Classical music") || genre.contains("Blues") || genre.contains("blues") {
+
+        return Pinata_Content::Emotionfilter::Sad;
+    }else if  genre.contains("Jazz") || genre.contains("jazz") || genre.contains("soul music") || genre.contains("Soul music") {
+        
+        return Pinata_Content::Emotionfilter::Love;
+    }else if genre.contains("Rhythm and blues") || genre.contains("rhythm and blues") {
+
+        return Pinata_Content::Emotionfilter::Passion;
+    }else if genre.contains("Contemporary classical music") || genre.contains("contemporary classical music") {
+
+        return Pinata_Content::Emotionfilter::Dancing;
+    }else if genre.contains("Musical theatre") || genre.contains("musical theatre") || genre.contains("pop") || genre.contains("Pop"){
+
+        return Pinata_Content::Emotionfilter::Love;
+    } else if  genre.contains("Alternative rock") || genre.contains("alternative rock"){
+
+        return Pinata_Content::Emotionfilter::Mixed;
+    }else{
+
+        return Pinata_Content::Emotionfilter::None;
+    }
+
+    
 }

@@ -151,8 +151,7 @@ pub mod Gatekeeper{
 
             temp_session
         }
+
     }
-
-
     
 }

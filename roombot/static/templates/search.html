@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Tangerine"/>
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+<a href="/" style="position: relative;left: 40pc;top: 3.9pc;color: black;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
+<button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #offcanvas-nav-primary" style="position: relative;top: 4pc;left: 48pc;border: none;">
+    <i class="fa fa-bars" aria-hidden="true"></i>
+</button>
+
+<div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+
+        <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
+            <i class="fa fa-user-circle" aria-hidden="true" style="position: relative;top: -9pc;color: whitesmoke;font-size: larger;"></i>
+                    <span style="position: relative;top: -9pc;left: 1pc;"> @{{session}}</span>
+            <li class="uk-active"><a href="#"> Keep on dreaming even if it break your heart! </a></li>
+            <li class="uk-nav-header">Header</li>
+            <li class="uk-nav-divider"></li>
+            <li><a href="/user/my/playlist"><span class="uk-margin-small-right" uk-icon="icon: play-circle"></span> Music </a></li>
+            <li><a href="/user/library"><span class="uk-margin-small-right" uk-icon="icon: play"></span> Collection </a></li>
+            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: heart"></span> <span class="uk-badge"> {{favourite_count}}</span>
+            </a></li>
+        </ul>
+    </div>
+</div>
+</head>
+<body>
+    
+    <div class="container" style="position: relative;top: 11pc;left: 39pc;">
+        <h6 style="font-family: Tangerine,serif;font-size: xx-large;color: darkslategray;position: inherit;top: -4pc;"> The real magic is two heart beat at one note </h6>
+        <div class="spheader" style="position: relative;top: -4pc;left: 3pc;font-family: 'Tangerine';font-size: xx-large;">
+            <h5>{{name}} {{pmusic_artist}}</h5>
+        </div>
+        <div class="spbody">
+            <img src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_ilink}}" alt="cover_image" style="position: relative;width : 20pc;"/>
+                <audio controls autoplay style="position: relative;top: 23pc;left: -20pc;width: 26pc;">
+                    <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/mpeg">
+                    <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/wav">
+                </audio>
+            <div>
+               <p style="word-spacing: 5pc;position: relative;top: 9.2px;">{{pmusic_compose}} {{pmusic_lyric}} {{pnumic_production}} </p>
+               <span class="plink" oncopy=clipboard()>
+                    https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}
+               </span>
+               <span class="copylink" style="position: relative;top: 3pc;font-style: italic;font-family: 'Tangerine';font-size: x-large;left: -26pc;">
+               </span>
+               <form action="/me/like" method="post"> 
+                    
+                {{#if favourite}}
+                    <button type="submit" class="likebtn" style="border: none;background: transparent;position: relative;left: 8pc;top: 3pc;color: red;">
+                        <i class="fa fa-heart" aria-hidden="true"></i>
+                    </button>
+                {{/if}}
+               </form>
+            </div>
+        </div>
+    </div>
+
+    <section style="position: relative;width: 18pc;left: 8pc;height: 10pc;font-size: xx-large;">
+        <div class="mood">
+            <span class="emotion">{{emotion}}</span>
+                <i class="fa fa-frown-o" aria-hidden="true" style="display: none;"></i>
+                <i class="fa fa-fire" aria-hidden="true" style="display: none;"></i>
+                <i class="fa fa-heart" aria-hidden="true" style="display: none;"></i>
+                <i class="fa fa-gift" aria-hidden="true" style="display: none;"></i>
+                <i class="fa fa-snownflake" aria-hidden="true" style="display: none;"></i>
+        </div>
+    </section>
+
+    <script type="text/javascript">
+        
+
+        // clipboard is a copy event signal...
+        
+        function clipboard(){
+            document.getElementsByClassName('copylink')[0].innerHTML = "Congratulation link is ready for sharing"
+        }
+
+
+        // change like button color and store in database...
+        document.getElementsByClassName('likebtn')[0].addEventListener('click', e =>{
+
+            if(document.getElementsByClassName('likebtn')[0].style.color == 'darkslategrey'){
+                
+                document.getElementsByClassName('likebtn')[0].style.color = 'red';
+            
+            }else{
+                
+                document.getElementsByClassName('likebtn')[0].style.color = 'darkslategey';
+            } 
+            
+        });
+
+
+
+        if (document.getElementsByClassName('emotion')[0].innerHTML == "Love"){
+            document.getElementsByClassName('mood')[0].children[3].style.display = '';
+            document.getElementsByClassName('mood')[0].children[3].style.color = 'red';
+        }
+
+        if (document.getElementsByClassName('emotion')[0].innerHTML == "Sad"){
+            document.getElementsByClassName('mood')[0].children[1].style.display = '';
+            document.getElementsByClassName('mood')[0].children[1].style.color = 'red';
+        }
+
+        if (document.getElementsByClassName('emotion')[0].innerHTML == "Passion"){
+            document.getElementsByClassName('mood')[0].children[2].style.display = '';
+            document.getElementsByClassName('mood')[0].children[2].style.color = 'red';
+        }
+
+        if (document.getElementsByClassName('emotion')[0].innerHTML == "Mixed"){
+            document.getElementsByClassName('fa fa-snownflake')[5].style.display = '';
+            document.getElementsByClassName('mood')[0].children[5].style.color = 'blue';
+        }
+
+
+        if (document.getElementsByClassName('emotion')[0].innerHTML == "Dancing"){
+            document.getElementsByClassName('mood')[0].children[4].style.display = '';
+            document.getElementsByClassName('mood')[0].children[4].style.color = 'blue';
+        }
+
+
+    </script>
+</body>
+</html>

@@ -22,6 +22,7 @@ rodio = "0.17.1"
 serde = { version = "1.0.180" , features = ["derive"] }
 auth = {path = "auth"}
 futures-util = "0.3.28"
+once_cell = "1.18.0"
 
 
 
