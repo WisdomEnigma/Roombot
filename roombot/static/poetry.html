@@ -20,30 +20,30 @@
         <i class="fa fa-bars" aria-hidden="true"></i>
     </button>
 
-<div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
-    <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+    <div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
+        <div class="uk-offcanvas-bar uk-flex uk-flex-column">
 
-        <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
-            <li class="uk-active"><a href="#"> Emotion have deep echos .. </a></li>
-            <li class="uk-nav-header">Header</li>
-            <li class="uk-nav-divider"></li>
-            <li><a href="/user/invoice"><span class="uk-margin-small-right" uk-icon="icon: bag"></span> Invoice </a></li>
-            <li><a href="/user/history"><span class="uk-margin-small-right" uk-icon="icon: history"></span> History </a></li>
-        </ul>
+            <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
+                <li class="uk-active"><a href="#"> Emotion have deep echos .. </a></li>
+                <li class="uk-nav-header">Header</li>
+                <li class="uk-nav-divider"></li>
+                <li><a href="/user/poetry/topics"><span class="uk-margin-small-right" uk-icon="icon: pencil"></span> Translate-Prompt </a></li>
+                <!-- <li><a href="/user/invoice"><span class="uk-margin-small-right" uk-icon="icon: bag"></span> Invoice </a></li> -->
+                <!-- <li><a href="/user/history"><span class="uk-margin-small-right" uk-icon="icon: history"></span> History </a></li> -->
+            </ul>
 
+        </div>
     </div>
-</div>
 
-<div class="f01" style="color: darkslategray;position: relative;left: 17pc;top: 7pc;">
-    <form action="/user/poetry/topics/{output}" method="post">
-        <input type="text" placeholder="write poem about burnimng fire inside my heart" name="query" style="position: relative;top: 2pc;left: 10pc;height: 7pc;border: none;width: 50pc;color: darkslategray;"/>
-        <input type="password" placeholder="Openai key ....." name="call" style="position: absolute;top: 12pc;left: 11pc;height: 3pc;border: none;width: 18pc;color: darkslategray;"/>
-        <input type="checkbox" name="option" style="position: absolute;top: 17pc;left: 22pc;"/> <i class="fa fa-bitcoin" aria-hidden="true" style="position: absolute;top: 17.1pc;left: 30pc;width: 7pc;color: darkblue;font-size: larger"> </i>
-                <button class="uk-button uk-button-default" type="submit" style="position: absolute;top: 16.5pc;left: 38pc;border:none;">
-                    <span class="uk-margin-small-right" uk-icon="icon: check"></span>
-                </button>
-    </form>
-</div>
-</div>
+    <div class="f01" style="color: darkslategray;position: relative;left: 17pc;top: 7pc;">
+        <form action="/user/poetry/topics/{output}" method="post">
+            <input type="text" placeholder="write poem about burnimng fire inside my heart" name="query" style="position: relative;top: 2pc;left: 10pc;height: 7pc;border: none;width: 50pc;color: darkslategray;"/>
+            <input type="password" placeholder="Openai key ....." name="call" style="position: absolute;top: 12pc;left: 11pc;height: 3pc;border: none;width: 18pc;color: darkslategray;"/>
+            <button class="uk-button uk-button-default" type="submit" style="position: absolute;top: 16.5pc;left: 38pc;border:none;">
+                <span class="uk-margin-small-right" uk-icon="icon: check"></span>
+            </button>
+        </form>
+    </div>
+
 </body>
 </html>

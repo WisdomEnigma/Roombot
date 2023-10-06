@@ -33,7 +33,7 @@ pub mod music{
         research : bool,
         ownership : bool,
         email : String,
-        session : String,
+        pub session : String,
         pub price : f64,
     }
     
@@ -287,7 +287,7 @@ pub mod Pinata_Content{
     #[derive(Debug, Serialize, Deserialize, Clone)]
     pub struct Content{
 
-        session : String,
+        pub session : String,
         pub cid_icontent : String, // images
         pub cid_mcontent : String, // music
         pub song : String,
@@ -368,8 +368,6 @@ pub mod Pinata_Content{
             
             while let Some(record) = cursor.try_next().await.unwrap(){
 
-                
-                
                 if record.session == " "{
                     panic!("Unforuente query must be empty ");
                 }

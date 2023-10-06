@@ -34,6 +34,7 @@ struct ResponseTranslateForm{
     response : String,
 }
 
+
 #[derive(Serialize)]
 struct Authorize{
 
@@ -51,12 +52,6 @@ struct AudioSearchResults{
 
     audioname : String,
     isplay : bool,
-}
-
-#[derive(Serialize)]
-struct RequestError{
-
-    error : String,
 }
 
 
@@ -113,6 +108,9 @@ struct Authenicate{
 #[derive(Serialize)]
 
 struct homepage;
+
+#[derive(Serialize)]
+struct RequestError;
 
 #[derive(Serialize)]
 struct SongEngine{
@@ -194,12 +192,9 @@ async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handleba
 
         if take_action{
 
-            println!("Queries have some bad words which are not acceptable by model");
+            println!("Check your text there may be something which is not acceptable");
         
-            HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
-                    query : "".to_string(),
-                    response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
-            }).unwrap());
+            HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
         }
         
     }
@@ -208,10 +203,8 @@ async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handleba
     // validate keyword transalation or translate 
     if !input.contains("translation") || !input.contains("translate") && !input.contains("Translation") || !input.contains("Translate"){
 
-        HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
-            query : "".to_string(),
-            response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
-        }).unwrap());
+        println!("Trigger word is not present 'Translate '  ");
+        HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
     }
 
 
@@ -281,6 +274,11 @@ async fn playlist() -> impl Responder{
 
     NamedFile::open_async("./static/music.html").await
 }
+
+
+// This feature allow user to listen music on web without any media player.
+// Suppose you're a taylor big fan and you wanna listen "The Moment I Knew" 
+// all you have type a name of a song and play it for you.
 
 #[post("/user/my/playlist/{search}")]
 async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse {
@@ -381,13 +379,16 @@ async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handl
         }
     }
 
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-        error : "This song not available in the content".to_string(),
-    }).unwrap())
+
+    println!("Song you wanan listen unforuentely not available in your directory. Please visit our song collection link where your favourite song might be ready for you. ");
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap())
 
 
     
 }
+
+
+// web music player player your favourite song "The Moment I Knew". So phenomenal
 
 #[post("/user/my/playlist/{search}/play")]
 async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
@@ -413,9 +414,9 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         ).unwrap());
     }
 
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-        error : "Song is already playing".to_string(),
-    }).unwrap())
+    println!("Please check your volume or other peripheral devices attached to your devices");
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap())
+
     
 }
 
@@ -498,7 +499,6 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 // }
 
 
-
 #[post("/user/my/playlist/{search}/fastforward")]
 async fn fastforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
@@ -523,9 +523,7 @@ async fn fastforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         ).unwrap());
     }
 
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-        error : "No Song left".to_string(),
-    }).unwrap())
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap())
 }
 
 #[post("/user/my/playlist/{search}/fastbackward")]
@@ -553,7 +551,6 @@ async fn fastbackward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
     }
 
     HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-        error : "No Song left".to_string(),
     }).unwrap())
 }
 
@@ -562,6 +559,13 @@ async fn library() -> impl Responder{
 
     NamedFile::open_async("./static/collection.html").await
 }
+
+
+// You love good content with great quantity. You recently acknowledge that
+// poor quantity not only create bad experience but also effect on your energy levels and ear working.
+// And you asking this question over and over. We have a solution of your problem,
+// you don't need media player connect with roombot and in collection section search song name .. wait for few milliseconds
+// enjoy the song.  Another long feature each song categorize based on song emotion. The moment I knew [Taylor Swift] in love category.
 
 #[post("/user/library/{searchbycollection}")]
 async fn collection(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
@@ -578,9 +582,8 @@ async fn collection(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars
 
     if expire{
 
-            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                error : "Login session already expired".to_string(),
-            }).unwrap());
+            println!("Make sure you have provide correct information or session expired. ");
+            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap());
     }
 
 
@@ -628,6 +631,8 @@ async fn collection(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars
 
                 let mut content = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), stream_record.to_owned().song_name, Pinata_Content::Emotionfilter::None,false, 0,0);
 
+                
+
                 let client = match Gatekeeper::mongodb_client().await {
 
                         Ok(list) => list,
@@ -635,29 +640,61 @@ async fn collection(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars
                 };
     
                 let db = client.database(music::MUSIC_RECORD);
+
+                
         
-                let list = content.get_playlist(db).await;
+                if content.session != stream_record.session{
+
+                    let list = content.get_playlist_by_song(db.to_owned()).await;
+
+                    let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+
+                    println!("Enjoy the song ... {:?}", list.song);
 
 
-                let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+                    return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
+                        pmusic_artist : stream_record.artist[0].to_owned(),
+                        pmusic_compose : stream_record.compose.to_owned(),
+                        pmusic_genre : stream_record.genre.to_owned(),
+                        pmusic_ilink : list.cid_icontent.to_owned(),
+                        pmusic_lyric : stream_record.lyrics.to_owned(),
+                        session : ME.to_string(),
+                        name : stream_record.song_name.to_owned(),
+                        pmusic_mlink : list.cid_mcontent.to_owned(),
+                        pnumic_production : stream_record.studio_name.to_owned(),
+                        favourite : list.like.to_owned(),
+                        favourite_count : list.like_count.to_owned(),
+                        played : list.play_count.to_owned(),
+                        emotion : list.emotion.to_owned(),
+                    }).unwrap());
+
+                }else{
+
+                    let list = content.get_playlist(db.to_owned()).await;
+
+                    let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+
+                    println!("Enjoy the song ... {:?}", list.song);
+
+
+                    return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
+                        pmusic_artist : stream_record.artist[0].to_owned(),
+                        pmusic_compose : stream_record.compose.to_owned(),
+                        pmusic_genre : stream_record.genre.to_owned(),
+                        pmusic_ilink : list.cid_icontent.to_owned(),
+                        pmusic_lyric : stream_record.lyrics.to_owned(),
+                        session : ME.to_string(),
+                        name : stream_record.song_name.to_owned(),
+                        pmusic_mlink : list.cid_mcontent.to_owned(),
+                        pnumic_production : stream_record.studio_name.to_owned(),
+                        favourite : list.like.to_owned(),
+                        favourite_count : list.like_count.to_owned(),
+                        played : list.play_count.to_owned(),
+                        emotion : list.emotion.to_owned(),
+                    }).unwrap());
+                }
+
                 
-                
-
-                return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
-                    pmusic_artist : stream_record.artist[0].to_owned(),
-                    pmusic_compose : stream_record.compose.to_owned(),
-                    pmusic_genre : stream_record.genre.to_owned(),
-                    pmusic_ilink : list.cid_icontent.to_owned(),
-                    pmusic_lyric : stream_record.lyrics.to_owned(),
-                    session : ME.to_string(),
-                    name : stream_record.song_name.to_owned(),
-                    pmusic_mlink : list.cid_mcontent.to_owned(),
-                    pnumic_production : stream_record.studio_name.to_owned(),
-                    favourite : list.like.to_owned(),
-                    favourite_count : list.like_count.to_owned(),
-                    played : list.play_count.to_owned(),
-                    emotion : list.emotion.to_owned(),
-                }).unwrap());
                 
             }
             false => {
@@ -702,34 +739,60 @@ async fn collection(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars
     
                 let db = client.database(music::MUSIC_RECORD);
         
-                let list = content.get_playlist(db).await;               
+                if content.session != stream_record.session{
 
-                let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+                    let list = content.get_playlist(db.to_owned()).await;
+
+                    let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+
+                    println!("Enjoy the song ... {:?}", list.song);
 
 
-                return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
-                    pmusic_artist : stream_record.artist[0].to_owned(),
-                    pmusic_compose : stream_record.compose.to_owned(),
-                    pmusic_genre : stream_record.genre.to_owned(),
-                    pmusic_ilink : list.cid_icontent.to_owned(),
-                    pmusic_lyric : stream_record.lyrics.to_owned(),
-                    session : ME.to_string(),
-                    name : stream_record.song_name.to_owned(),
-                    pmusic_mlink : list.cid_mcontent.to_owned(),
-                    pnumic_production : stream_record.studio_name.to_owned(),
-                    favourite : list.like.to_owned(),
-                    favourite_count : list.like_count.to_owned(),
-                    played : list.play_count.to_owned(),
-                    emotion : list.emotion.to_owned(),
-                }).unwrap());
-            },
-        }
-        
+                    return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
+                        pmusic_artist : stream_record.artist[0].to_owned(),
+                        pmusic_compose : stream_record.compose.to_owned(),
+                        pmusic_genre : stream_record.genre.to_owned(),
+                        pmusic_ilink : list.cid_icontent.to_owned(),
+                        pmusic_lyric : stream_record.lyrics.to_owned(),
+                        session : ME.to_string(),
+                        name : stream_record.song_name.to_owned(),
+                        pmusic_mlink : list.cid_mcontent.to_owned(),
+                        pnumic_production : stream_record.studio_name.to_owned(),
+                        favourite : list.like.to_owned(),
+                        favourite_count : list.like_count.to_owned(),
+                        played : list.play_count.to_owned(),
+                        emotion : list.emotion.to_owned(),
+                    }).unwrap());
 
-        
+                }else{
 
-        
+                    let list = content.get_playlist_by_song(db.to_owned()).await;
+
+                    let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+
+                    println!("Enjoy the song ... {:?}", list.song);
+
+
+                    return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
+                        pmusic_artist : stream_record.artist[0].to_owned(),
+                        pmusic_compose : stream_record.compose.to_owned(),
+                        pmusic_genre : stream_record.genre.to_owned(),
+                        pmusic_ilink : list.cid_icontent.to_owned(),
+                        pmusic_lyric : stream_record.lyrics.to_owned(),
+                        session : ME.to_string(),
+                        name : stream_record.song_name.to_owned(),
+                        pmusic_mlink : list.cid_mcontent.to_owned(),
+                        pnumic_production : stream_record.studio_name.to_owned(),
+                        favourite : list.like.to_owned(),
+                        favourite_count : list.like_count.to_owned(),
+                        played : list.play_count.to_owned(),
+                        emotion : list.emotion.to_owned(),
+                    }).unwrap());
+            }
+        },
     }
+        
+}
     
 
 }
@@ -740,7 +803,8 @@ async fn artist() -> impl Responder{
     NamedFile::open_async("./static/artists.html").await
 }
 
-// mut payload : web::Payload
+// You're an artist like Michael Jackson and you want to add your work? Will you try 
+// roombot ? Share your story with us. 
 
 #[post("/user/composer/newsong")]
 async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicStream>) -> HttpResponse{
@@ -814,9 +878,8 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
 
         if expire{
 
-            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                error : "Login session already expired".to_string(),
-            }).unwrap());
+            println!("Make sure you have provide correct information or session expired. ");
+            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap());
         }
 
 
@@ -833,9 +896,8 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                 
                 if !path.join(PathBuf::from(cover_img.to_owned())).exists(){
 
-                    return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                        error : "Content might be moved".to_string(),
-                    }).unwrap());
+                    println!("Make sure uploaded picture in Download Directory . ");
+                    return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap());
                     
                 }
 
@@ -908,7 +970,7 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                     if cid_image == ""{
 
                         return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                                    error : "Content failed to process".to_string(),
+                                    
                         }).unwrap());
                     
                     }
@@ -945,7 +1007,7 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                             }else{
                                 
                                 return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                                    error : "Content ownership issue ! ".to_string(),
+                                    
                                 }).unwrap());
                             }
                         
@@ -963,13 +1025,12 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
 
         }
 
-
-        HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-            error : "Content should be in Downloads or Music Directory".to_string(),
-        }).unwrap())
+        HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap())
     
 }
 
+
+// You will like or dislike song real time.
 
 #[post("/me/like")]
 async fn like_work(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
@@ -983,19 +1044,14 @@ async fn like_work(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 
     let db = client.database(music::MUSIC_RECORD);
 
-    
-
     unsafe{
             
-        
-        
         if let Some(data) = GLOBAL_SONG.get(){
 
             if data.to_owned().to_string() == ""{
     
-                return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                    error : " Empty Query  ! ".to_string(),
-                }).unwrap());
+                println!("Make sure you don't submit empty form. ");
+                return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap());
             }
 
 
@@ -1037,9 +1093,6 @@ async fn like_work(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
        
     }
 
-    
-    
-
     HttpResponse::Ok().body(hbr.render("home", &homepage{}).unwrap())
 
 }
@@ -1050,6 +1103,7 @@ async fn sociallink() -> impl Responder {
     NamedFile::open_async("./static/authlink.html").await
 }
 
+// Roombot provide easy way to connect with roombot , no need to remember 7bit long hex stream for the authenication.
 #[post("/user/sociallink/profile")]
 async fn profile(form : web::Form<Authenicate>, hbr : web::Data<Handlebars<'_>> ) -> HttpResponse{
 
@@ -1127,12 +1181,9 @@ async fn poetry(form : web::Form<TranslateFormData>, hbr : web::Data::<Handlebar
 
         if take_action{
 
-            println!("Queries have some bad words which are not acceptable by model");
+            println!("Check your text there may be something which is not acceptable");
         
-            HttpResponse::BadRequest().body(hbr.render("error", &ResponseTranslateForm{
-                    query : "".to_string(),
-                    response : "Beware there may be some bad words in a content re-structure your query.".to_string(),
-            }).unwrap());
+            HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
         }
         
     }
@@ -1249,7 +1300,7 @@ fn generative(input : String ) -> std::io::Result<bool>{
 
     let lines = input.lines();
     let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
-    let xregex = Regex::new(r"\b(nude | porn | xxx | sexy | sex | sexual )").unwrap();
+    let xregex = Regex::new(r"\b(nude | porn | xxx | sexy | sex | sexual | hot | phallic | sexuality | oral | anal )").unwrap();
 
 
     let mut take_action : bool = false;
