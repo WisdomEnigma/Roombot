@@ -1,7 +1,9 @@
+#[warn(unused_imports)]
+
 pub mod music{
 
 
-    use mongodb::{Client, options::{ClientOptions,FindOptions}, bson::Document, bson::doc, results::{InsertOneResult, InsertManyResult}};
+    use mongodb::{Client, options::{ClientOptions,FindOptions}, bson::doc, results::{InsertOneResult, InsertManyResult}};
     use futures_util::{stream::TryStreamExt, future::ok};
     use serde::{Deserialize, Serialize};
 
@@ -278,7 +280,7 @@ pub mod music{
 pub mod Pinata_Content{
     use std::panic;
 
-    use mongodb::{Client, options::{ClientOptions,FindOptions, UpdateOptions, FindOneAndUpdateOptions}, bson::Document, bson::doc, results::{InsertOneResult, InsertManyResult}, Database};
+    use mongodb::{Client, options::{ClientOptions,FindOptions, FindOneAndUpdateOptions}, bson::Document, bson::doc, results::{InsertOneResult, InsertManyResult}, Database};
     use futures_util::{stream::TryStreamExt, future::ok};
     use serde::{Deserialize, Serialize};
 

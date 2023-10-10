@@ -7,3 +7,8 @@ edition = "2021"
 
 [dependencies]
 nodeless-rs = "0.1.0"
+futures-util = "0.3.28"
+serde = { version = "1.0.188", features = ["derive"]}
+
+mongodb = {version = "2.6.1", default-features = false, features = ["async-std-runtime"]}
+url = "2.4.1"

@@ -1,3 +1,8 @@
+#[warn(non_camel_case_types)]
+#[warn(unused_imports)]
+#[warn(unused_assignments)]
+
+
 use actix_web::{get, post, web, App, HttpServer, Responder, HttpResponse, Result};
 use actix_files::NamedFile;
 use serde::{Deserialize, Serialize};
@@ -7,8 +12,9 @@ use auth::Gatekeeper;
 // use img2vec::vec_middleware;
 use handlebars::Handlebars;
 use core::panic;
-use futures_util::stream::TryStreamExt;
-use std::path::Path;
+//use futures_util::stream::TryStreamExt;
+//use std::path::Path;
+use l2net::lightnode_net::{INodeless, self};
 use std::{path::PathBuf, collections::HashMap, io::BufReader, fs::File};
 use directories::UserDirs;
 use rodio::OutputStream;
@@ -107,7 +113,7 @@ struct Authenicate{
 
 #[derive(Serialize)]
 
-struct homepage;
+struct Homepage;
 
 #[derive(Serialize)]
 struct RequestError;
@@ -325,7 +331,7 @@ async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handl
                 
                     let mut flag_audio : bool = false;
 
-                    if object.1 != &true{
+                    if object.1 != &true && flag_audio == false{
                                 flag_audio = false;
                     }else{
                                 flag_audio = true;
@@ -359,7 +365,7 @@ async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handl
                 
                     let mut flag_audio : bool = false;
 
-                    if object.1 != &true{
+                    if object.1 != &true && flag_audio == false{
                                 flag_audio = false;
                     }else{
                                 flag_audio = true;
@@ -868,6 +874,13 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
         
         let email = &form.email; 
 
+
+        if lightnode_add == ""{
+
+            println!("Make sure your account linked with light node address for secure transaction. ");
+            return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
+        }
+
         // replace space with hypen 
         // let q = &music_file.replace(" ", "-");
 
@@ -920,7 +933,7 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                 unsafe{
 
                     let mut record = music::new_beat(music_file.to_owned().to_string(), 
-                        art,cover_img.to_string(), 
+                        art.to_owned(),cover_img.to_string(), 
                         lightnode_add.to_string(), 
                         date.to_string(),
                         lyrics.to_string(),
@@ -1000,10 +1013,51 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                             let db = c.database(music::MUSIC_RECORD);
                             
                             
-                            
-                            if let Ok(_) = content.music_collection(db).await{
 
-                                println!("Please wait content upload processing not take much time ");
+                                    // once song added on ipfs , artist will pay contract finalize fees  
+                            if let Ok(_) = content.music_collection(db.to_owned()).await{
+
+                                println!("Please wait content upload processing not take much time... ");
+
+                                let mut nodeless = INodeless::new(750, email.to_owned().to_string(),0.00,art[0].to_owned().to_string(),ME.to_owned().to_string(), lightnode_net::TransactionStatus::Pending, "".to_string());
+                                let node = nodeless.create_nodeless_client().await;
+                                let status = node.to_owned().get_server_status().await;
+
+                                println!(" Available = {:?}", status);
+
+                                let store = nodeless.connect_with_store(&node.to_owned()).await;
+
+
+                                if let Ok(digital_store) = store{
+
+                                    if digital_store.name.is_empty(){
+
+                                        println!("Make sure your account linked with light node address for secure transaction. ");
+                                        return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
+                                    }
+
+                                    let blockledge = nodeless.lightnode_store_inovice(&node.to_owned()).await;
+                                    
+                                    let db = c.database(music::MUSIC_RECORD);
+                                    let _ledger = nodeless.from_txs(db.to_owned()).await;
+                                        
+                                        
+                                      if let Ok(block) = blockledge  {
+                                          
+                                          let data = block.id.unwrap();
+                                          nodeless.lid = data.to_owned();
+                                          let _  = nodeless.update_tnx(db.to_owned()).await;
+                                          
+                                          
+                                          if let Ok(store_status) = nodeless.store_status(&node).await{
+
+                                            println!("Transaction confirmed {:?}", store_status);
+                                          }
+
+                                      }
+                                }
+
+
                             }else{
                                 
                                 return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
@@ -1069,20 +1123,22 @@ async fn like_work(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
                 COLORED = true;
                 PLAY +=1;
 
-                let mut update_cont = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, COLORED, LIKES, PLAY);
-
-                let updater =  update_cont.update_song_info(db.to_owned()).await;
+                // let mut update_cont = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, COLORED, LIKES, PLAY);
+                content.like_count = LIKES;
+                content.play_count = PLAY;
+                content.like = COLORED; 
+                
+                let updater =  content.update_song_info(db.to_owned()).await;   
 
                 print!("Content update {:?}", updater);
             }else{
 
-                LIKES -=1;
-                COLORED = false;
-                PLAY +=1;
-
-                let mut update_cont = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, COLORED, LIKES, PLAY);
-
-                let updater =  update_cont.update_song_info(db.to_owned()).await;
+                // let mut update_cont = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, COLORED, LIKES, PLAY);
+                content.like_count = LIKES;
+                content.play_count = PLAY;
+                content.like = COLORED; 
+                
+                let updater =  content.update_song_info(db.to_owned()).await;   
 
                 print!("Content update {:?}", updater);
             }
@@ -1093,7 +1149,7 @@ async fn like_work(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
        
     }
 
-    HttpResponse::Ok().body(hbr.render("home", &homepage{}).unwrap())
+    HttpResponse::Ok().body(hbr.render("home", &Homepage{}).unwrap())
 
 }
 
@@ -1136,7 +1192,7 @@ async fn profile(form : web::Form<Authenicate>, hbr : web::Data<Handlebars<'_>> 
     let db = client.database(music::MUSIC_RECORD);
     let _ = auth.create_record(db).await;
     
-    HttpResponse::Ok().body(hbr.render("home", &homepage{}).unwrap())
+    HttpResponse::Ok().body(hbr.render("home", &Homepage{}).unwrap())
 
 }
 
