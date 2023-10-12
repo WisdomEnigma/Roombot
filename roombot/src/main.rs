@@ -69,6 +69,7 @@ struct Nftmint{
     song : String,
     cid_image : String,
     cid_music : String,
+    amount : String
 }
 
 #[derive(Deserialize)]
@@ -895,7 +896,7 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
             return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap());
         }
 
-
+        let mut fees : f64 = 0.0;
 
         // read specific music file which is in music directory. If file is not in music diectory then throw error.
         // create music file record {music name, artists name, song type , production name etc}.
@@ -1051,7 +1052,23 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                                           
                                           if let Ok(store_status) = nodeless.store_status(&node).await{
 
-                                            println!("Transaction confirmed {:?}", store_status);
+                                            println!("Inovice generate {:?}", store_status);
+
+                                            let tx = nodeless.get_store_tnx(&node).await;
+
+                                            fees = 750.00;
+
+                                            if !tx.is_empty(){
+
+                                                println!("Transaction status {:?}", tx[0].status);
+                                            }else{
+
+                                                println!("Sorry Gateway have closed and your content cannot published");
+                                                return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());    
+                                            }
+                                            
+
+                                            
                                           }
 
                                       }
@@ -1071,6 +1088,7 @@ async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicSt
                             song : music_file.to_owned().to_string(),
                             cid_image : cid_image.to_owned().to_string(),
                             cid_music : cid_music.to_owned().to_string(),
+                            amount : fees.to_string(),
                         }).unwrap());
                     }
                 }
@@ -1115,6 +1133,61 @@ async fn like_work(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
             LIKES = old.like_count;
             COLORED = old.like;
             PLAY = old.play_count;
+
+
+            if LIKES >= 200 && PLAY >=1000{
+
+                let mut nodeless = INodeless::new(200, "".to_owned().to_string(),0.00,"".to_owned().to_string(),ME.to_owned().to_string(), lightnode_net::TransactionStatus::Pending, "".to_string());
+                let node = nodeless.create_nodeless_client().await;
+                let status = node.to_owned().get_server_status().await;
+
+                println!(" Available = {:?}", status);
+
+
+                if let Ok(digital_store) = nodeless.connect_with_store(&node.to_owned()).await{
+
+                   if digital_store.name.is_empty(){
+
+                            println!("Make sure your account linked with light node address for secure transaction. ");
+                            return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
+                    }
+                                    
+                    let db = client.database(music::MUSIC_RECORD);
+                    let _ledger = nodeless.from_txs(db.to_owned()).await;
+                                        
+                    if let Ok(block) = nodeless.lightnode_store_inovice(&node.to_owned()).await  {
+                                          
+                        let data = block.id.unwrap();
+                        nodeless.lid = data.to_owned();
+                        let _  = nodeless.update_tnx(db.to_owned()).await;
+                                          
+                                          
+                        if let Ok(store_status) = nodeless.store_status(&node).await{
+
+                            println!("Inovice generate {:?}", store_status);
+
+                            let tx = nodeless.get_store_tnx(&node).await;
+
+                                            // fees = 750.00;
+
+                            if !tx.is_empty(){
+
+                                println!("Transaction status {:?}", tx[0].status);
+                            }else{
+
+                                println!("Sorry Gateway have closed and you have to pay the charges");
+                                return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());    
+                                            
+                            }
+                                            
+
+                                            
+                                          
+                        }
+
+                    }
+                }
+            }
 
 
             if LIKES == 0 && !COLORED {

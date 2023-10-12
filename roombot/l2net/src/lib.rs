@@ -7,7 +7,7 @@ pub mod lightnode_net{
     use std::str::FromStr;
     use futures_util::stream::TryStreamExt;
 
-    use nodeless_rs::{Nodeless, store::InvoiceRequest};
+    use nodeless_rs::{Nodeless, store::InvoiceRequest, transaction::Transaction};
     
     
     
@@ -119,10 +119,10 @@ pub mod lightnode_net{
         }
 
 
-        
+
+        // update record information when an event trigger
         pub async fn update_tnx (&mut self, db : Database) -> std::option::Option<INodeless> {
 
-            println!("Session {:?}", self);
 
             let collect = db.collection::<INodeless>(LEDGER_BIT);
             let filter = doc!{ "session" : self.session.to_owned()};
@@ -135,7 +135,6 @@ pub mod lightnode_net{
                 let update_opts = FindOneAndUpdateOptions::builder().return_document(mongodb::options::ReturnDocument::After).build();
                 if let Ok(content) = collect.find_one_and_update(filter, update_doc, update_opts).await{
 
-                    println!("Content {:?}", content.to_owned());
                     return content;
                 }
 
@@ -143,16 +142,19 @@ pub mod lightnode_net{
         }
 
 
+        // get store inovice 
         pub async fn store_inovice(&mut self, node : &Nodeless) -> Result<nodeless_rs::store::Invoice, nodeless_rs::error::NodelessError> {
 
                 node.get_store_invoice(STORE, &self.lid).await
         }
 
+        // get store inovice status ["New", "Paid"]
         pub async fn store_status(&mut self, node : &Nodeless) -> Result<nodeless_rs::store::InvoiceStatus, nodeless_rs::error::NodelessError> {
 
                 node.get_store_invoice_status(STORE, &self.lid).await
         }
         
+        // find transaction record in our database
         async fn find_tnx_record(&mut self , db : Database) -> std::io::Result<INodeless> {
 
             let collection = db.collection::<INodeless>(LEDGER_BIT);
@@ -177,14 +179,36 @@ pub mod lightnode_net{
                 
         }
 
+
+        // get transaction record from database
         pub async fn get_tnx_record(&mut self, db : Database) -> INodeless {
 
-            
-            // let mut inode = INodeless{ amount: 0, email: "".to_string(), status: TransactionStatus::Process, remaining: 0.00, name: "".to_string(), session: "".to_string(), lid: "".to_string() };
             
             let Ok(record) = self.find_tnx_record(db.to_owned()).await else { return INodeless{amount : 0, email : "".to_string(), status : TransactionStatus::Process, remaining : 0.00, name : "".to_string(), session : "".to_string(), lid: "".to_string()} };
 
             record
+        }
+
+
+        // get store tnx return number of transactions should be 5. 
+        pub async fn get_store_tnx(&mut self, node : &Nodeless) -> Vec<Transaction>{
+
+           let mut store_tx : Vec<Transaction> = Vec::<Transaction>::new(); 
+           let tnx = node.get_transactions(true).await;
+            if let Ok(tx) = tnx{
+
+                if tx.is_empty(){
+
+                    println!("No transaction yet made from your account! {:?}", tx);
+                }else{
+
+                    store_tx.push(tx[0].to_owned().clone());
+                }
+
+                
+            }
+
+            store_tx
         }
     }
 
