@@ -1,239 +1,228 @@
+use actix_files::NamedFile;
 #[warn(non_camel_case_types)]
 #[warn(unused_imports)]
 #[warn(unused_assignments)]
-
-
-use actix_web::{get, post, web, App, HttpServer, Responder, HttpResponse, Result};
-use actix_files::NamedFile;
-use serde::{Deserialize, Serialize};
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
+use auth::gatekeeper;
 use gpt_text::openai;
 use regex::Regex;
-use auth::Gatekeeper;
+use serde::{Deserialize, Serialize};
 // use img2vec::vec_middleware;
-use handlebars::Handlebars;
 use core::panic;
+use handlebars::Handlebars;
 //use futures_util::stream::TryStreamExt;
 //use std::path::Path;
-use l2net::lightnode_net::{INodeless, self};
-use std::{path::PathBuf, collections::HashMap, io::BufReader, fs::File};
 use directories::UserDirs;
-use rodio::OutputStream;
-use pinata_ipfs::ipinata;
-use music_stream::{music, Pinata_Content};
+use l2net::lightnode_net::{self, INodeless};
+use music_stream::{music, pinata_content};
 use once_cell::sync::OnceCell;
-
-
+use pinata_ipfs::ipinata;
+use rodio::OutputStream;
+use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf};
 
 // private structures
 
 #[derive(Deserialize)]
 struct TranslateFormData {
-
-    query : String,
-    call   : String,    
+    query: String,
+    call: String,
 }
 
 #[derive(Serialize)]
-struct ResponseTranslateForm{
-
-    query : String,
-    response : String,
-}
-
-
-#[derive(Serialize)]
-struct Authorize{
-
-    compress : String,
+struct ResponseTranslateForm {
+    query: String,
+    response: String,
 }
 
 #[derive(Serialize)]
-struct ImageTemp{
-
-    image : String,
+struct Authorize {
+    compress: String,
 }
 
 #[derive(Serialize)]
-struct AudioSearchResults{
-
-    audioname : String,
-    isplay : bool,
+struct ImageTemp {
+    image: String,
 }
 
+#[derive(Serialize)]
+struct AudioSearchResults {
+    audioname: String,
+    isplay: bool,
+}
 
 #[derive(Serialize)]
 
-struct Nftmint{
-
-    session : String,
-    song : String,
-    cid_image : String,
-    cid_music : String,
-    amount : String
+struct Nftmint {
+    session: String,
+    song: String,
+    cid_image: String,
+    cid_music: String,
+    amount: String,
 }
 
 #[derive(Deserialize)]
-struct SearchPlaylist{
-
-    songname : String,
+struct SearchPlaylist {
+    songname: String,
 }
 
-
-
 #[derive(Deserialize)]
-struct MusicStream{
-    cover : String,
-    artist : String,
-    mfile : String,
-    date : String,
-    genre : String,
+struct MusicStream {
+    cover: String,
+    artist: String,
+    mfile: String,
+    date: String,
+    genre: String,
     composer: String,
 
-    lyricst : String,
-    studio : String,
-    website : String,
-    brand : String,
-    royalty : String,
-    ltbtc : String,
+    lyricst: String,
+    studio: String,
+    website: String,
+    brand: String,
+    royalty: String,
+    ltbtc: String,
 
-    lightnode : String,
-    work : String,
-    future : String,
-    ownership : String,
-    email : String,
+    lightnode: String,
+    work: String,
+    future: String,
+    ownership: String,
+    email: String,
 }
 
 #[derive(Deserialize, Debug)]
 
-struct Authenicate{
-    username : String, 
-    email : String
-
+struct Authenicate {
+    username: String,
+    email: String,
 }
-
 
 #[derive(Serialize)]
 
 struct Homepage;
 
 #[derive(Serialize)]
+struct History {
+    alert_0: String,
+    alert_1: String,
+    alert_2: String,
+    alert_3: String,
+    alert_4: String,
+    alert_5: String,
+    alert_6: String,
+    alert_7: String,
+    alert_8: String,
+    alert_9: String,
+}
+
+#[derive(Serialize)]
 struct RequestError;
 
 #[derive(Serialize)]
-struct SongEngine{
-    
-    pmusic_artist :String ,
-    pmusic_compose : String,
-    pmusic_lyric : String,
-    pmusic_genre : String,
-    pnumic_production : String,
-    pmusic_ilink : String,
-    pmusic_mlink : String,
-    session : String,
-    name : String,
-    favourite : bool,
-    favourite_count : i64,
-    played : i64,
-    emotion : Pinata_Content::Emotionfilter,
-
+struct SongEngine {
+    pmusic_artist: String,
+    pmusic_compose: String,
+    pmusic_lyric: String,
+    pmusic_genre: String,
+    pnumic_production: String,
+    pmusic_ilink: String,
+    pmusic_mlink: String,
+    session: String,
+    name: String,
+    favourite: bool,
+    favourite_count: i64,
+    played: i64,
+    emotion: pinata_content::Emotionfilter,
 }
 
-// static variables 
+// static variables
 
-static mut AUDIO : Vec<HashMap<String, bool>> = Vec::new();
-static mut ME : u64 = 0;
-static mut LIKES : i64 = 0;
-static  mut COLORED : bool = false;
-static mut PLAY : i64 = 0;
-static GLOBAL_SONG : OnceCell<String> = OnceCell::new();
-
+static mut AUDIO: Vec<HashMap<String, bool>> = Vec::new();
+static mut ME: u64 = 0;
+static mut LIKES: i64 = 0;
+static mut COLORED: bool = false;
+static mut PLAY: i64 = 0;
+static GLOBAL_SONG: OnceCell<String> = OnceCell::new();
 
 // routes
 #[get("/")]
 async fn index() -> impl Responder {
-
     NamedFile::open_async("./static/index.html").await
 }
 
 #[get("/utopia")]
-async fn image_utopia() -> impl Responder{
-
+async fn image_utopia() -> impl Responder {
     NamedFile::open_async("./static/assets/utopia.jpg").await
 }
 
 #[get("/user_avatar")]
-async fn avatari() -> impl Responder{
-
+async fn avatari() -> impl Responder {
     NamedFile::open_async("/home/ali/Downloads/register_face.png").await
 }
 
 #[get("/futuristic")]
-async fn image_learning() -> impl Responder{
-
-    
+async fn image_learning() -> impl Responder {
     NamedFile::open_async("./static/assets/translation.png").await
 }
 
-
 #[get("/translation")]
 async fn translator() -> impl Responder {
-
-    
     NamedFile::open_async("./static/translate.html").await
 }
 
 #[post("/translation/user/{output}")]
-async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+async fn word2word(
+    form: web::Form<TranslateFormData>,
+    hbr: web::Data<Handlebars<'_>>,
+) -> HttpResponse {
+    // parse input values
+    let input: _ = &form.query;
+    let apikey: _ = &form.call;
 
-
-    // parse input values 
-    let input : _ =  &form.query;
-    let apikey : _ = &form.call; 
-
-    
     let action = generative(input.to_string());
-    
 
     // check whether any bad word exist in a text
-    if let Ok(take_action) = action  {
-
-        if take_action{
-
+    if let Ok(take_action) = action {
+        if take_action {
             println!("Check your text there may be something which is not acceptable");
-        
-            HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
+            HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
         }
-        
     }
 
-
-    // validate keyword transalation or translate 
-    if !input.contains("translation") || !input.contains("translate") && !input.contains("Translation") || !input.contains("Translate"){
-
+    // validate keyword transalation or translate
+    if !input.contains("translation")
+        || !input.contains("translate") && !input.contains("Translation")
+        || !input.contains("Translate")
+    {
         println!("Trigger word is not present 'Translate '  ");
-        HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
+        HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
     }
 
+    // engage openai call
+    let mut opencall: _ = openai::new(
+        input.to_string(),
+        "".to_string(),
+        input.len().try_into().unwrap(),
+    );
 
-    // engage openai call 
-    let mut opencall : _ = openai::new(input.to_string(), "".to_string(), input.len().try_into().unwrap());
-    
-    let responses =  match opencall.openai_text_wrapper(apikey.to_string()).await{
-
-            Ok(resp) => format!("{:?}", resp),
-            Err(e) => panic!("Error = {:?}", e),
+    let responses = match opencall.openai_text_wrapper(apikey.to_string()).await {
+        Ok(resp) => format!("{:?}", resp),
+        Err(e) => panic!("Error = {:?}", e),
     };
 
-    HttpResponse::Ok().body(hbr.render("translate", &ResponseTranslateForm{
-        query : input.to_string(),
-        response : responses,
-    }).unwrap())
-
+    HttpResponse::Ok().body(
+        hbr.render(
+            "translate",
+            &ResponseTranslateForm {
+                query: input.to_string(),
+                response: responses,
+            },
+        )
+        .unwrap(),
+    )
 }
 
 // #[get("/user/register")]
 // async fn register_user() -> impl Responder{
-   
+
 //     NamedFile::open_async("./static/register.html").await
 // }
 
@@ -249,18 +238,16 @@ async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handleba
 //     };
 
 //     HttpResponse::Ok().body(hbr.render("register", &ImageTemp{
-//         image : "/user_avatar".to_string(),        
+//         image : "/user_avatar".to_string(),
 //     }).unwrap())
-
 
 // }
 
 // #[get("/user/login")]
 // async fn login() -> impl Responder{
-   
+
 //     NamedFile::open_async("./static/login.html").await
 // }
-
 
 // #[post("/user/login/verified")]
 // async fn login_account(hbr : web::Data<Handlebars<'_>>) -> impl Responder{
@@ -275,78 +262,72 @@ async fn word2word(form : web::Form<TranslateFormData>, hbr : web::Data<Handleba
 
 // }
 
-
 #[get("/user/my/playlist")]
-async fn playlist() -> impl Responder{
-
+async fn playlist() -> impl Responder {
     NamedFile::open_async("./static/music.html").await
 }
 
-
 // This feature allow user to listen music on web without any media player.
-// Suppose you're a taylor big fan and you wanna listen "The Moment I Knew" 
+// Suppose you're a taylor big fan and you wanna listen "The Moment I Knew"
 // all you have type a name of a song and play it for you.
 
 #[post("/user/my/playlist/{search}")]
-async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse {
-
-
-    // parse input values 
-    let query : _ = &form.songname;
+async fn search_playlist(
+    form: web::Form<SearchPlaylist>,
+    hbr: web::Data<Handlebars<'_>>,
+) -> HttpResponse {
+    // parse input values
+    let query: _ = &form.songname;
     let audiomp3 = query.to_owned() + &".mp3";
     let audiowav = query.to_owned() + &".wav";
-    
-    
-    // single source for storing audio search results ; in upcoming version multiple songs will be searched 
-    let mut source : HashMap<String, bool> = HashMap::new();
+
+    // single source for storing audio search results ; in upcoming version multiple songs will be searched
+    let mut source: HashMap<String, bool> = HashMap::new();
 
     // get file from directory and if found store in the source
     if let Some(dir) = UserDirs::new() {
-        
-        if let Some(file) = dir.audio_dir(){
-            
+        if let Some(file) = dir.audio_dir() {
             let mut file_ext = "".to_string();
-
 
             // whether audio mp3 or wav
 
-            if PathBuf::from(&file.join(audiomp3.to_owned())).exists(){
-
+            if PathBuf::from(&file.join(audiomp3.to_owned())).exists() {
                 file_ext = PathBuf::from(&file.join(audiomp3)).display().to_string();
 
                 let audio = file_ext.clone();
-                
+
                 source.insert(file_ext, true);
 
                 set_audio(source);
 
                 let datablock = get_audio();
 
-                let object = match datablock.get_key_value(&audio){
-
-                        Some(data) => {data},
-                        None => {
-                                    panic!("Error No Content in your playlist")
-                        },
-                };
-                
-                    let mut flag_audio : bool = false;
-
-                    if object.1 != &true && flag_audio == false{
-                                flag_audio = false;
-                    }else{
-                                flag_audio = true;
+                let object = match datablock.get_key_value(&audio) {
+                    Some(data) => data,
+                    None => {
+                        panic!("Error No Content in your playlist")
                     }
+                };
 
+                let mut flag_audio: bool = false;
 
-                    return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-                        audioname: format!("{:?}", object.0), 
-                        isplay: flag_audio}
-                    ).unwrap());
-                
-                               
-            }else if PathBuf::from(&file.join(audiowav.to_owned())).exists(){
+                if object.1 != &true && flag_audio == false {
+                    flag_audio = false;
+                } else {
+                    flag_audio = true;
+                }
 
+                return HttpResponse::Ok().body(
+                    hbr.render(
+                        "music",
+                        &AudioSearchResults {
+                            audioname: format!("{:?}", object.0),
+                            isplay: flag_audio,
+                        },
+                    )
+                    .unwrap(),
+                );
+            } else if PathBuf::from(&file.join(audiowav.to_owned())).exists() {
                 file_ext = PathBuf::from(&file.join(audiowav)).display().to_string();
 
                 let file = file_ext.clone();
@@ -356,75 +337,72 @@ async fn search_playlist(form : web::Form<SearchPlaylist>, hbr : web::Data<Handl
 
                 let datablock = get_audio();
 
-                let object = match datablock.get_key_value(&file){
-
-                        Some(data) => {data},
-                        None => {
-                                    panic!("Error No Content in your playlist")
-                        },
-                };
-                
-                    let mut flag_audio : bool = false;
-
-                    if object.1 != &true && flag_audio == false{
-                                flag_audio = false;
-                    }else{
-                                flag_audio = true;
+                let object = match datablock.get_key_value(&file) {
+                    Some(data) => data,
+                    None => {
+                        panic!("Error No Content in your playlist")
                     }
+                };
 
-                    return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-                        audioname: format!("{:?}", object.0), 
-                        isplay: flag_audio}
-                    ).unwrap());
-            
-            }else{
+                let mut flag_audio: bool = false;
 
+                if object.1 != &true && flag_audio == false {
+                    flag_audio = false;
+                } else {
+                    flag_audio = true;
+                }
+
+                return HttpResponse::Ok().body(
+                    hbr.render(
+                        "music",
+                        &AudioSearchResults {
+                            audioname: format!("{:?}", object.0),
+                            isplay: flag_audio,
+                        },
+                    )
+                    .unwrap(),
+                );
+            } else {
                 panic!("Format is not supported");
             }
-
-            
         }
     }
 
-
     println!("Song you wanan listen unforuentely not available in your directory. Please visit our song collection link where your favourite song might be ready for you. ");
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap())
-
-
-    
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError {}).unwrap())
 }
-
 
 // web music player player your favourite song "The Moment I Knew". So phenomenal
 
 #[post("/user/my/playlist/{search}/play")]
-async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
-
-
+async fn play_audio(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
     // open audio file, with how many times audio will be played.
-    // run the audio file ; if exist 
+    // run the audio file ; if exist
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let audio = get_audio();
-    for i in audio.keys(){
-        
+    for i in audio.keys() {
         let file = BufReader::new(File::open(i).unwrap());
         let clip = stream_handle.play_once(file).unwrap();
 
         clip.set_volume(1.0);
         clip.play();
         clip.detach();
-        std::thread::sleep(std::time::Duration::from_secs(60*5));
+        std::thread::sleep(std::time::Duration::from_secs(60 * 5));
 
-        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-            audioname: i.to_string(), 
-            isplay: true}
-        ).unwrap());
+        return HttpResponse::Ok().body(
+            hbr.render(
+                "music",
+                &AudioSearchResults {
+                    audioname: i.to_string(),
+                    isplay: true,
+                },
+            )
+            .unwrap(),
+        );
     }
 
     println!("Please check your volume or other peripheral devices attached to your devices");
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap())
-
-    
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError {}).unwrap())
 }
 
 // #[post("/user/my/playlist/{search}/paused")]
@@ -433,7 +411,7 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 //     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
 //     let audio = get_audio();
 //     for i in audio.keys(){
-        
+
 //         let file = BufReader::new(File::open(i).unwrap());
 //         let clip = stream_handle.play_once(file).unwrap();
 
@@ -443,7 +421,7 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 //         std::thread::sleep(std::time::Duration::from_secs(60*5));
 
 //         return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-//             audioname: i.to_string(), 
+//             audioname: i.to_string(),
 //             isplay: true}
 //         ).unwrap());
 //     }
@@ -451,7 +429,7 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 //     HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
 //         error : "Song is already playing".to_string(),
 //     }).unwrap())
-    
+
 // }
 
 // #[post("/user/my/playlist/{search}/stop")]
@@ -460,7 +438,7 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 //     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
 //     let audio = get_audio();
 //     for i in audio.keys(){
-        
+
 //         let file = BufReader::new(File::open(i).unwrap());
 //         let clip = stream_handle.play_once(file).unwrap();
 
@@ -469,7 +447,7 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 //         clip.detach();
 //         std::thread::sleep(std::time::Duration::from_secs(60*3));
 //         return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-//             audioname: i.to_string(), 
+//             audioname: i.to_string(),
 //             isplay: true}
 //         ).unwrap());
 //     }
@@ -485,7 +463,7 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 //     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
 //     let audio = get_audio();
 //     for i in audio.keys(){
-        
+
 //         let file = BufReader::new(File::open(i).unwrap());
 
 //         let clip = stream_handle.play_once(file).unwrap();
@@ -495,7 +473,7 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 //         clip.detach();
 //         std::thread::sleep(std::time::Duration::from_secs(60*3));
 //         return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-//             audioname: i.to_string(), 
+//             audioname: i.to_string(),
 //             isplay: true}
 //         ).unwrap());
 //     }
@@ -505,17 +483,13 @@ async fn play_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
 //     }).unwrap())
 // }
 
-
 #[post("/user/my/playlist/{search}/fastforward")]
-async fn fastforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
-
-
+async fn fastforward_audio(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
     // open audio file, with how many times audio will be played.
     // this function will increase the speed of audio file and then play it.
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let audio = get_audio();
-    for i in audio.keys(){
-        
+    for i in audio.keys() {
         let file = BufReader::new(File::open(i).unwrap());
 
         let clip = stream_handle.play_once(file).unwrap();
@@ -523,26 +497,30 @@ async fn fastforward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         clip.set_volume(1.0);
         clip.set_speed(2.0);
         clip.detach();
-        std::thread::sleep(std::time::Duration::from_secs(60*3));
-        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-            audioname: i.to_string(), 
-            isplay: true}
-        ).unwrap());
+        std::thread::sleep(std::time::Duration::from_secs(60 * 3));
+
+        return HttpResponse::Ok().body(
+            hbr.render(
+                "music",
+                &AudioSearchResults {
+                    audioname: i.to_string(),
+                    isplay: true,
+                },
+            )
+            .unwrap(),
+        );
     }
 
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap())
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError {}).unwrap())
 }
 
 #[post("/user/my/playlist/{search}/fastbackward")]
-async fn fastbackward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
-
-
+async fn fastbackward_audio(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
     // open audio file, with how many times audio will be played.
     // this function will decrease the speed of audio file and then play it.
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let audio = get_audio();
-    for i in audio.keys(){
-        
+    for i in audio.keys() {
         let file = BufReader::new(File::open(i).unwrap());
 
         let clip = stream_handle.play_once(file).unwrap();
@@ -550,23 +528,27 @@ async fn fastbackward_audio(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
         clip.set_volume(1.0);
         clip.set_speed(0.7);
         clip.detach();
-        std::thread::sleep(std::time::Duration::from_secs(60*3));
-        return HttpResponse::Ok().body(hbr.render("music", &AudioSearchResults{
-            audioname: i.to_string(), 
-            isplay: true}
-        ).unwrap());
+        std::thread::sleep(std::time::Duration::from_secs(60 * 3));
+
+        return HttpResponse::Ok().body(
+            hbr.render(
+                "music",
+                &AudioSearchResults {
+                    audioname: i.to_string(),
+                    isplay: true,
+                },
+            )
+            .unwrap(),
+        );
     }
 
-    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-    }).unwrap())
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError {}).unwrap())
 }
 
 #[get("/user/library")]
-async fn library() -> impl Responder{
-
+async fn library() -> impl Responder {
     NamedFile::open_async("./static/collection.html").await
 }
-
 
 // You love good content with great quantity. You recently acknowledge that
 // poor quantity not only create bad experience but also effect on your energy levels and ear working.
@@ -575,787 +557,770 @@ async fn library() -> impl Responder{
 // enjoy the song.  Another long feature each song categorize based on song emotion. The moment I knew [Taylor Swift] in love category.
 
 #[post("/user/library/{searchbycollection}")]
-async fn collection(form : web::Form<SearchPlaylist>, hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
-
-    // parse input values 
+async fn collection(
+    form: web::Form<SearchPlaylist>,
+    hbr: web::Data<Handlebars<'_>>,
+) -> HttpResponse {
+    // parse input values
     let query = &form.songname;
 
-    // replace space with hypen 
+    // replace space with hypen
     // let q = &query.replace(" ", "-");
     let mut mp_player = query.to_owned() + ".mp3";
 
     // validate user session
     let expire = login_expire();
 
-    if expire{
-
-            println!("Make sure you have provide correct information or session expired. ");
-            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap());
+    if expire {
+        println!("Make sure you have provide correct information or session expired. ");
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
     }
-
 
     // Here unsafe have a reason because of static calls.
     // The real problem is that retrive paticular song from library or collection, inorder to solve this problem
-    // another problem we have faced called user might be skip format of song. 
+    // another problem we have faced called user might be skip format of song.
 
-    // Query = [Lovely morning ] <=>  Record [Lovely-morning.mp3] 
+    // Query = [Lovely morning ] <=>  Record [Lovely-morning.mp3]
 
-    
-
-    unsafe{
-
+    unsafe {
         match mp_player.contains(".mp3") {
             true => {
+                let mut record = music::new_beat(
+                    mp_player.to_owned().to_string(),
+                    Vec::<String>::new(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    "".to_string(),
+                    ME.to_string(),
+                    0.0,
+                );
 
-                let mut record = music::new_beat(mp_player.to_owned().to_string(), 
-                Vec::<String>::new(),
-                "".to_string(), 
-                "".to_string(), 
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(), 
-                "".to_string(),
-                false,
-                false,
-                false,
-                false,
-                false,
-                "".to_string(), 
-                ME.to_string(), 0.0);
-    
                 let client = match record.create_mongo_connection().await {
-
                     Ok(list) => list,
                     Err(e) => panic!("{:?}", e),
                 };
 
                 let db = client.database(music::MUSIC_RECORD);
 
-                let stream_record =  record.get_song_from_playlist(db).await;
+                let stream_record = record.get_song_from_playlist(db).await;
 
-                let mut content = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), stream_record.to_owned().song_name, Pinata_Content::Emotionfilter::None,false, 0,0);
+                let mut content = pinata_content::Content::new(
+                    ME.to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    stream_record.to_owned().song_name,
+                    pinata_content::Emotionfilter::None,
+                    false,
+                    0,
+                    0,
+                );
 
-                
-
-                let client = match Gatekeeper::mongodb_client().await {
-
-                        Ok(list) => list,
-                        Err(e) => panic!("{:?}", e),
+                let client = match gatekeeper::mongodb_client().await {
+                    Ok(list) => list,
+                    Err(e) => panic!("{:?}", e),
                 };
-    
+
                 let db = client.database(music::MUSIC_RECORD);
 
-                
-        
-                if content.session != stream_record.session{
-
+                if content.session != stream_record.session {
                     let list = content.get_playlist_by_song(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
 
                     println!("Enjoy the song ... {:?}", list.song);
 
-
-                    return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
-                        pmusic_artist : stream_record.artist[0].to_owned(),
-                        pmusic_compose : stream_record.compose.to_owned(),
-                        pmusic_genre : stream_record.genre.to_owned(),
-                        pmusic_ilink : list.cid_icontent.to_owned(),
-                        pmusic_lyric : stream_record.lyrics.to_owned(),
-                        session : ME.to_string(),
-                        name : stream_record.song_name.to_owned(),
-                        pmusic_mlink : list.cid_mcontent.to_owned(),
-                        pnumic_production : stream_record.studio_name.to_owned(),
-                        favourite : list.like.to_owned(),
-                        favourite_count : list.like_count.to_owned(),
-                        played : list.play_count.to_owned(),
-                        emotion : list.emotion.to_owned(),
-                    }).unwrap());
-
-                }else{
-
+                    return HttpResponse::Ok().body(
+                        hbr.render(
+                            "search",
+                            &SongEngine {
+                                pmusic_artist: stream_record.artist[0].to_owned(),
+                                pmusic_compose: stream_record.compose.to_owned(),
+                                pmusic_genre: stream_record.genre.to_owned(),
+                                pmusic_ilink: list.cid_icontent.to_owned(),
+                                pmusic_lyric: stream_record.lyrics.to_owned(),
+                                session: ME.to_string(),
+                                name: stream_record.song_name.to_owned(),
+                                pmusic_mlink: list.cid_mcontent.to_owned(),
+                                pnumic_production: stream_record.studio_name.to_owned(),
+                                favourite: list.like.to_owned(),
+                                favourite_count: list.like_count.to_owned(),
+                                played: list.play_count.to_owned(),
+                                emotion: list.emotion.to_owned(),
+                            },
+                        )
+                        .unwrap(),
+                    );
+                } else {
                     let list = content.get_playlist(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
 
                     println!("Enjoy the song ... {:?}", list.song);
 
-
-                    return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
-                        pmusic_artist : stream_record.artist[0].to_owned(),
-                        pmusic_compose : stream_record.compose.to_owned(),
-                        pmusic_genre : stream_record.genre.to_owned(),
-                        pmusic_ilink : list.cid_icontent.to_owned(),
-                        pmusic_lyric : stream_record.lyrics.to_owned(),
-                        session : ME.to_string(),
-                        name : stream_record.song_name.to_owned(),
-                        pmusic_mlink : list.cid_mcontent.to_owned(),
-                        pnumic_production : stream_record.studio_name.to_owned(),
-                        favourite : list.like.to_owned(),
-                        favourite_count : list.like_count.to_owned(),
-                        played : list.play_count.to_owned(),
-                        emotion : list.emotion.to_owned(),
-                    }).unwrap());
+                    return HttpResponse::Ok().body(
+                        hbr.render(
+                            "search",
+                            &SongEngine {
+                                pmusic_artist: stream_record.artist[0].to_owned(),
+                                pmusic_compose: stream_record.compose.to_owned(),
+                                pmusic_genre: stream_record.genre.to_owned(),
+                                pmusic_ilink: list.cid_icontent.to_owned(),
+                                pmusic_lyric: stream_record.lyrics.to_owned(),
+                                session: ME.to_string(),
+                                name: stream_record.song_name.to_owned(),
+                                pmusic_mlink: list.cid_mcontent.to_owned(),
+                                pnumic_production: stream_record.studio_name.to_owned(),
+                                favourite: list.like.to_owned(),
+                                favourite_count: list.like_count.to_owned(),
+                                played: list.play_count.to_owned(),
+                                emotion: list.emotion.to_owned(),
+                            },
+                        )
+                        .unwrap(),
+                    );
                 }
-
-                
-                
             }
             false => {
-
                 mp_player = mp_player.replace(".mp3", ".wav");
-                let mut record = music::new_beat(mp_player.to_owned().to_string(), 
-                Vec::<String>::new(),
-                "".to_string(), 
-                "".to_string(), 
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(), 
-                "".to_string(),
-                false,
-                false,
-                false,
-                false,
-                false,
-                "".to_string(), 
-                ME.to_string(), 0.0);
-    
-                let client = match record.create_mongo_connection().await {
+                let mut record = music::new_beat(
+                    mp_player.to_owned().to_string(),
+                    Vec::<String>::new(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    "".to_string(),
+                    ME.to_string(),
+                    0.0,
+                );
 
+                let client = match record.create_mongo_connection().await {
                     Ok(list) => list,
                     Err(e) => panic!("{:?}", e),
                 };
 
                 let db = client.database(music::MUSIC_RECORD);
 
-                let stream_record =  record.get_song_from_playlist(db).await;
+                let stream_record = record.get_song_from_playlist(db).await;
 
-                let mut content = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), stream_record.to_owned().song_name, genre_to_emotions(stream_record.genre.to_owned().to_string()), false, 0, 0);
+                let mut content = pinata_content::Content::new(
+                    ME.to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    stream_record.to_owned().song_name,
+                    genre_to_emotions(stream_record.genre.to_owned().to_string()),
+                    false,
+                    0,
+                    0,
+                );
 
-                let client = match Gatekeeper::mongodb_client().await {
-
-                        Ok(list) => list,
-                        Err(e) => panic!("{:?}", e),
+                let client = match gatekeeper::mongodb_client().await {
+                    Ok(list) => list,
+                    Err(e) => panic!("{:?}", e),
                 };
-    
-                let db = client.database(music::MUSIC_RECORD);
-        
-                if content.session != stream_record.session{
 
+                let db = client.database(music::MUSIC_RECORD);
+
+                if content.session != stream_record.session {
                     let list = content.get_playlist(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
 
                     println!("Enjoy the song ... {:?}", list.song);
 
-
-                    return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
-                        pmusic_artist : stream_record.artist[0].to_owned(),
-                        pmusic_compose : stream_record.compose.to_owned(),
-                        pmusic_genre : stream_record.genre.to_owned(),
-                        pmusic_ilink : list.cid_icontent.to_owned(),
-                        pmusic_lyric : stream_record.lyrics.to_owned(),
-                        session : ME.to_string(),
-                        name : stream_record.song_name.to_owned(),
-                        pmusic_mlink : list.cid_mcontent.to_owned(),
-                        pnumic_production : stream_record.studio_name.to_owned(),
-                        favourite : list.like.to_owned(),
-                        favourite_count : list.like_count.to_owned(),
-                        played : list.play_count.to_owned(),
-                        emotion : list.emotion.to_owned(),
-                    }).unwrap());
-
-                }else{
-
+                    return HttpResponse::Ok().body(
+                        hbr.render(
+                            "search",
+                            &SongEngine {
+                                pmusic_artist: stream_record.artist[0].to_owned(),
+                                pmusic_compose: stream_record.compose.to_owned(),
+                                pmusic_genre: stream_record.genre.to_owned(),
+                                pmusic_ilink: list.cid_icontent.to_owned(),
+                                pmusic_lyric: stream_record.lyrics.to_owned(),
+                                session: ME.to_string(),
+                                name: stream_record.song_name.to_owned(),
+                                pmusic_mlink: list.cid_mcontent.to_owned(),
+                                pnumic_production: stream_record.studio_name.to_owned(),
+                                favourite: list.like.to_owned(),
+                                favourite_count: list.like_count.to_owned(),
+                                played: list.play_count.to_owned(),
+                                emotion: list.emotion.to_owned(),
+                            },
+                        )
+                        .unwrap(),
+                    );
+                } else {
                     let list = content.get_playlist_by_song(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
 
                     println!("Enjoy the song ... {:?}", list.song);
 
-
-                    return HttpResponse::Ok().body(hbr.render("search", &SongEngine{
-                        pmusic_artist : stream_record.artist[0].to_owned(),
-                        pmusic_compose : stream_record.compose.to_owned(),
-                        pmusic_genre : stream_record.genre.to_owned(),
-                        pmusic_ilink : list.cid_icontent.to_owned(),
-                        pmusic_lyric : stream_record.lyrics.to_owned(),
-                        session : ME.to_string(),
-                        name : stream_record.song_name.to_owned(),
-                        pmusic_mlink : list.cid_mcontent.to_owned(),
-                        pnumic_production : stream_record.studio_name.to_owned(),
-                        favourite : list.like.to_owned(),
-                        favourite_count : list.like_count.to_owned(),
-                        played : list.play_count.to_owned(),
-                        emotion : list.emotion.to_owned(),
-                    }).unwrap());
+                    return HttpResponse::Ok().body(
+                        hbr.render(
+                            "search",
+                            &SongEngine {
+                                pmusic_artist: stream_record.artist[0].to_owned(),
+                                pmusic_compose: stream_record.compose.to_owned(),
+                                pmusic_genre: stream_record.genre.to_owned(),
+                                pmusic_ilink: list.cid_icontent.to_owned(),
+                                pmusic_lyric: stream_record.lyrics.to_owned(),
+                                session: ME.to_string(),
+                                name: stream_record.song_name.to_owned(),
+                                pmusic_mlink: list.cid_mcontent.to_owned(),
+                                pnumic_production: stream_record.studio_name.to_owned(),
+                                favourite: list.like.to_owned(),
+                                favourite_count: list.like_count.to_owned(),
+                                played: list.play_count.to_owned(),
+                                emotion: list.emotion.to_owned(),
+                            },
+                        )
+                        .unwrap(),
+                    );
+                }
             }
-        },
+        }
     }
-        
-}
-    
-
 }
 
 #[get("/user/composer")]
-async fn artist() -> impl Responder{
-
+async fn artist() -> impl Responder {
     NamedFile::open_async("./static/artists.html").await
 }
 
-// You're an artist like Michael Jackson and you want to add your work? Will you try 
-// roombot ? Share your story with us. 
+// You're an artist like Michael Jackson and you want to add your work? Will you try
+// roombot ? Share your story with us.
 
 #[post("/user/composer/newsong")]
-async fn newsong_record(hbr : web::Data<Handlebars<'_>>,form : web::Form<MusicStream>) -> HttpResponse{
-    
-    
-        // let load = match payload.next().await{
-        //     Some(data) => data,
-        //     None => panic!("Error report"),
-        // };
+async fn newsong_record(
+    hbr: web::Data<Handlebars<'_>>,
+    form: web::Form<MusicStream>,
+) -> HttpResponse {
+    // let load = match payload.next().await{
+    //     Some(data) => data,
+    //     None => panic!("Error report"),
+    // };
 
-        // let res = match load{
-        //     Ok(data) => data,
-        //     Err(err) => panic!("Error report {:?}", err),
-        // };
+    // let res = match load{
+    //     Ok(data) => data,
+    //     Err(err) => panic!("Error report {:?}", err),
+    // };
 
+    // let res_value = match std::str::from_utf8(&res){
+    //     Ok(value) => value,
+    //     Err(err) => panic!("{:?}", err),
+    // };
 
-        // let res_value = match std::str::from_utf8(&res){
-        //     Ok(value) => value,
-        //     Err(err) => panic!("{:?}", err),
-        // };
+    // parse input values
 
+    let cover_img = &form.cover;
 
+    let artists = &form.artist;
 
-        // parse input values
+    let music_file = &form.mfile;
 
-        let cover_img = &form.cover;
+    let date = &form.date;
 
-        let artists = &form.artist;
+    let genre = &form.genre;
 
-        let music_file = &form.mfile;
+    let compose = &form.composer;
 
-        
+    let lyrics = &form.lyricst;
 
-        let date = &form.date;
+    let studio = &form.studio;
 
-        let genre = &form.genre;
+    let website = &form.website;
 
-        let compose = &form.composer;
+    let endrosment = &form.brand;
 
-        let lyrics = &form.lyricst;
+    let royalty = &form.royalty;
 
-        let studio = &form.studio; 
+    let lightnode = &form.ltbtc;
 
-        let website = &form.website;
+    let lightnode_add = &form.lightnode;
 
-        let endrosment = &form.brand;
+    let work = &form.work;
 
-        let royalty = &form.royalty; 
+    let future = &form.future;
 
-        let lightnode = &form.ltbtc;
+    let ownership = &form.ownership;
 
-        let lightnode_add = &form.lightnode;
+    let email = &form.email;
 
+    if lightnode_add == "" {
+        println!("Make sure your account linked with light node address for secure transaction. ");
+        return HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
+    }
 
-        let work = &form.work;  
+    // replace space with hypen
+    // let q = &music_file.replace(" ", "-");
 
-        let future = &form.future;
+    // check whether session expire
 
-        let ownership = &form.ownership; 
+    let expire = login_expire();
 
-        
-        let email = &form.email; 
+    if expire {
+        println!("Make sure you have provide correct information or session expired. ");
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
 
+    let mut fees: f64 = 0.0;
 
-        if lightnode_add == ""{
+    // read specific music file which is in music directory. If file is not in music diectory then throw error.
+    // create music file record {music name, artists name, song type , production name etc}.
+    // read cover image from download directory if exist;
 
-            println!("Make sure your account linked with light node address for secure transaction. ");
-            return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
-        }
-
-        // replace space with hypen 
-        // let q = &music_file.replace(" ", "-");
-
-
-        // check whether session expire 
-
-        let expire = login_expire();
-
-        if expire{
-
-            println!("Make sure you have provide correct information or session expired. ");
-            return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap());
-        }
-
-        let mut fees : f64 = 0.0;
-
-        // read specific music file which is in music directory. If file is not in music diectory then throw error.
-        // create music file record {music name, artists name, song type , production name etc}.
-        // read cover image from download directory if exist;
-
-        // store coverimage, music file on peer network and create content identifier address ;
-        // which is then store back in database against session.
-        if let Some(down_dir) = UserDirs::new(){
-
-            if let Some(path) = down_dir.download_dir(){
-                
-                if !path.join(PathBuf::from(cover_img.to_owned())).exists(){
-
-                    println!("Make sure uploaded picture in Download Directory . ");
-                    return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap());
-                    
-                }
-
-                let mut art : Vec::<String> = Vec::<_>::new();
-                art.push(artists.to_string());
-
-                let mut earn : bool = false;
-                let mut node : bool = false;
-                let mut asset : bool = false;
-                let mut fut : bool = false;
-                let mut owner : bool = false;
-                if royalty == "on" && lightnode == "on" && work == "on" && future == "on" && ownership == "on"{
-                    earn = true;
-                    node = true;
-                    asset = true;
-                    fut = true;
-                    owner = true;
-                }
-                
-                unsafe{
-
-                    let mut record = music::new_beat(music_file.to_owned().to_string(), 
-                        art.to_owned(),cover_img.to_string(), 
-                        lightnode_add.to_string(), 
-                        date.to_string(),
-                        lyrics.to_string(),
-                        studio.to_string(),
-                        genre.to_string(),
-                        compose.to_string(),
-                        website.to_string(), 
-                        endrosment.to_string(),
-                        earn,
-                        node,
-                        asset,
-                        fut,
-                        owner,
-                        email.to_string(), 
-                        ME.to_string(), 0.0);
-                
-                    let client = match record.create_mongo_connection().await {
-
-                        Ok(list) => list,
-                        Err(e) => panic!("{:?}", e),
-                    };
-
-                    let db = client.database(music::MUSIC_RECORD);
-
-                    let _ = match record.create_collection(db).await{
-                        Ok(collect) => collect,
-                        Err(e) => panic!("{:?}", e),
-                    };
-
-                
-                    
-                    let mut blob = ipinata::new_bolb_object(&path, ipinata::FileStatus::Pin);
-                    let pin_client = blob.pinta_client();
-
-                    let _auth = pin_client.test_authentication().await;
-                    let content = blob.upload_content(pin_client, cover_img.to_string()).await;
-
-                    let mut cid_image : String = "".to_string(); 
-                    if let Ok(object) = content {
-                        cid_image = object.ipfs_hash;
-                    }
-
-                    println!("Image Content Indentifier {:?}", cid_image);
-
-                    let mut cid_music: String = "".to_string();
-
-                    if cid_image == ""{
-
-                        return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                                    
-                        }).unwrap());
-                    
-                    }
-
-                    let mpfile = ipinata::change_path(down_dir.to_owned(), music_file.to_owned());
-
-                    let mp_path = PathBuf::from(mpfile);
-
-                    let mut mp_blob  = ipinata::new_bolb_object(&mp_path, ipinata::FileStatus::Pin);
-                    let connection = mp_blob.pinta_client();
-
-                    let mp_content = mp_blob.upload_content(connection, music_file.to_owned().to_string()).await;
-
-                
-                
-                    if let Ok(objects) = mp_content {
-                        cid_music = objects.ipfs_hash;
-                    }
-                
-                    println!("Music Content Indentifier {:?}", cid_music);
-
-                    let client = Gatekeeper::mongodb_client().await;
-
-                    if let Ok(c) = client{
-
-                            let mut content = Pinata_Content::Content::new(ME.to_string(), cid_image.to_owned().to_string(), cid_music.to_owned().to_string(), music_file.to_owned().to_string(), genre_to_emotions(genre.to_owned().to_string()), false, 0,0);
-                            let db = c.database(music::MUSIC_RECORD);
-                            
-                            
-
-                                    // once song added on ipfs , artist will pay contract finalize fees  
-                            if let Ok(_) = content.music_collection(db.to_owned()).await{
-
-                                println!("Please wait content upload processing not take much time... ");
-
-                                let mut nodeless = INodeless::new(750, email.to_owned().to_string(),0.00,art[0].to_owned().to_string(),ME.to_owned().to_string(), lightnode_net::TransactionStatus::Pending, "".to_string());
-                                let node = nodeless.create_nodeless_client().await;
-                                let status = node.to_owned().get_server_status().await;
-
-                                println!(" Available = {:?}", status);
-
-                                let store = nodeless.connect_with_store(&node.to_owned()).await;
-
-
-                                if let Ok(digital_store) = store{
-
-                                    if digital_store.name.is_empty(){
-
-                                        println!("Make sure your account linked with light node address for secure transaction. ");
-                                        return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
-                                    }
-
-                                    let blockledge = nodeless.lightnode_store_inovice(&node.to_owned()).await;
-                                    
-                                    let db = c.database(music::MUSIC_RECORD);
-                                    let _ledger = nodeless.from_txs(db.to_owned()).await;
-                                        
-                                        
-                                      if let Ok(block) = blockledge  {
-                                          
-                                          let data = block.id.unwrap();
-                                          nodeless.lid = data.to_owned();
-                                          let _  = nodeless.update_tnx(db.to_owned()).await;
-                                          
-                                          
-                                          if let Ok(store_status) = nodeless.store_status(&node).await{
-
-                                            println!("Inovice generate {:?}", store_status);
-
-                                            let tx = nodeless.get_store_tnx(&node).await;
-
-                                            fees = 750.00;
-
-                                            if !tx.is_empty(){
-
-                                                println!("Transaction status {:?}", tx[0].status);
-                                            }else{
-
-                                                println!("Sorry Gateway have closed and your content cannot published");
-                                                return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());    
-                                            }
-                                            
-
-                                            
-                                          }
-
-                                      }
-                                }
-
-
-                            }else{
-                                
-                                return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{
-                                    
-                                }).unwrap());
-                            }
-                        
-
-                        return HttpResponse::Ok().body(hbr.render("artists", &Nftmint{
-                            session : ME.to_string(),
-                            song : music_file.to_owned().to_string(),
-                            cid_image : cid_image.to_owned().to_string(),
-                            cid_music : cid_music.to_owned().to_string(),
-                            amount : fees.to_string(),
-                        }).unwrap());
-                    }
-                }
-                
+    // store coverimage, music file on peer network and create content identifier address ;
+    // which is then store back in database against session.
+    if let Some(down_dir) = UserDirs::new() {
+        if let Some(path) = down_dir.download_dir() {
+            if !path.join(PathBuf::from(cover_img.to_owned())).exists() {
+                println!("Make sure uploaded picture in Download Directory . ");
+                return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
             }
 
+            let mut art: Vec<String> = Vec::<_>::new();
+            art.push(artists.to_string());
+
+            let mut earn: bool = false;
+            let mut node: bool = false;
+            let mut asset: bool = false;
+            let mut fut: bool = false;
+            let mut owner: bool = false;
+            if royalty == "on"
+                && lightnode == "on"
+                && work == "on"
+                && future == "on"
+                && ownership == "on"
+            {
+                earn = true;
+                node = true;
+                asset = true;
+                fut = true;
+                owner = true;
+            }
+
+            unsafe {
+                let mut record = music::new_beat(
+                    music_file.to_owned().to_string(),
+                    art.to_owned(),
+                    cover_img.to_string(),
+                    lightnode_add.to_string(),
+                    date.to_string(),
+                    lyrics.to_string(),
+                    studio.to_string(),
+                    genre.to_string(),
+                    compose.to_string(),
+                    website.to_string(),
+                    endrosment.to_string(),
+                    earn,
+                    node,
+                    asset,
+                    fut,
+                    owner,
+                    email.to_string(),
+                    ME.to_string(),
+                    0.0,
+                );
+
+                let client = match record.create_mongo_connection().await {
+                    Ok(list) => list,
+                    Err(e) => panic!("{:?}", e),
+                };
+
+                let db = client.database(music::MUSIC_RECORD);
+
+                let _ = match record.create_collection(db).await {
+                    Ok(collect) => collect,
+                    Err(e) => panic!("{:?}", e),
+                };
+
+                let mut blob = ipinata::new_bolb_object(&path, ipinata::FileStatus::Pin);
+                let pin_client = blob.pinta_client();
+
+                let _auth = pin_client.test_authentication().await;
+                let content = blob.upload_content(pin_client, cover_img.to_string()).await;
+
+                let mut cid_image: String = "".to_string();
+                if let Ok(object) = content {
+                    cid_image = object.ipfs_hash;
+                }
+
+                println!("Image Content Indentifier {:?}", cid_image);
+
+                let mut cid_music: String = "".to_string();
+
+                if cid_image == "" {
+                    return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                let mpfile = ipinata::change_path(down_dir.to_owned(), music_file.to_owned());
+
+                let mp_path = PathBuf::from(mpfile);
+
+                let mut mp_blob = ipinata::new_bolb_object(&mp_path, ipinata::FileStatus::Pin);
+                let connection = mp_blob.pinta_client();
+
+                let mp_content = mp_blob
+                    .upload_content(connection, music_file.to_owned().to_string())
+                    .await;
+
+                if let Ok(objects) = mp_content {
+                    cid_music = objects.ipfs_hash;
+                }
+
+                println!("Music Content Indentifier {:?}", cid_music);
+
+                let client = gatekeeper::mongodb_client().await;
+
+                if let Ok(c) = client {
+                    let mut content = pinata_content::Content::new(
+                        ME.to_string(),
+                        cid_image.to_owned().to_string(),
+                        cid_music.to_owned().to_string(),
+                        music_file.to_owned().to_string(),
+                        genre_to_emotions(genre.to_owned().to_string()),
+                        false,
+                        0,
+                        0,
+                    );
+                    let db = c.database(music::MUSIC_RECORD);
+
+                    // once song added on ipfs , artist will pay contract finalize fees
+                    if let Ok(_) = content.music_collection(db.to_owned()).await {
+                        println!("Please wait content upload processing not take much time... ");
+
+                        let mut nodeless = INodeless::new(
+                            750,
+                            email.to_owned().to_string(),
+                            0.00,
+                            art[0].to_owned().to_string(),
+                            ME.to_owned().to_string(),
+                            lightnode_net::TransactionStatus::Pending,
+                            "".to_string(),
+                        );
+                        let node = nodeless.create_nodeless_client().await;
+                        let status = node.to_owned().get_server_status().await;
+
+                        println!(" Available = {:?}", status);
+
+                        let store = nodeless.connect_with_store(&node.to_owned()).await;
+
+                        if let Ok(digital_store) = store {
+                            if digital_store.name.is_empty() {
+                                println!("Make sure your account linked with light node address for secure transaction. ");
+                                return HttpResponse::BadRequest()
+                                    .body(hbr.render("error", &RequestError {}).unwrap());
+                            }
+
+                            let blockledge =
+                                nodeless.lightnode_store_inovice(&node.to_owned()).await;
+
+                            let db = c.database(music::MUSIC_RECORD);
+                            let _ledger = nodeless.from_txs(db.to_owned()).await;
+
+                            if let Ok(block) = blockledge {
+                                let data = block.id.unwrap();
+                                nodeless.lid = data.to_owned();
+                                let _ = nodeless.update_tnx(db.to_owned()).await;
+
+                                if let Ok(store_status) = nodeless.store_status(&node).await {
+                                    println!("Inovice generate {:?}", store_status);
+
+                                    let tx = nodeless.get_store_tnx(&node).await;
+
+                                    fees = 750.00;
+
+                                    if !tx.is_empty() {
+                                        println!("Transaction status {:?}", tx[0].status);
+                                    } else {
+                                        println!("Make sure you have finalize your transaction");
+                                        panic!("No Transaction return");
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        return HttpResponse::BadRequest()
+                            .body(hbr.render("music_error", &RequestError {}).unwrap());
+                    }
+
+                    return HttpResponse::Ok().body(
+                        hbr.render(
+                            "artists",
+                            &Nftmint {
+                                session: ME.to_string(),
+                                song: music_file.to_owned().to_string(),
+                                cid_image: cid_image.to_owned().to_string(),
+                                cid_music: cid_music.to_owned().to_string(),
+                                amount: fees.to_string(),
+                            },
+                        )
+                        .unwrap(),
+                    );
+                }
+            }
         }
+    }
 
-        HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap())
-    
+    HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError {}).unwrap())
 }
-
 
 // You will like or dislike song real time.
 
 #[post("/me/like")]
-async fn like_work(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
-
-
-    let client = match Gatekeeper::mongodb_client().await {
-
+async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    let client = match gatekeeper::mongodb_client().await {
         Ok(list) => list,
         Err(e) => panic!("{:?}", e),
     };
 
     let db = client.database(music::MUSIC_RECORD);
 
-    unsafe{
-            
-        if let Some(data) = GLOBAL_SONG.get(){
-
-            if data.to_owned().to_string() == ""{
-    
+    unsafe {
+        if let Some(data) = GLOBAL_SONG.get() {
+            if data.to_owned().to_string() == "" {
                 println!("Make sure you don't submit empty form. ");
-                return HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError{}).unwrap());
+                return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
             }
 
-
-            let mut content = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, false, 0, 0);
+            let mut content = pinata_content::Content::new(
+                ME.to_string(),
+                "".to_string(),
+                "".to_string(),
+                data.to_owned().to_string(),
+                pinata_content::Emotionfilter::None,
+                false,
+                0,
+                0,
+            );
             let old = content.get_playlist_by_song(db.to_owned()).await;
 
             LIKES = old.like_count;
             COLORED = old.like;
             PLAY = old.play_count;
 
-
-            if LIKES >= 200 && PLAY >=1000{
-
-                let mut nodeless = INodeless::new(200, "".to_owned().to_string(),0.00,"".to_owned().to_string(),ME.to_owned().to_string(), lightnode_net::TransactionStatus::Pending, "".to_string());
+            if LIKES >= 200 && PLAY >= 1000 {
+                let mut nodeless = INodeless::new(
+                    200,
+                    "".to_owned().to_string(),
+                    0.00,
+                    "".to_owned().to_string(),
+                    ME.to_owned().to_string(),
+                    lightnode_net::TransactionStatus::Pending,
+                    "".to_string(),
+                );
                 let node = nodeless.create_nodeless_client().await;
                 let status = node.to_owned().get_server_status().await;
 
                 println!(" Available = {:?}", status);
 
-
-                if let Ok(digital_store) = nodeless.connect_with_store(&node.to_owned()).await{
-
-                   if digital_store.name.is_empty(){
-
-                            println!("Make sure your account linked with light node address for secure transaction. ");
-                            return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
+                if let Ok(digital_store) = nodeless.connect_with_store(&node.to_owned()).await {
+                    if digital_store.name.is_empty() {
+                        println!("Make sure your account linked with light node address for secure transaction. ");
+                        return HttpResponse::BadRequest()
+                            .body(hbr.render("error", &RequestError {}).unwrap());
                     }
-                                    
+
                     let db = client.database(music::MUSIC_RECORD);
                     let _ledger = nodeless.from_txs(db.to_owned()).await;
-                                        
-                    if let Ok(block) = nodeless.lightnode_store_inovice(&node.to_owned()).await  {
-                                          
+
+                    if let Ok(block) = nodeless.lightnode_store_inovice(&node.to_owned()).await {
                         let data = block.id.unwrap();
                         nodeless.lid = data.to_owned();
-                        let _  = nodeless.update_tnx(db.to_owned()).await;
-                                          
-                                          
-                        if let Ok(store_status) = nodeless.store_status(&node).await{
+                        let _ = nodeless.update_tnx(db.to_owned()).await;
 
+                        if let Ok(store_status) = nodeless.store_status(&node).await {
                             println!("Inovice generate {:?}", store_status);
 
                             let tx = nodeless.get_store_tnx(&node).await;
 
-                                            // fees = 750.00;
+                            // fees = 750.00;
 
-                            if !tx.is_empty(){
-
+                            if !tx.is_empty() {
                                 println!("Transaction status {:?}", tx[0].status);
-                            }else{
-
-                                println!("Sorry Gateway have closed and you have to pay the charges");
-                                return HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());    
-                                            
+                            } else {
+                                println!(
+                                    "Sorry Gateway have closed and you have to pay the charges"
+                                );
+                                return HttpResponse::BadRequest()
+                                    .body(hbr.render("error", &RequestError {}).unwrap());
                             }
-                                            
-
-                                            
-                                          
                         }
-
                     }
                 }
             }
 
-
             if LIKES == 0 && !COLORED {
-
-                LIKES +=1;
+                LIKES += 1;
                 COLORED = true;
-                PLAY +=1;
+                PLAY += 1;
 
-                // let mut update_cont = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, COLORED, LIKES, PLAY);
+                // let mut update_cont = pinata_content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), pinata_content::Emotionfilter::None, COLORED, LIKES, PLAY);
                 content.like_count = LIKES;
                 content.play_count = PLAY;
-                content.like = COLORED; 
-                
-                let updater =  content.update_song_info(db.to_owned()).await;   
+                content.like = COLORED;
+
+                let updater = content.update_song_info(db.to_owned()).await;
 
                 print!("Content update {:?}", updater);
-            }else{
-
-                // let mut update_cont = Pinata_Content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), Pinata_Content::Emotionfilter::None, COLORED, LIKES, PLAY);
+            } else {
+                // let mut update_cont = pinata_content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), pinata_content::Emotionfilter::None, COLORED, LIKES, PLAY);
                 content.like_count = LIKES;
                 content.play_count = PLAY;
-                content.like = COLORED; 
-                
-                let updater =  content.update_song_info(db.to_owned()).await;   
+                content.like = COLORED;
+
+                let updater = content.update_song_info(db.to_owned()).await;
 
                 print!("Content update {:?}", updater);
             }
-
-            
-
         }
-       
     }
 
-    HttpResponse::Ok().body(hbr.render("home", &Homepage{}).unwrap())
-
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
 #[get("/user/sociallink")]
 async fn sociallink() -> impl Responder {
-
     NamedFile::open_async("./static/authlink.html").await
 }
 
 // Roombot provide easy way to connect with roombot , no need to remember 7bit long hex stream for the authenication.
 #[post("/user/sociallink/profile")]
-async fn profile(form : web::Form<Authenicate>, hbr : web::Data<Handlebars<'_>> ) -> HttpResponse{
-
-
+async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
     // parse input values
     let username = &form.username;
     let email = &form.email;
 
-
     // transalate user input into secret code.
-    // this code worked as account in our application 
-    // this code have many benefits ; code is used as authenication, authorization and validation 
+    // this code worked as account in our application
+    // this code have many benefits ; code is used as authenication, authorization and validation
 
     //  that code sent back to database for future .
 
-   let auth_code = Gatekeeper::active_hash(&Gatekeeper::new_profile(email.to_string(), username.to_string()));
+    let auth_code = gatekeeper::active_hash(&gatekeeper::new_profile(
+        email.to_string(),
+        username.to_string(),
+    ));
 
-   let mut auth = Gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string());
+    let mut auth = gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string());
 
-   unsafe {
+    unsafe {
         ME = auth_code;
     }
 
-    let client = match Gatekeeper::mongodb_client().await {
-
+    let client = match gatekeeper::mongodb_client().await {
         Ok(list) => list,
         Err(e) => panic!("{:?}", e),
     };
 
     let db = client.database(music::MUSIC_RECORD);
     let _ = auth.create_record(db).await;
-    
-    HttpResponse::Ok().body(hbr.render("home", &Homepage{}).unwrap())
 
-}
-
-#[get("/user/history")]
-async fn history() -> impl Responder {
-
-    NamedFile::open_async("./static/history.html").await
-}
-
-
-
-
-#[get("/user/invoice")]
-async fn invoice() -> impl Responder {
-
-
-    NamedFile::open_async("./static/invoice.html").await
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
 #[get("/user/poetry/topics")]
-async fn add_topic() -> impl Responder{
-    
+async fn add_topic() -> impl Responder {
     NamedFile::open_async("./static/poetry.html").await
 }
 
-
-
 #[post("/user/poetry/topics/{output}")]
-async fn poetry(form : web::Form<TranslateFormData>, hbr : web::Data::<Handlebars<'_>>) -> HttpResponse{
-
-
+async fn poetry(
+    form: web::Form<TranslateFormData>,
+    hbr: web::Data<Handlebars<'_>>,
+) -> HttpResponse {
     // parse input values
-    let input : _ =  &form.query;
-    let apikey : _ = &form.call; 
+    let input: _ = &form.query;
+    let apikey: _ = &form.call;
 
-    
     // check whether any bad words exist in a query. then throw error
     let action = generative(input.to_string());
-    
 
-    if let Ok(take_action) = action  {
-
-        if take_action{
-
+    if let Ok(take_action) = action {
+        if take_action {
             println!("Check your text there may be something which is not acceptable");
-        
-            HttpResponse::BadRequest().body(hbr.render("error", &RequestError{}).unwrap());
+
+            HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
         }
-        
     }
 
     // connect with openai call and complete the process
 
-    let mut opencall : _ = openai::new(input.to_string(), "".to_string(), input.len().try_into().unwrap());
-    
-    let responses =  match opencall.openai_openend(apikey.to_string()).await{
+    if input.contains("poetry") {
+        let mut opencall: _ = openai::new(
+            input.to_string(),
+            "".to_string(),
+            input.len().try_into().unwrap(),
+        );
 
+        let responses = match opencall.openai_openend(apikey.to_string()).await {
             Ok(resp) => format!("{:?}", resp),
             Err(e) => panic!("Error = {:?}", e),
-    };
+        };
 
-    HttpResponse::Ok().body(hbr.render("translate", &ResponseTranslateForm{
-        query : input.to_string(),
-        response : responses,
-    }).unwrap())
+        return HttpResponse::Ok().body(
+            hbr.render(
+                "translate",
+                &ResponseTranslateForm {
+                    query: input.to_string(),
+                    response: responses,
+                },
+            )
+            .unwrap(),
+        );
+    }
+
+    println!("Check your text there may be something which is not acceptable");
+    HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap())
 }
 
 #[get("/configurations")]
-async fn configurations() -> impl Responder{
-
+async fn configurations() -> impl Responder {
     NamedFile::open_async("./static/interactive.html").await
 }
 
 #[actix_web::main]
- async fn main() -> std::io::Result<()>{
-
+async fn main() -> std::io::Result<()> {
     // create handlebar new object, direct towards template directory. This direct used as reference for direction purpose.
     let mut handlebars_obj = Handlebars::new();
     handlebars_obj
-            .register_templates_directory(".html", "./static/templates")
-            .unwrap();
-
+        .register_templates_directory(".html", "./static/templates")
+        .unwrap();
 
     // server hold handlebar template directory object value.
     let handlebars_ref = web::Data::new(handlebars_obj);
-    
-    
+
     // now server supported templates. These templates are render application state when a query execute.
-    HttpServer::new( move || {
-            App::new()
+    HttpServer::new(move || {
+        App::new()
             .app_data(handlebars_ref.clone())
             .service(image_utopia)
             .service(image_learning)
@@ -1378,120 +1343,110 @@ async fn configurations() -> impl Responder{
             .service(newsong_record)
             .service(add_topic)
             .service(poetry)
-            .service(history)
-            .service(invoice)
             .service(configurations)
             .service(sociallink)
             .service(profile)
-            // .service(register_user)
-            // .service(register_face)
-            // .service(login)
-            // .service(login_account)
-        })
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
-
+        // .service(register_user)
+        // .service(register_face)
+        // .service(login)
+        // .service(login_account)
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }
 
-
-
-fn set_audio(source : HashMap<String, bool>){
-
-    unsafe{
+fn set_audio(source: HashMap<String, bool>) {
+    unsafe {
         AUDIO.push(source);
     }
 }
 
-
 fn get_audio() -> HashMap<String, bool> {
-
-    let mut value : HashMap<String, bool> = HashMap::new();
-    unsafe{
-        
-
-        for i in 0..AUDIO.len(){
-
-            let key = match AUDIO.get(i){
-               Some(k) => k,
-               None => panic!("Error reporting"), 
+    let mut value: HashMap<String, bool> = HashMap::new();
+    unsafe {
+        for i in 0..AUDIO.len() {
+            let key = match AUDIO.get(i) {
+                Some(k) => k,
+                None => panic!("Error reporting"),
             };
 
             value = key.clone();
-            
         }
     }
 
     value
 }
 
-fn generative(input : String ) -> std::io::Result<bool>{
-
+fn generative(input: String) -> std::io::Result<bool> {
     let lines = input.lines();
     let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
-    let xregex = Regex::new(r"\b(nude | porn | xxx | sexy | sex | sexual | hot | phallic | sexuality | oral | anal )").unwrap();
+    let xregex = Regex::new(
+        r"\b(nude | porn | xxx | sexy | sex | sexual | hot | phallic | sexuality | oral | anal )",
+    )
+    .unwrap();
 
+    let mut take_action: bool = false;
 
-    let mut take_action : bool = false;
-
-    for words in lines{
-
+    for words in lines {
         // for bad actors who invade system
-        if bregex.is_match(words){
+        if bregex.is_match(words) {
             take_action = true;
-            break
+            break;
         }
 
         // for bad boys
-        if xregex.is_match(words){
+        if xregex.is_match(words) {
             take_action = true;
-            break
+            break;
         }
     }
 
     Ok(take_action)
 }
 
-fn login_expire() -> bool{
-
-    unsafe{
-                    
-        if ME == 0{
-            
+fn login_expire() -> bool {
+    unsafe {
+        if ME == 0 {
             return true;
         }
 
         false
     }
-
-    
 }
 
-
-fn genre_to_emotions(genre : String) -> Pinata_Content::Emotionfilter{
-
-    if genre.contains("rock") || genre.contains("Rock") || genre.contains("Pop rock") || genre.contains("pop rock") || genre.contains("classical music") || genre.contains("Classical music") || genre.contains("Blues") || genre.contains("blues") {
-
-        return Pinata_Content::Emotionfilter::Sad;
-    }else if  genre.contains("Jazz") || genre.contains("jazz") || genre.contains("soul music") || genre.contains("Soul music") {
-        
-        return Pinata_Content::Emotionfilter::Love;
-    }else if genre.contains("Rhythm and blues") || genre.contains("rhythm and blues") {
-
-        return Pinata_Content::Emotionfilter::Passion;
-    }else if genre.contains("Contemporary classical music") || genre.contains("contemporary classical music") {
-
-        return Pinata_Content::Emotionfilter::Dancing;
-    }else if genre.contains("Musical theatre") || genre.contains("musical theatre") || genre.contains("pop") || genre.contains("Pop"){
-
-        return Pinata_Content::Emotionfilter::Love;
-    } else if  genre.contains("Alternative rock") || genre.contains("alternative rock"){
-
-        return Pinata_Content::Emotionfilter::Mixed;
-    }else{
-
-        return Pinata_Content::Emotionfilter::None;
+fn genre_to_emotions(genre: String) -> pinata_content::Emotionfilter {
+    if genre.contains("rock")
+        || genre.contains("Rock")
+        || genre.contains("Pop rock")
+        || genre.contains("pop rock")
+        || genre.contains("classical music")
+        || genre.contains("Classical music")
+        || genre.contains("Blues")
+        || genre.contains("blues")
+    {
+        return pinata_content::Emotionfilter::Sad;
+    } else if genre.contains("Jazz")
+        || genre.contains("jazz")
+        || genre.contains("soul music")
+        || genre.contains("Soul music")
+    {
+        return pinata_content::Emotionfilter::Love;
+    } else if genre.contains("Rhythm and blues") || genre.contains("rhythm and blues") {
+        return pinata_content::Emotionfilter::Passion;
+    } else if genre.contains("Contemporary classical music")
+        || genre.contains("contemporary classical music")
+    {
+        return pinata_content::Emotionfilter::Dancing;
+    } else if genre.contains("Musical theatre")
+        || genre.contains("musical theatre")
+        || genre.contains("pop")
+        || genre.contains("Pop")
+    {
+        return pinata_content::Emotionfilter::Love;
+    } else if genre.contains("Alternative rock") || genre.contains("alternative rock") {
+        return pinata_content::Emotionfilter::Mixed;
+    } else {
+        return pinata_content::Emotionfilter::None;
     }
-
-    
 }

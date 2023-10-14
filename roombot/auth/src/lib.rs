@@ -1,9 +1,9 @@
-pub mod Gatekeeper{
+pub mod gatekeeper{
 
     use core::panic;
     use std::{hash::{Hash, SipHasher, Hasher}};
-    use futures_util::{stream::TryStreamExt, future::ok};
-    use mongodb::{Client, options::{ClientOptions,FindOptions}, Database,Collection, bson::Document, bson::doc, results::InsertManyResult, };
+    use futures_util::{stream::TryStreamExt};
+    use mongodb::{Client, options::{ClientOptions,FindOptions}, Database, bson::doc, results::InsertManyResult, };
     use serde::{Deserialize, Serialize};
 
     static ENDPOINT : &str = "mongodb+srv://enigmabot:nigkjv8emfgPpoeI@streambusiness.nkakl0h.mongodb.net/";

@@ -1,0 +1,42 @@
+[tasks.format]
+
+    install_crate = "rustfmt"
+    command = "cargo"
+    args = ["fmt", "--", "--emit=files"]
+
+[tasks.clean]
+    command = "cargo"
+    args = ["clean"]
+
+
+[tasks.version]
+    
+    command = "cargo"
+    args = ["version"]
+    dependencies = ["clean"]
+
+
+[tasks.build]
+    command = "cargo"
+    args = ["build"]
+    dependencies = ["clean"]
+
+
+[tasks.run]
+    command = "cargo"
+    args = ["run"]
+    dependencies = ["clean"]
+
+
+    
+
+[tasks.roombot]
+
+   condition = { platforms =[ "windows", "linux", "mac"],channels = ["beta", "stable"]}
+    
+    dependencies = [
+        "version",
+        "format",
+        "build",
+        "run",
+    ]

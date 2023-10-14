@@ -277,11 +277,11 @@ pub mod music{
 
 
 
-pub mod Pinata_Content{
+pub mod pinata_content{
     use std::panic;
 
-    use mongodb::{Client, options::{ClientOptions,FindOptions, FindOneAndUpdateOptions}, bson::Document, bson::doc, results::{InsertOneResult, InsertManyResult}, Database};
-    use futures_util::{stream::TryStreamExt, future::ok};
+    use mongodb::{options::{FindOptions, FindOneAndUpdateOptions}, bson::doc, results::{InsertOneResult, InsertManyResult}, Database};
+    use futures_util::{stream::TryStreamExt};
     use serde::{Deserialize, Serialize};
 
     static COLLECTION : &str = "playlist";
