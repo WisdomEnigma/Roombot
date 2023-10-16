@@ -731,7 +731,7 @@ async fn collection(
                     "".to_string(),
                     "".to_string(),
                     stream_record.to_owned().song_name,
-                    genre_to_emotions(stream_record.genre.to_owned().to_string()),
+                    pinata_content::genre_to_emotions(stream_record.genre.to_owned().to_string()),
                     false,
                     0,
                     0,
@@ -1005,7 +1005,7 @@ async fn newsong_record(
                         cid_image.to_owned().to_string(),
                         cid_music.to_owned().to_string(),
                         music_file.to_owned().to_string(),
-                        genre_to_emotions(genre.to_owned().to_string()),
+                        pinata_content::genre_to_emotions(genre.to_owned().to_string()),
                         false,
                         0,
                         0,
@@ -1415,38 +1415,4 @@ fn login_expire() -> bool {
     }
 }
 
-fn genre_to_emotions(genre: String) -> pinata_content::Emotionfilter {
-    if genre.contains("rock")
-        || genre.contains("Rock")
-        || genre.contains("Pop rock")
-        || genre.contains("pop rock")
-        || genre.contains("classical music")
-        || genre.contains("Classical music")
-        || genre.contains("Blues")
-        || genre.contains("blues")
-    {
-        return pinata_content::Emotionfilter::Sad;
-    } else if genre.contains("Jazz")
-        || genre.contains("jazz")
-        || genre.contains("soul music")
-        || genre.contains("Soul music")
-    {
-        return pinata_content::Emotionfilter::Love;
-    } else if genre.contains("Rhythm and blues") || genre.contains("rhythm and blues") {
-        return pinata_content::Emotionfilter::Passion;
-    } else if genre.contains("Contemporary classical music")
-        || genre.contains("contemporary classical music")
-    {
-        return pinata_content::Emotionfilter::Dancing;
-    } else if genre.contains("Musical theatre")
-        || genre.contains("musical theatre")
-        || genre.contains("pop")
-        || genre.contains("Pop")
-    {
-        return pinata_content::Emotionfilter::Love;
-    } else if genre.contains("Alternative rock") || genre.contains("alternative rock") {
-        return pinata_content::Emotionfilter::Mixed;
-    } else {
-        return pinata_content::Emotionfilter::None;
-    }
-}
+
