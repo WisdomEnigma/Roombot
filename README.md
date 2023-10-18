@@ -32,6 +32,20 @@
 
                 awesome.   
 
+# Download & Run
+
+    Pre-requiste 
+    [*] Rust install
+
+            $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    
+    [*] Cargo-make install
+
+            $ cargo install cargo-make
+
+    # Run command
+        
+            $ cargo make roombot
 
 # Contact 
     This product designed and owned by wisdomenigma.  Intellectual property, direct payment gateway contact are discussed with clients. These services are available for affluent clients.
