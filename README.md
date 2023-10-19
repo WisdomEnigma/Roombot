@@ -8,19 +8,19 @@
 
             Cool Music Studio, Marvelous Translate Prompt and Athestic Peering Payment
 
-        Cool Music Studio
+        Cool Music Studio 🎵
 
                 This feature help artists to monoterize their work. So cool. The question is How?
                 Suppose you compose beautiful song and you want to spread it all over the world,
                 earn maximum profit per song. Just add your song and negoitate with us on intellectual property license and start earning.
 
-       Marvelous Translate Prompt
+       Marvelous Translate Prompt 🧔
 
                 You are very smart and want food for your brain. Or have a problem with
                 find a meaning of "idiosyncrasy", translate text and collection of words. 
                 wonderful    
 
-        Athestic Peering Payment
+        Athestic Peering Payment 💰
 
                 Today when you are purchasing any product or service , you used central entity gateway
                 such as banks or finanacial instituation such as paypal. These are old way to purchase
@@ -32,7 +32,7 @@
 
                 awesome.   
 
-# Download & Run
+# Download & Run ⏬
 
     Pre-requiste 
     [*] Rust install
@@ -44,10 +44,11 @@
             $ cargo install cargo-make
 
     # Run command
-        
+               
+               Fork the project
             $ cargo make roombot
 
-# Contact 
+# Contact 🏛️
     This product designed and owned by wisdomenigma.  Intellectual property, direct payment gateway contact are discussed with clients. These services are available for affluent clients.
 
     You will directly mail us wizdwarfs@gmail.com
