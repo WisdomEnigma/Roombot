@@ -7,8 +7,9 @@ pub mod openai{
 
     use fieri::{Client, Error};
     use fieri::completion::{Completion, CompletionParamBuilder, create};
-    use serde_json::{Value};
-    use serde::{Deserialize};
+    use serde_json::Value;
+    use serde::Deserialize;
+    use regex::Regex;
 
     /// OpenAiCredentials (input = user query , end_user = "user_id", max_token = number of tokens) 
     #[derive(Debug, Deserialize)]
@@ -19,6 +20,8 @@ pub mod openai{
         max_token : i32,                        // [0-500] 
     }
 
+    
+
     /// openai module have own contructor which is accessible within module. This constructor require all the fields as arguments
     pub fn new(input : String, end_user : String, max_token : i32) -> OpenAICredentials{
         
@@ -27,6 +30,37 @@ pub mod openai{
             end_user,
             max_token
         }
+    }
+
+
+     /// validator validate is query have no bad terms or words used which arise problem during executation.
+     pub fn validator(input: String) -> std::io::Result<bool> {
+        
+        
+        let lines = input.lines();
+        let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
+        let xregex = Regex::new(
+            r"\b(nude | porn | xxx | sexy | sex | sexual | hot | phallic | sexuality | oral | anal )",
+        )
+        .unwrap();
+    
+        let mut take_action: bool = false;
+    
+        for words in lines {
+            // for bad actors who invade system
+            if bregex.is_match(words) {
+                take_action = true;
+                break;
+            }
+    
+            // for bad boys
+            if xregex.is_match(words) {
+                take_action = true;
+                break;
+            }
+        }
+    
+        Ok(take_action)
     }
 
     impl OpenAICredentials{

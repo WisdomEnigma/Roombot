@@ -52,6 +52,7 @@ pub mod ipinata{
         pub async fn upload_content <'b>(&mut self, client : PinataApi, filename : String) -> Result<PinnedObject,ApiError> {
 
             let content = self.file.join(filename.to_owned()).display().to_string();
+            self.status = FileStatus::Pin;
             client.pin_file(PinByFile::new(content)).await
         }
 

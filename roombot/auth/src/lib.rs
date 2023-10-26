@@ -76,6 +76,18 @@ pub mod gatekeeper{
         client
     }
 
+
+    /// login expire validate whether session is active or not 
+    pub fn login_expire(me : u64) -> bool {
+        
+        
+            if me == 0 {
+                return true;
+            }
+    
+            false
+        }
+
     /// Authenicate is another boss which have a permission to allocate agents on his behave. More information read Authenication definition.
     /// This instance derive from for traits 'debug', 'clone', 'serialize', 'deserialize'
     /// debug allow formatting
@@ -99,6 +111,8 @@ pub mod gatekeeper{
     /// create_record 
     /// find with name
     /// find with session
+    /// 
+
 
     impl Authenicate{
 

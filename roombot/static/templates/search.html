@@ -32,8 +32,25 @@
             <li class="uk-nav-divider"></li>
             <li><a href="/user/my/playlist"><span class="uk-margin-small-right" uk-icon="icon: play-circle"></span> Music </a></li>
             <li><a href="/user/library"><span class="uk-margin-small-right" uk-icon="icon: play"></span> Collection </a></li>
-            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: heart"></span> <span class="uk-badge"> {{favourite_count}}</span>
-            </a></li>
+            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: heart"></span> <span class="uk-badge"> {{favourite_count}}</span></a></li> 
+            <div class="uk-inline"><span class="uk-badge"> {{user_comments}}</span></a></li>
+                <button type="button" style="border: none; background: transparent; color: whitesmoke;">
+                    <span class="uk-margin-small-right" uk-icon="icon: comment"></span>
+                </button>
+                <div uk-dropdown="mode: click" style="border-radius: 2pc;">
+                    <p>
+                       <span style="font-size: x-small;position: relative;top: 19px;"> {{comment}} </span>
+                       <div class="_a004" style="position: relative;top: 0pc;">
+                            <form method="post" action="/me/comments/likes" class="_a003">
+                                <button type="submit" style="position: relative;left: -2pc;top: -35px;border: none;background: transparent;color: red;">
+                                    <i class="fa fa-heartbeat" aria-hidden="true"></i>
+                                </button>
+                                <span class="uk-badge" style="position: relative;left: -1pc;top: -2px;font-size: x-small;background: red;">{{comment_like_count}}</span>
+                            </form>
+                        </div> 
+                    </p>
+                </div>
+            </div>
         </ul>
     </div>
 </div>
@@ -46,14 +63,14 @@
         </div>
         <div class="spbody">
             <img src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_ilink}}" alt="cover_image" style="position: relative;width : 20pc;"/>
-                <audio controls autoplay style="position: relative;top: 23pc;left: -20pc;width: 26pc;">
+                <audio controls autoplay style="position: relative;top: 27pc;left: -19pc;width: 26pc;">
                     <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/mpeg">
                     <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/wav">
                 </audio>
             <div>
                <p style="word-spacing: 5pc;position: relative;top: 9.2px;">{{pmusic_compose}} {{pmusic_lyric}} {{pnumic_production}} </p>
                <span class="plink" oncopy=clipboard()>
-                    https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}
+                    {{pmusic_mlink}}
                </span>
                <span class="copylink" style="position: relative;top: 3pc;font-style: italic;font-family: 'Tangerine';font-size: x-large;left: -26pc;">
                </span>
@@ -72,7 +89,18 @@
             </div>
         </div>
     </div>
-    
+    <div class="_a001" style="position: relative;top: 12pc;left: 41pc;">
+        
+        <button class="btn-link" type="button" style="position: relative;left: 12pc;top: 9px;border: none;background: transparent;color: slategrey;">
+            <i class="fa fa-link" aria-hidden="true"></i>
+        </button>
+        <form method="post" action="/me/comment" class="_a002" style="display: none;">
+            <input type="text" placeholder="typing ..." class="icomment" name="icomment" style="width: 30pc;height: 2pc;border: none;position: relative;top: 5pc;left: 2pc;"/>
+            <button type="submit" style="position: relative;left: -5pc;top: 79px;border: none;background: transparent;color: slategrey;">
+                <i class="fa fa-commenting" aria-hidden="true"></i>
+            </button>
+        </form>
+    </div> 
     <section style="position: relative;width: 18pc;left: 8pc;height: 10pc;font-size: xx-large;top: -11pc;">
         <div class="mood" style="display: flex;align-items: center;justify-content: center;position: inherit;/* top: -88pc; */left: 7pc;/* height: 6vh; */">
             <span class="emotion">{{emotion}}</span>
@@ -1012,6 +1040,21 @@
 
     });
 
+    document.getElementsByClassName('btn-link')[0].addEventListener('click', (e) =>{
+        
+        if (document.getElementsByClassName('_a002')[0].style.display === 'none' ){
+            document.getElementsByClassName('_a002')[0].style.display = '';
+            document.getElementsByClassName('btn-link')[0].style.display = 'none';
+        }
+    });
+
+    document.getElementsByClassName('icomment')[0].addEventListener('change', (e) =>{
+
+
+        if (document.getElementsByClassName('icomment')[0].value.length > 10){
+            alert('Comment should not be greater than 10 words')
+        }
+    });
     </script>
 </body>
 </html>

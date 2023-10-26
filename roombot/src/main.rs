@@ -5,7 +5,6 @@ use actix_files::NamedFile;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
 use auth::gatekeeper;
 use gpt_text::openai;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 // use img2vec::vec_middleware;
 use core::panic;
@@ -18,7 +17,7 @@ use music_stream::{music, pinata_content};
 use once_cell::sync::OnceCell;
 use pinata_ipfs::ipinata;
 use rodio::OutputStream;
-use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf};
+use std::{fs::File, io::BufReader, path::PathBuf, collections::HashMap};
 
 // private structures
 
@@ -58,11 +57,18 @@ struct Nftmint {
     cid_image: String,
     cid_music: String,
     amount: String,
+
 }
 
 #[derive(Deserialize)]
 struct SearchPlaylist {
     songname: String,
+}
+
+#[derive(Deserialize)]
+struct Commenting{
+
+    icomment : String,
 }
 
 #[derive(Deserialize)]
@@ -100,18 +106,7 @@ struct Authenicate {
 struct Homepage;
 
 #[derive(Serialize)]
-struct History {
-    alert_0: String,
-    alert_1: String,
-    alert_2: String,
-    alert_3: String,
-    alert_4: String,
-    alert_5: String,
-    alert_6: String,
-    alert_7: String,
-    alert_8: String,
-    alert_9: String,
-}
+struct History;
 
 #[derive(Serialize)]
 struct RequestError;
@@ -131,16 +126,21 @@ struct SongEngine {
     favourite_count: i64,
     played: i64,
     emotion: pinata_content::Emotionfilter,
+    comment : String,
+    comment_like_count : i64,
+    comment_likes : bool,
+    user_comments : i64,
 }
 
 // static variables
 
-static mut AUDIO: Vec<HashMap<String, bool>> = Vec::new();
 static mut ME: u64 = 0;
 static mut LIKES: i64 = 0;
 static mut COLORED: bool = false;
 static mut PLAY: i64 = 0;
+static mut USERCOMMENTS :  i64 = 0;
 static GLOBAL_SONG: OnceCell<String> = OnceCell::new();
+static MY_COMMENT : OnceCell<String> = OnceCell::new();
 
 // routes
 #[get("/")]
@@ -177,7 +177,7 @@ async fn word2word(
     let input: _ = &form.query;
     let apikey: _ = &form.call;
 
-    let action = generative(input.to_string());
+    let action = openai::validator(input.to_string());
 
     // check whether any bad word exist in a text
     if let Ok(take_action) = action {
@@ -298,9 +298,9 @@ async fn search_playlist(
 
                 source.insert(file_ext, true);
 
-                set_audio(source);
+                music::set_audio(source);
 
-                let datablock = get_audio();
+                let datablock = music::get_audio();
 
                 let object = match datablock.get_key_value(&audio) {
                     Some(data) => data,
@@ -333,9 +333,9 @@ async fn search_playlist(
                 let file = file_ext.clone();
                 source.insert(file_ext, true);
 
-                set_audio(source);
+                music::set_audio(source);
 
-                let datablock = get_audio();
+                let datablock = music::get_audio();
 
                 let object = match datablock.get_key_value(&file) {
                     Some(data) => data,
@@ -376,10 +376,13 @@ async fn search_playlist(
 
 #[post("/user/my/playlist/{search}/play")]
 async fn play_audio(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
+    
     // open audio file, with how many times audio will be played.
     // run the audio file ; if exist
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let audio = get_audio();
+    let audio = music::get_audio();
+    
     for i in audio.keys() {
         let file = BufReader::new(File::open(i).unwrap());
         let clip = stream_handle.play_once(file).unwrap();
@@ -485,10 +488,12 @@ async fn play_audio(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
 
 #[post("/user/my/playlist/{search}/fastforward")]
 async fn fastforward_audio(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
+    
     // open audio file, with how many times audio will be played.
     // this function will increase the speed of audio file and then play it.
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let audio = get_audio();
+    let audio = music::get_audio();
     for i in audio.keys() {
         let file = BufReader::new(File::open(i).unwrap());
 
@@ -516,10 +521,13 @@ async fn fastforward_audio(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
 
 #[post("/user/my/playlist/{search}/fastbackward")]
 async fn fastbackward_audio(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
+    
+    
     // open audio file, with how many times audio will be played.
     // this function will decrease the speed of audio file and then play it.
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let audio = get_audio();
+    let audio = music::get_audio();
     for i in audio.keys() {
         let file = BufReader::new(File::open(i).unwrap());
 
@@ -559,8 +567,10 @@ async fn library() -> impl Responder {
 #[post("/user/library/{searchbycollection}")]
 async fn collection(
     form: web::Form<SearchPlaylist>,
-    hbr: web::Data<Handlebars<'_>>,
-) -> HttpResponse {
+    hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
+    
+    
     // parse input values
     let query = &form.songname;
 
@@ -569,13 +579,18 @@ async fn collection(
     let mut mp_player = query.to_owned() + ".mp3";
 
     // validate user session
-    let expire = login_expire();
-
-    if expire {
-        println!("Make sure you have provide correct information or session expired. ");
-        return HttpResponse::BadRequest()
-            .body(hbr.render("music_error", &RequestError {}).unwrap());
+    unsafe {
+        
+        let expire = gatekeeper::login_expire(ME);
+        
+        if expire {
+            println!("Make sure you have provide correct information or session expired. ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
     }
+
+    
 
     // Here unsafe have a reason because of static calls.
     // The real problem is that retrive paticular song from library or collection, inorder to solve this problem
@@ -639,8 +654,9 @@ async fn collection(
                     let list = content.get_playlist_by_song(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+                    let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
 
-                    println!("Enjoy the song ... {:?}", list.song);
+                    
 
                     return HttpResponse::Ok().body(
                         hbr.render(
@@ -659,6 +675,11 @@ async fn collection(
                                 favourite_count: list.like_count.to_owned(),
                                 played: list.play_count.to_owned(),
                                 emotion: list.emotion.to_owned(),
+                                comment : list.comment.to_owned(),
+                                comment_like_count : list.comment_like_count.to_owned(),
+                                comment_likes : list.comment_likes.to_owned(),
+                                user_comments : list.followers_comments.to_owned(),
+                                
                             },
                         )
                         .unwrap(),
@@ -667,8 +688,9 @@ async fn collection(
                     let list = content.get_playlist(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+                    let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
 
-                    println!("Enjoy the song ... {:?}", list.song);
+                    
 
                     return HttpResponse::Ok().body(
                         hbr.render(
@@ -687,6 +709,11 @@ async fn collection(
                                 favourite_count: list.like_count.to_owned(),
                                 played: list.play_count.to_owned(),
                                 emotion: list.emotion.to_owned(),
+                                comment : list.comment.to_owned(),
+                                comment_like_count : list.comment_like_count.to_owned(),
+                                comment_likes : list.comment_likes.to_owned(),
+                                user_comments : list.followers_comments.to_owned(),
+                                
                             },
                         )
                         .unwrap(),
@@ -748,8 +775,9 @@ async fn collection(
                     let list = content.get_playlist(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+                    let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
 
-                    println!("Enjoy the song ... {:?}", list.song);
+                    
 
                     return HttpResponse::Ok().body(
                         hbr.render(
@@ -768,6 +796,11 @@ async fn collection(
                                 favourite_count: list.like_count.to_owned(),
                                 played: list.play_count.to_owned(),
                                 emotion: list.emotion.to_owned(),
+                                comment : list.comment.to_owned(),
+                                comment_like_count : list.comment_like_count.to_owned(),
+                                comment_likes : list.comment_likes.to_owned(),
+                                user_comments : list.followers_comments.to_owned(),
+                                
                             },
                         )
                         .unwrap(),
@@ -776,8 +809,9 @@ async fn collection(
                     let list = content.get_playlist_by_song(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
+                    let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
 
-                    println!("Enjoy the song ... {:?}", list.song);
+                    
 
                     return HttpResponse::Ok().body(
                         hbr.render(
@@ -796,6 +830,11 @@ async fn collection(
                                 favourite_count: list.like_count.to_owned(),
                                 played: list.play_count.to_owned(),
                                 emotion: list.emotion.to_owned(),
+                                comment : list.comment.to_owned(),
+                                comment_like_count : list.comment_like_count.to_owned(),
+                                comment_likes : list.comment_likes.to_owned(),
+                                user_comments : list.followers_comments.to_owned(),
+                                
                             },
                         )
                         .unwrap(),
@@ -819,20 +858,7 @@ async fn newsong_record(
     hbr: web::Data<Handlebars<'_>>,
     form: web::Form<MusicStream>,
 ) -> HttpResponse {
-    // let load = match payload.next().await{
-    //     Some(data) => data,
-    //     None => panic!("Error report"),
-    // };
-
-    // let res = match load{
-    //     Ok(data) => data,
-    //     Err(err) => panic!("Error report {:?}", err),
-    // };
-
-    // let res_value = match std::str::from_utf8(&res){
-    //     Ok(value) => value,
-    //     Err(err) => panic!("{:?}", err),
-    // };
+    
 
     // parse input values
 
@@ -880,13 +906,20 @@ async fn newsong_record(
 
     // check whether session expire
 
-    let expire = login_expire();
+   unsafe{
+    
+        let expire = gatekeeper::login_expire(ME);
 
-    if expire {
-        println!("Make sure you have provide correct information or session expired. ");
-        return HttpResponse::BadRequest()
+        if expire {
+        
+            println!("Make sure you have provide correct information or session expired. ");
+            return HttpResponse::BadRequest()
             .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+
     }
+
+    
 
     let mut fees: f64 = 0.0;
 
@@ -964,6 +997,7 @@ async fn newsong_record(
                 let pin_client = blob.pinta_client();
 
                 let _auth = pin_client.test_authentication().await;
+                
                 let content = blob.upload_content(pin_client, cover_img.to_string()).await;
 
                 let mut cid_image: String = "".to_string();
@@ -1092,10 +1126,133 @@ async fn newsong_record(
     HttpResponse::BadRequest().body(hbr.render("music_error", &RequestError {}).unwrap())
 }
 
+#[post("/me/comment")]
+async fn commenting(hbr : web::Data<Handlebars<'_>>, form: web::Form<Commenting>) -> HttpResponse{
+
+
+    let comment = &form.icomment;
+    
+    
+    
+    if let Ok(client) = gatekeeper::mongodb_client().await{
+
+        let db = client.database(music::MUSIC_RECORD);
+
+        unsafe {
+
+                if let Some(song) = GLOBAL_SONG.get(){
+
+                    if song.to_owned().to_string().is_empty(){
+                        println!("Make sure you don't submit empty form. ");
+                        return HttpResponse::BadRequest()
+                                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+                    }
+
+                    let mut songdetails = pinata_content::Content::new(
+                        ME.to_string(),
+                        "".to_string(),
+                        "".to_string(),
+                        song.to_owned().to_string(),
+                        pinata_content::Emotionfilter::None,
+                        false,
+                        0,
+                        0,    
+                    );
+
+                    let content = songdetails.get_playlist_by_song(db.to_owned()).await;
+                    
+                    if comment.to_owned().to_string().is_empty(){
+    
+                        USERCOMMENTS += 0;
+                        songdetails.comment = comment.to_owned().to_string();
+                        
+                        let _update = songdetails.update_song_info(db.to_owned()).await;
+                        println!("Song details update....");
+                    }else{
+    
+                        
+                        USERCOMMENTS = content.followers_comments.to_owned()+1;
+                        songdetails.comment = comment.to_owned().to_string();
+                        songdetails.followers_comments = USERCOMMENTS;
+                        
+                        let _update = songdetails.update_song_info(db.to_owned()).await;
+                        println!("Song details update....");
+                    }
+                }
+            
+        
+        }
+    }
+
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
+
+
+#[post("/me/comments/likes")]
+async fn likes_on_comment(hbr : web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    if let Ok(client) = gatekeeper::mongodb_client().await{
+
+        let db = client.database(music::MUSIC_RECORD);
+
+        unsafe {
+
+            if let Some(song) = GLOBAL_SONG.get(){
+
+                if song.to_owned().to_string().is_empty(){
+                    println!("Make sure you don't submit empty form. ");
+                    return HttpResponse::BadRequest()
+                                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                let mut songdetails = pinata_content::Content::new(
+                    ME.to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    song.to_owned().to_string(),
+                    pinata_content::Emotionfilter::None,
+                    false,
+                    0,
+                    0,    
+                );
+
+                let content = songdetails.get_playlist_by_song(db.to_owned()).await;
+
+                if let Some(user_comment) = MY_COMMENT.get(){
+
+                    
+                    
+                    if user_comment.to_owned().to_string().is_empty(){
+                        
+                        println!("Make sure user have comment before. ");
+                        return HttpResponse::BadRequest()
+                                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+                        
+                    }else{
+                        
+                            
+                            songdetails.comment_like_count += 1;
+                            songdetails.comment_likes = true;
+                            songdetails.comment = user_comment.to_owned().to_string();
+                            songdetails.followers_comments = content.followers_comments+0;  
+                            let _update = songdetails.update_song_info(db.to_owned()).await;
+                            
+                    }
+                }
+                   
+            }
+        }
+
+    }
+
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
 // You will like or dislike song real time.
 
 #[post("/me/like")]
 async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
+    
     let client = match gatekeeper::mongodb_client().await {
         Ok(list) => list,
         Err(e) => panic!("{:?}", e),
@@ -1104,8 +1261,11 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
     let db = client.database(music::MUSIC_RECORD);
 
     unsafe {
+        
         if let Some(data) = GLOBAL_SONG.get() {
-            if data.to_owned().to_string() == "" {
+            
+            if data.to_owned().to_string().is_empty() {
+                
                 println!("Make sure you don't submit empty form. ");
                 return HttpResponse::BadRequest()
                     .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -1121,8 +1281,9 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                 0,
                 0,
             );
+            
+            
             let old = content.get_playlist_by_song(db.to_owned()).await;
-
             LIKES = old.like_count;
             COLORED = old.like;
             PLAY = old.play_count;
@@ -1179,11 +1340,12 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
             }
 
             if LIKES == 0 && !COLORED {
+                
                 LIKES += 1;
                 COLORED = true;
                 PLAY += 1;
 
-                // let mut update_cont = pinata_content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), pinata_content::Emotionfilter::None, COLORED, LIKES, PLAY);
+                
                 content.like_count = LIKES;
                 content.play_count = PLAY;
                 content.like = COLORED;
@@ -1192,7 +1354,7 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
 
                 print!("Content update {:?}", updater);
             } else {
-                // let mut update_cont = pinata_content::Content::new(ME.to_string(), "".to_string(), "".to_string(), data.to_owned().to_string(), pinata_content::Emotionfilter::None, COLORED, LIKES, PLAY);
+                
                 content.like_count = LIKES;
                 content.play_count = PLAY;
                 content.like = COLORED;
@@ -1262,7 +1424,7 @@ async fn poetry(
     let apikey: _ = &form.call;
 
     // check whether any bad words exist in a query. then throw error
-    let action = generative(input.to_string());
+    let action = openai::validator(input.to_string());
 
     if let Ok(take_action) = action {
         if take_action {
@@ -1334,6 +1496,8 @@ async fn main() -> std::io::Result<()> {
             .service(library)
             .service(collection)
             .service(like_work)
+            .service(commenting)
+            .service(likes_on_comment)
             // .service(stop_audio)
             // .service(stepforward_audio)
             .service(fastforward_audio)
@@ -1356,63 +1520,7 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-fn set_audio(source: HashMap<String, bool>) {
-    unsafe {
-        AUDIO.push(source);
-    }
-}
 
-fn get_audio() -> HashMap<String, bool> {
-    let mut value: HashMap<String, bool> = HashMap::new();
-    unsafe {
-        for i in 0..AUDIO.len() {
-            let key = match AUDIO.get(i) {
-                Some(k) => k,
-                None => panic!("Error reporting"),
-            };
 
-            value = key.clone();
-        }
-    }
-
-    value
-}
-
-fn generative(input: String) -> std::io::Result<bool> {
-    let lines = input.lines();
-    let bregex = Regex::new(r"\b(eval | echo | system |exec | os | kill | script | wget | curl | sudo | cd | chmod | rm | ls | cat | rmdir | grep | tail | mv | chdir | chown | passwd | unmask | pwd | mkdir | clear| cp | head | whoami | copy | env )").unwrap();
-    let xregex = Regex::new(
-        r"\b(nude | porn | xxx | sexy | sex | sexual | hot | phallic | sexuality | oral | anal )",
-    )
-    .unwrap();
-
-    let mut take_action: bool = false;
-
-    for words in lines {
-        // for bad actors who invade system
-        if bregex.is_match(words) {
-            take_action = true;
-            break;
-        }
-
-        // for bad boys
-        if xregex.is_match(words) {
-            take_action = true;
-            break;
-        }
-    }
-
-    Ok(take_action)
-}
-
-fn login_expire() -> bool {
-    unsafe {
-        if ME == 0 {
-            return true;
-        }
-
-        false
-    }
-}
 
 

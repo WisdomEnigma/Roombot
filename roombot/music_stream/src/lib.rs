@@ -14,12 +14,14 @@ pub mod music{
     use mongodb::{Client, options::{ClientOptions,FindOptions}, bson::doc, results::{InsertOneResult, InsertManyResult}};
     use futures_util::{stream::TryStreamExt, future::ok};
     use serde::{Deserialize, Serialize};
+    use std::collections::HashMap;
 
 
 
     /// Music Record is a public static reference.
     pub static MUSIC_RECORD : & str = "Artists_Record";
-    static Song_DB : &str = "songs";
+    static SONG_DB : &str = "songs";
+    static mut AUDIO: Vec<HashMap<String, bool>> = Vec::new();
     
 
 
@@ -31,7 +33,6 @@ pub mod music{
         pub song_name : String,
         pub artist : Vec::<String>,
         pub cover_image : String,
-        // pub song_status : PintaStatus,
         light_node_addr  : String,
         pub release_date : String,
         pub lyrics : String,
@@ -50,10 +51,34 @@ pub mod music{
         pub price : f64,
     }
     
-    // PinataStatus
-    enum PintaStatus{
-        Pin,
-        Unpin,
+    
+
+
+    /// set audio hold song memory address of your disk. Song should pass hashmap becuase either specific song is play or not 
+    pub fn set_audio(source: HashMap<String, bool>) {
+        
+        unsafe {
+            AUDIO.push(source);
+        }
+    }
+    
+    /// get audio return song which user want to listen. Function return hashmap as well.
+    pub fn get_audio() -> HashMap<String, bool> {
+        
+        let mut value: HashMap<String, bool> = HashMap::new();
+        
+        unsafe {
+            for i in 0..AUDIO.len() {
+                let key = match AUDIO.get(i) {
+                    Some(k) => k,
+                    None => panic!("Error reporting"),
+                };
+    
+                value = key.clone();
+            }
+        }
+    
+        value
     }
     
     
@@ -64,7 +89,6 @@ pub mod music{
             song_name: song, 
             artist : oartist, 
             cover_image: img, 
-            // song_status: status, 
             light_node_addr: addr, 
             release_date: date, 
             lyrics: lyrics_artist,
@@ -109,7 +133,7 @@ pub mod music{
         /// create collection allow to create collection in mongodb
         pub async fn create_collection(&mut self, db : mongodb::Database) -> std::io::Result<()> {
 
-          let collects = db.collection::<MusicRecord>(Song_DB);
+          let collects = db.collection::<MusicRecord>(SONG_DB);
           
           let result = self.find_with_song(db).await;
 
@@ -152,7 +176,7 @@ pub mod music{
         async fn find_with_song(&mut self, database : mongodb::Database) -> String {
 
             let mut query : String = "".to_string(); 
-            let collection = database.collection::<MusicRecord>(Song_DB);
+            let collection = database.collection::<MusicRecord>(SONG_DB);
             
             let filter = doc!{ "song_name" : self.song_name.to_owned()};
 
@@ -207,7 +231,7 @@ pub mod music{
         /// find song feature allow to look up in playlist for us. However , it will return result of Music Record
         pub async fn find_song(&mut self, db : mongodb::Database) -> std::io::Result<MusicRecord>{
 
-            let collection = db.collection::<MusicRecord>(Song_DB);
+            let collection = db.collection::<MusicRecord>(SONG_DB);
             let mut song_class: MusicRecord = MusicRecord{
                 song_name : "".to_string(), 
                 artist : Vec::<String>::new(),
@@ -317,7 +341,7 @@ pub mod pinata_content{
     
     use std::panic;
     use mongodb::{options::{FindOptions, FindOneAndUpdateOptions}, bson::doc, results::{InsertOneResult, InsertManyResult}, Database};
-    use futures_util::{stream::TryStreamExt};
+    use futures_util::stream::TryStreamExt;
     use serde::{Deserialize, Serialize};
 
 
@@ -347,8 +371,11 @@ pub mod pinata_content{
         pub like : bool,        // user likes
         pub like_count : i64,   // user vote
         pub play_count : i64,  // music play
-        pub emotion :   Emotionfilter  // mood of user
-
+        pub emotion :   Emotionfilter,  // mood of user
+        pub comment : String, 
+        pub comment_like_count : i64,
+        pub comment_likes : bool,        
+        pub followers_comments : i64,       // total comments on a song
     }
 
     /// Emotion Filter enumerate allow further definition. Classification of beats
@@ -362,6 +389,10 @@ pub mod pinata_content{
         None,
         Mixed,
     }
+
+    
+
+    
 
     /// genre_to_emotion take song genre and return song classified song based on your mood or emotion.
     pub fn genre_to_emotions(genre: String) -> Emotionfilter {
@@ -400,12 +431,17 @@ pub mod pinata_content{
         }
     }
 
+
+    
+
     impl Content{
 
         /// new allow to create instance of Content. 
         pub fn new(id : String, imghash : String, audiohash : String, song : String, views : Emotionfilter, like : bool, like_count: i64, play : i64) -> Self{
-            Self { session: id.to_string(), cid_icontent: imghash.to_string(), cid_mcontent: audiohash.to_string(), song : song.to_string(), like, like_count, play_count : play, emotion : views  }
+            Self { session: id.to_string(), cid_icontent: imghash.to_string(), cid_mcontent: audiohash.to_string(), song : song.to_string(), like, like_count, play_count : play, emotion : views, comment : "".to_string(),comment_like_count : 0, comment_likes : false, followers_comments : 0,  }
         }
+
+        
 
 
         /// music collection collect information about songs such as artist, song name, music_refernce etc .. More information read pinata content module description.
@@ -436,6 +472,10 @@ pub mod pinata_content{
 
                         play_count : self.play_count,
                         emotion : self.emotion.clone(),
+                        comment : self.comment.clone(),
+                        comment_like_count : self.comment_like_count,
+                        comment_likes : self.comment_likes,
+                        followers_comments : self.followers_comments,
                     },
                 ];
 
@@ -453,7 +493,7 @@ pub mod pinata_content{
         
             let collect = db.collection::<Content>(COLLECTION);
 
-            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None};
+            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
 
             
             let filter = doc!{ "session" : self.session.to_owned()};
@@ -484,16 +524,7 @@ pub mod pinata_content{
 
             
 
-            let mut playlist = Content{
-                session : "".to_string(), 
-                cid_icontent : "".to_string(),
-                cid_mcontent : "".to_string(),
-                song : "".to_string(),
-                like_count : 0,
-                like : false,
-                play_count : 0,
-                emotion : Emotionfilter::None
-            };
+            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
 
     
             let query = self.find_playlist_with_session(db).await;
@@ -510,7 +541,7 @@ pub mod pinata_content{
 
             let collect = db.collection::<Content>(COLLECTION);
 
-            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count : 0, play_count : 0, emotion : Emotionfilter::None};
+            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
 
             
 
@@ -535,16 +566,7 @@ pub mod pinata_content{
         // get playlist by song return song which you want to listen, if song exit in platform.
         pub async fn get_playlist_by_song(&mut self, db : Database) -> Content{
 
-            let mut playlist = Content{
-                session : ("".to_string()), 
-                cid_icontent : ("".to_string()),
-                cid_mcontent : ("".to_string()),
-                song : ("".to_string()),
-                like : false,
-                like_count : 0,
-                play_count : 0,
-                emotion : Emotionfilter::None
-            };
+            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
 
             
             
@@ -561,6 +583,7 @@ pub mod pinata_content{
         pub async fn update_song_info(&mut self, db : Database) -> Content {
             
             let collect = db.collection::<Content>(COLLECTION);
+
                             
                 let filter = doc!{ "song" : self.song.to_owned()};
                 let update_doc = doc! {
@@ -568,6 +591,10 @@ pub mod pinata_content{
                         "like" : self.like,
                         "like_count" : self.like_count,
                         "play_count" : self.play_count,
+                        "comment" : self.comment.clone(),
+                        "comment_like_count" : self.comment_like_count,
+                        "comment_likes" : self.comment_likes,
+                        "followers_comments" : self.followers_comments,
                     },
                 };
 
@@ -580,16 +607,7 @@ pub mod pinata_content{
                     }
                 }
             
-            Content{
-                session : "".to_string(),
-                cid_icontent : "".to_string(),
-                cid_mcontent : "".to_string(),
-                song : "".to_string(),
-                like : false,
-                like_count : 0,
-                play_count : 0,
-                emotion : Emotionfilter::None,
-            }
+                Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0}
         }
     }
 
