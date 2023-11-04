@@ -16,12 +16,11 @@ handlebars = {version = "4.3.7", features = ["dir_source"]}
 # img2vec = "0.2.15"
 pinata_ipfs = {path = "pinata_ipfs"}
 music_stream = { path = "music_stream"}
-reqwest = "0.11.18"
-rodio = "0.17.1"
+reqwest = {version =  "0.11.18", features = ["json", "blocking"]}
 serde = { version = "1.0.180" , features = ["derive"] }
-auth = {path = "auth"}
+auth = { path = "auth" }
 futures-util = "0.3.28"
 once_cell = "1.18.0"
-l2net ={ path = "l2net"}
-
+l2net ={ path = "l2net" }
+movies ={ path = "movies" }
 

@@ -30,7 +30,7 @@
             <li class="uk-active"><a href="#"> Keep on dreaming even if it break your heart! </a></li>
             <li class="uk-nav-header">Header</li>
             <li class="uk-nav-divider"></li>
-            <li><a href="/user/my/playlist"><span class="uk-margin-small-right" uk-icon="icon: play-circle"></span> Music </a></li>
+            <li><a href="/user/imovies"><span class="uk-margin-small-right" uk-icon="icon: play-circle"></span> Movies </a></li>
             <li><a href="/user/library"><span class="uk-margin-small-right" uk-icon="icon: play"></span> Collection </a></li>
             <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: heart"></span> <span class="uk-badge"> {{favourite_count}}</span></a></li> 
             <div class="uk-inline"><span class="uk-badge"> {{user_comments}}</span></a></li>
@@ -63,7 +63,7 @@
         </div>
         <div class="spbody">
             <img src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_ilink}}" alt="cover_image" style="position: relative;width : 20pc;"/>
-                <audio controls autoplay style="position: relative;top: 27pc;left: -19pc;width: 26pc;">
+                <audio controls autoplay style="position: relative;top: 27pc;left: -19pc;width: 26pc;" onpause="clip_pause(); onended=clip_end();">
                     <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/mpeg">
                     <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/wav">
                 </audio>
@@ -276,7 +276,19 @@
             document.getElementsByClassName('copylink')[0].innerHTML = "Congratulation link is ready for sharing"
         }
 
+        // clip pause is another event
+        function clip_pause(){
 
+            alert('Please Resume lovely song');
+        }
+
+        // clip end is most important event
+
+        function clip_end(){
+
+            alert('Congrats ! Song finished , Kindly rate the song ; Artist should be very impressed with you r taste');
+        }
+        
         // change like button color and store in database...
         document.getElementsByClassName('likebtn')[0].addEventListener('click', e =>{
 
