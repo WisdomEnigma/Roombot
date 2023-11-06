@@ -1,3 +1,13 @@
+
+/// 
+/// All the changes made according to wisdomenigma rules & MPL Licence terms. 
+/// 
+/// Redistribution, Commitment of work, Licence of Work, Intellectual Property & trademark.   
+/// 
+/// 
+/// Contact us
+///   github.com/WisdomEnigma                   wizdwarfs@gmail.com
+
 use actix_files::NamedFile;
 #[warn(non_camel_case_types)]
 #[warn(unused_imports)]
@@ -16,7 +26,7 @@ use once_cell::sync::OnceCell;
 use pinata_ipfs::ipinata;
 use movies::movies_rating::{MovieRate, Emotionfilter, Content};
 // use rodio::OutputStream;
-use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf};
+use std::path::PathBuf;
 
 // private structures
 
@@ -161,31 +171,38 @@ static GLOBAL_SONG: OnceCell<String> = OnceCell::new();
 static MY_COMMENT: OnceCell<String> = OnceCell::new();
 
 // routes
+
+// 1. Index
 #[get("/")]
 async fn index() -> impl Responder {
     NamedFile::open_async("./static/index.html").await
 }
 
+// 2. Uptopia [Image]
 #[get("/utopia")]
 async fn image_utopia() -> impl Responder {
     NamedFile::open_async("./static/assets/utopia.jpg").await
 }
 
+// 3. Avatar [Image]
 #[get("/user_avatar")]
 async fn avatari() -> impl Responder {
     NamedFile::open_async("/home/ali/Downloads/register_face.png").await
 }
 
+// 4. Furturistic Learning [Image]
 #[get("/futuristic")]
 async fn image_learning() -> impl Responder {
     NamedFile::open_async("./static/assets/translation.png").await
 }
 
+// 5. Translation => get
 #[get("/translation")]
 async fn translator() -> impl Responder {
     NamedFile::open_async("./static/translate.html").await
 }
 
+// 5a. Translation => post
 #[post("/translation/user/{output}")]
 async fn word2word(
     form: web::Form<TranslateFormData>,
@@ -280,13 +297,15 @@ async fn word2word(
 
 // }
 
+
+// 6. Imovies => get
 #[get("/user/imovies")]
 async fn playlist() -> impl Responder {
     NamedFile::open_async("./static/movies.html").await
 }
 
 
-
+// 6a. Imovies => post
 #[post("/user/recomend/imovies/{search}")]
 async fn search_movies(
     form: web::Form<SearchMoviesPlaylist>,
@@ -335,7 +354,7 @@ async fn search_movies(
 
 // web music player player your favourite song "The Moment I Knew". So phenomenal
 
-
+// 7. Library => get
 
 #[get("/user/library")]
 async fn library() -> impl Responder {
@@ -347,6 +366,9 @@ async fn library() -> impl Responder {
 // And you asking this question over and over. We have a solution of your problem,
 // you don't need media player connect with roombot and in collection section search song name .. wait for few milliseconds
 // enjoy the song.  Another long feature each song categorize based on song emotion. The moment I knew [Taylor Swift] in love category.
+
+
+// 7a. Library => post 
 
 #[post("/user/library/{searchbycollection}")]
 async fn collection(
@@ -612,10 +634,15 @@ async fn collection(
     }
 }
 
+
+// 8 composer => get
 #[get("/user/composer")]
 async fn artist() -> impl Responder {
     NamedFile::open_async("./static/artists.html").await
 }
+
+
+// 8a. composer => post
 
 // You're an artist like Michael Jackson and you want to add your work? Will you try
 // roombot ? Share your story with us.
@@ -682,6 +709,7 @@ async fn newsong_record(
     }
 
     let mut fees: f64 = 0.0;
+    let mut accept : bool = false;
 
     // read specific music file which is in music directory. If file is not in music diectory then throw error.
     // create music file record {music name, artists name, song type , production name etc}.
@@ -851,12 +879,14 @@ async fn newsong_record(
 
                                     fees = 750.00;
 
-                                    if !tx.is_empty() {
+                                    if !tx.is_empty() && !accept {
                                         println!("Transaction status {:?}", tx[0].status);
-                                    } else {
+                                        accept = true;   
+                                    }else{
+
                                         println!("Make sure you have finalize your transaction");
-                                        panic!("No Transaction return");
-                                    }
+                                        accept = false;
+                                    } 
                                 }
                             }
                         }
@@ -915,18 +945,20 @@ async fn commenting(hbr: web::Data<Handlebars<'_>>, form: web::Form<Commenting>)
                 let content = songdetails.get_playlist_by_song(db.to_owned()).await;
 
                 if comment.to_owned().to_string().is_empty() {
+                    
                     USERCOMMENTS += 0;
                     songdetails.comment = comment.to_owned().to_string();
 
                     let _update = songdetails.update_song_info(db.to_owned()).await;
-                    println!("Song details update....");
+                    
                 } else {
+                    
                     USERCOMMENTS = content.followers_comments.to_owned() + 1;
                     songdetails.comment = comment.to_owned().to_string();
                     songdetails.followers_comments = USERCOMMENTS;
 
                     let _update = songdetails.update_song_info(db.to_owned()).await;
-                    println!("Song details update....");
+                    
                 }
             }
         }
@@ -935,14 +967,19 @@ async fn commenting(hbr: web::Data<Handlebars<'_>>, form: web::Form<Commenting>)
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+
+// 9. comments_like => post
 #[post("/me/comments/likes")]
 async fn likes_on_comment(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
     if let Ok(client) = gatekeeper::mongodb_client().await {
         let db = client.database(music::MUSIC_RECORD);
 
         unsafe {
+            
             if let Some(song) = GLOBAL_SONG.get() {
+                
                 if song.to_owned().to_string().is_empty() {
+                    
                     println!("Make sure you don't submit empty form. ");
                     return HttpResponse::BadRequest()
                         .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -962,11 +999,14 @@ async fn likes_on_comment(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                 let content = songdetails.get_playlist_by_song(db.to_owned()).await;
 
                 if let Some(user_comment) = MY_COMMENT.get() {
+                    
                     if user_comment.to_owned().to_string().is_empty() {
+                        
                         println!("Make sure user have comment before. ");
                         return HttpResponse::BadRequest()
                             .body(hbr.render("music_error", &RequestError {}).unwrap());
                     } else {
+                        
                         songdetails.comment_like_count += 1;
                         songdetails.comment_likes = true;
                         songdetails.comment = user_comment.to_owned().to_string();
@@ -982,14 +1022,19 @@ async fn likes_on_comment(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
 }
 // You will like or dislike song real time.
 
+
+// 10. like => post
 #[post("/me/like")]
 async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
     let client = match gatekeeper::mongodb_client().await {
         Ok(list) => list,
         Err(e) => panic!("{:?}", e),
     };
 
     let db = client.database(music::MUSIC_RECORD);
+
+    let accept : bool = false;
 
     unsafe {
         if let Some(data) = GLOBAL_SONG.get() {
@@ -1031,6 +1076,7 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                 println!(" Available = {:?}", status);
 
                 if let Ok(digital_store) = nodeless.connect_with_store(&node.to_owned()).await {
+                    
                     if digital_store.name.is_empty() {
                         println!("Make sure your account linked with light node address for secure transaction. ");
                         return HttpResponse::BadRequest()
@@ -1041,6 +1087,7 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                     let _ledger = nodeless.from_txs(db.to_owned()).await;
 
                     if let Ok(block) = nodeless.lightnode_store_inovice(&node.to_owned()).await {
+                        
                         let data = block.id.unwrap();
                         nodeless.lid = data.to_owned();
                         let _ = nodeless.update_tnx(db.to_owned()).await;
@@ -1052,7 +1099,7 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
 
                             // fees = 750.00;
 
-                            if !tx.is_empty() {
+                            if !tx.is_empty() && !accept {
                                 println!("Transaction status {:?}", tx[0].status);
                             } else {
                                 println!(
@@ -1093,10 +1140,16 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+
+// 11. sociallinks => get
 #[get("/user/sociallink")]
 async fn sociallink() -> impl Responder {
     NamedFile::open_async("./static/authlink.html").await
 }
+
+
+
+// 11a. sociallinks => post
 
 // Roombot provide easy way to connect with roombot , no need to remember 7bit long hex stream for the authenication.
 #[post("/user/sociallink/profile")]
@@ -1133,11 +1186,15 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+// 12. poetry => get
+
 #[get("/user/poetry/topics")]
 async fn add_topic() -> impl Responder {
     NamedFile::open_async("./static/poetry.html").await
 }
 
+
+// 12a. poetry => post
 #[post("/user/poetry/topics/{output}")]
 async fn poetry(
     form: web::Form<TranslateFormData>,
@@ -1187,6 +1244,8 @@ async fn poetry(
     println!("Check your text there may be something which is not acceptable");
     HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap())
 }
+
+// 13. configuration => get
 
 #[get("/configurations")]
 async fn configurations() -> impl Responder {

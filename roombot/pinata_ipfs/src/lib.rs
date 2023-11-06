@@ -1,24 +1,38 @@
+///
+/// All the changes made according to wisdomenigma rules & MPL Licence terms.
+///
+/// Redistribution, Commitment of work, Licence of Work, Intellectual Property & trademark.   
+///
+///
+/// Contact us
+///   github.com/WisdomEnigma                   wizdwarfs@gmail.com
+
 pub mod ipinata{
 
     use std::{path::Path, path::PathBuf};
     use pinata_sdk::{PinataApi,PinByFile, PinnedObject, ApiError};
     use directories::UserDirs;
-        
+
+    
+    /// Blob is a powerful object which require following incridents file, api, token & status. 
     pub struct Blob<'a>{
 
-        file : &'a Path,
-        api : &'a str,
-        token : &'a str,
-        status : FileStatus
+        file : &'a Path,  // file hold path
+        api : &'a str,      // ipinata api
+        token : &'a str,    // ipinata token
+        status : FileStatus // status of file
     }
 
 
+    /// File status meaning either file upload or remove from ipfs network.
+    
     pub enum FileStatus{
         Pin,
         Unpin,
     }
 
 
+    /// new blob object create pinata credentials for users.
     pub fn new_bolb_object<'a>(file : &'a Path, operation : FileStatus) -> Blob<'a>{
 
         let (key, pass, _) = create_credentials();
@@ -44,18 +58,26 @@ pub mod ipinata{
 
     impl <'a> Blob<'a>{
 
+
+        /// BY pinata client Definition only ipinata require to complete the task. There may be possible server loss connectivity. 
         pub fn pinta_client(&mut self) -> PinataApi {
 
            PinataApi::new(self.api, self.token).unwrap()
         }
 
+
+
+        /// upload content definition require following parameters such as pinata ipfs client & file name. beause of async natue user will wait till process complete.
         pub async fn upload_content <'b>(&mut self, client : PinataApi, filename : String) -> Result<PinnedObject,ApiError> {
 
             let content = self.file.join(filename.to_owned()).display().to_string();
             self.status = FileStatus::Pin;
+            
             client.pin_file(PinByFile::new(content)).await
         }
 
+
+        /// delete content require hash of already uploaded content & pinata ipfs client
         pub fn delete_content<'b>(&mut self, client : PinataApi, hash : &'b str) -> std::io::Result<()>{
 
             let _ = client.unpin(hash);
@@ -64,6 +86,9 @@ pub mod ipinata{
         
     }
 
+
+    /// change path allow you read a song from audio directory. [./Music]. Incase song might not be exist in music directory of a system irrelavant of os.
+    /// There may be possible file return different path then throw error.
     pub fn change_path(dir : UserDirs, song : String) -> String{
 
         let mut relative_path : String = "".to_string();
