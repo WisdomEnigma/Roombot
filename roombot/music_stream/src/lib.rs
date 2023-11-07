@@ -1,10 +1,13 @@
 #[warn(unused_imports)]
 
-/// music module allow to store record about music stream this will help in content publishing , content update.
 /// 
-/// ********************************************
+/// All the changes made according to wisdomenigma rules & MPL Licence terms. 
 /// 
-/// This codebase maintain under mozilla public licence , for further information read licence terms which is attached with project.
+/// Redistribution, Commitment of work, Licence of Work, Intellectual Property & trademark.   
+/// 
+/// 
+/// Contact us
+///   github.com/WisdomEnigma                   wizdwarfs@gmail.com
 
 
 pub mod music{
@@ -519,7 +522,7 @@ pub mod pinata_content{
         }
 
 
-        // get playlist return all songs that exit in the platform.
+        /// get playlist return all songs that exit in the platform.
         pub async fn get_playlist(&mut self, db : Database) -> Content{
 
             
@@ -563,7 +566,7 @@ pub mod pinata_content{
             Ok(playlist)            
         }
 
-        // get playlist by song return song which you want to listen, if song exit in platform.
+        /// get playlist by song return song which you want to listen, if song exit in platform.
         pub async fn get_playlist_by_song(&mut self, db : Database) -> Content{
 
             let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
@@ -579,7 +582,7 @@ pub mod pinata_content{
             playlist            
         }
 
-        // update song information such as rating, listener_counter, play_Counter. 
+        /// update song information such as rating, listener_counter, play_Counter. 
         pub async fn update_song_info(&mut self, db : Database) -> Content {
             
             let collect = db.collection::<Content>(COLLECTION);

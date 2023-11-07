@@ -15,6 +15,11 @@
     args = ["version"]
     dependencies = ["clean"]
 
+[tasks.docz]
+    command = "cargo"
+    args = ["doc", "--open"]
+    dependenices = ["clean"]
+
 
 [tasks.build]
     command = "cargo"
@@ -36,6 +41,7 @@
     
     dependencies = [
         "version",
+        "docz",
         "format",
         "build",
         "run",
