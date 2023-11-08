@@ -166,6 +166,8 @@ static mut PLAY: i64 = 0;
 static mut USERCOMMENTS: i64 = 0;
 static GLOBAL_SONG: OnceCell<String> = OnceCell::new();
 static MY_COMMENT: OnceCell<String> = OnceCell::new();
+static EMAIL : OnceCell<String> = OnceCell::new();
+
 
 // routes
 
@@ -1130,9 +1132,12 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
     //  that code sent back to database for future .
 
     let auth_code = gatekeeper::active_hash(&gatekeeper::new_profile(
-        email.to_string(),
+        email.to_owned().to_string(),
         username.to_string(),
     ));
+
+
+    let _ = EMAIL.set(email.to_owned());
 
     let mut auth = gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string());
 
@@ -1261,6 +1266,10 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
+
+/// this function allow to user to complete the transaction process with in few seconds.
+/// First application connected with internet then generate inovice which is available for few seconds.  
+
 pub async fn payment_gateway(mut nodeless : INodeless, db : Database) -> std::io::Result<()> {
 
     let accept : bool = false;
@@ -1268,14 +1277,12 @@ pub async fn payment_gateway(mut nodeless : INodeless, db : Database) -> std::io
     let node = nodeless.create_nodeless_client().await;
     let status = node.to_owned().get_server_status().await;
 
-    
-
     if let Ok(digital_store) = nodeless.connect_with_store(&node.to_owned()).await {
         
         if digital_store.name.is_empty() {
             
-            println!("Make sure your account connect with internet {:?} ", status);
-            panic!("Make sure your account connect with internet");
+            println!("Make sure you connect with internet {:?} ", status);
+            panic!("Make sure you connect with internet");
         }
 
         
@@ -1285,6 +1292,12 @@ pub async fn payment_gateway(mut nodeless : INodeless, db : Database) -> std::io
             
             let data = block.id.unwrap();
             nodeless.lid = data.to_owned();
+
+            if let Some(email) = EMAIL.get(){
+
+                nodeless.email = email.to_owned().to_string();
+            }
+            
             
             let _ = nodeless.update_tnx(db.to_owned()).await;
 
@@ -1292,21 +1305,29 @@ pub async fn payment_gateway(mut nodeless : INodeless, db : Database) -> std::io
                 
                 println!("Inovice generate {:?}", store_status);
 
-                let tx = nodeless.get_store_tnx(&node).await;
+                let tx = nodeless.get_store_tnx(&node).await;                
 
-                // fees = 750.00;
-
-                
                 if !tx.is_empty() && !accept {
                     
                     println!("Transaction status {:?}", tx[0].status);
+                    
+                    nodeless.status = lightnode_net::TransactionStatus::Deposit;
+                    nodeless.remaining = 0.00;
+                    
+                    let _ = nodeless.update_tnx(db.to_owned()).await;
+                    
                     return Ok(());
                 
                 } else {
                     
+                    nodeless.status = lightnode_net::TransactionStatus::Expire;
+                    nodeless.remaining = nodeless.amount as f64;
+
+                    let _ = nodeless.update_tnx(db.to_owned()).await;
+
                     println!("Sorry Gateway has closed and kindly retry this operation {:?}", tx[0]);
                     println!("visit https://nodeless.io/app/stores/dashboard/e1be7458-9364-4f40-8de0-22a3d5af8db5/ for further information");
-                    panic!("Payment gateway has closed retry this operation");
+                    panic!("Payment gateway has closed retry this operation {:?}", nodeless.status);
                 }
             }
         }

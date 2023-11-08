@@ -7,7 +7,7 @@
 pub mod lightnode_net{
 
     // imports
-    use mongodb::{Database, bson::doc, options::{FindOneAndUpdateOptions, FindOptions}};
+    use mongodb::{Database,bson, bson::doc, options::{FindOneAndUpdateOptions, FindOptions}};
     use serde::{Serialize, Deserialize};
     use url::Url;
     use std::str::FromStr;
@@ -149,6 +149,9 @@ pub mod lightnode_net{
                 let update_doc = doc! {
                     "$set" : {
                         "lid" : self.lid.clone(),
+                        "remaining" : self.remaining,
+                        "status" : bson::to_bson(&self.status).unwrap(),
+                        "email" : self.email.clone(),
                     },
                 };
 
