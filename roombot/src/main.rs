@@ -24,7 +24,6 @@ use music_stream::{music, pinata_content};
 use once_cell::sync::OnceCell;
 use pinata_ipfs::ipinata;
 use mongodb::Database;
-// use rodio::OutputStream;
 use std::path::PathBuf;
 
 // private structures
@@ -89,6 +88,18 @@ struct MovieRecomend {
     content: Content,
     watch_min: i64,
     official: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+struct ITV{
+
+    title : Vec::<String>,
+    season : Vec::<u16>,
+    episode : Vec::<u16>,
+    imdb_id : Vec::<u32>,
+    year :  Vec::<std::option::Option<u16>>,
+    minutes : Vec::<std::option::Option<u16>>,
+
 }
 
 #[derive(Deserialize)]
@@ -398,11 +409,9 @@ async fn search_movies(
                     content: imovies.adult.to_owned(),
                     watch_min: imovies.watch_min.to_owned() as i64,
                     official: imovies.official.to_owned().to_string(),
-                },
-            )
-            .unwrap(),
-        );
+                },).unwrap(),);
     }
+    
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
@@ -1221,6 +1230,65 @@ async fn configurations() -> impl Responder {
     NamedFile::open_async("./static/interactive.html").await
 }
 
+
+// 14. ishows => get
+
+#[get("/user/ishows")]
+async fn shows() -> impl Responder {
+    NamedFile::open_async("./static/episode.html").await
+}
+
+// 15. 
+#[post("/user/itvshows/{search}")]
+async fn search_shows(
+    form: web::Form<SearchMoviesPlaylist>,
+    hbr: web::Data<Handlebars<'_>>,
+) -> HttpResponse {
+    // parse input values
+    let query = &form.name;
+    let year = &form.year;
+
+    let client = MovieRate::imdb_client().await;
+
+    let yr = year.to_owned().to_string().parse::<u16>().unwrap();
+
+    let mut genre: Vec<Emotionfilter> = Vec::<Emotionfilter>::new();
+
+    genre.push(Emotionfilter::None);
+
+    let mut imovies = MovieRate::new(
+        query.to_owned().to_string(),
+        yr,
+        genre,
+        "".to_owned().to_string(),
+        Content::None,
+        0,
+    );
+
+    
+    
+    if let Some(itv) = imovies.imdb_season(client).await{
+    
+       let _ = imovies.tv_shows(itv).await;     
+        
+        return HttpResponse::Ok().body(hbr.render("tv", &MovieRecomend{
+            
+            
+            title : imovies.name.to_owned(),
+            genre_0 : imovies.genre[0].to_owned(),
+            genre_1 : imovies.genre[1].to_owned(),
+            genre_2 : imovies.genre[2].to_owned(),
+            release : imovies.release.to_owned().to_string(),
+            content : imovies.adult.to_owned(),
+            watch_min : imovies.watch_min.to_owned() as i64,
+            official : imovies.official.to_owned(),
+        }).unwrap());
+       }
+
+        
+
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // create handlebar new object, direct towards template directory. This direct used as reference for direction purpose.
@@ -1256,6 +1324,8 @@ async fn main() -> std::io::Result<()> {
             .service(configurations)
             .service(sociallink)
             .service(profile)
+            .service(shows)
+            .service(search_shows)
         // .service(register_user)
         // .service(register_face)
         // .service(login)
@@ -1269,6 +1339,7 @@ async fn main() -> std::io::Result<()> {
 
 /// this function allow to user to complete the transaction process with in few seconds.
 /// First application connected with internet then generate inovice which is available for few seconds.  
+/// User will deposit requested satoshi's and automatically proceed the process.
 
 pub async fn payment_gateway(mut nodeless : INodeless, db : Database) -> std::io::Result<()> {
 

@@ -11,7 +11,61 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
             integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
             crossorigin="anonymous"></script>
+    <style>
+        :root {
+  --green: #b8d953;
+  --lilac: #b2b2eb;
+  --pink: #bb86e9;
+  --dark-green: #529a91;
+  --peach: #fe96b7;
+  --black: #191819;
+  --grey: #2a292a;
+  --white: #d9d9d9;
+}
 
+* {
+  margin: 0;
+}
+
+
+
+.progress-bar {
+  position: relative;
+  height: 10px;
+  width: 400px;
+  background: var(--grey);
+  border-radius: 25px;
+  left: 175px;
+}
+
+.progress-fill {
+  position: absolute;
+  height: 10px;
+  width: 0%;
+  animation: progress-forward 500s infinite;
+  background: white;
+  border-radius: 15px;
+}
+
+@keyframes progress-forward {
+  0% {
+    width: 0%;
+  }
+  25% {
+    width: 50%;
+  }
+  50% {
+    width: 75%;
+  }
+  75% {
+    width: 85%;
+  }
+  100% {
+    width: 100%;
+  }
+} ;
+
+    </style>    
 </head>
 <body>
     <a href="/" style="position: relative;left: 40pc;top: 3.9pc;color: black;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
@@ -35,16 +89,23 @@
 </div>
 
 <div class="uk-container" style="position: relative;top: 9pc;left: 3pc;width: 33pc;height: 11pc;">
-    <form method="post" action="/user/recomend/imovies/{search}" style="position: relative;width: 20pc;height: 8pc;left: 0pc;">
-        <input type="text" placeholder=" Find movie for weekend! ... " name="name" class="uk-form-success" style="position: relative;left: 10pc;width: 30pc;height: 2pc;border-radius: 9px;border: 1px;">
+    <form method="post" action="/user/itvshows/{search}" style="position: relative;width: 20pc;height: 8pc;left: 0pc;">
+        <input type="text" placeholder=" Find best tv seasons for weekend! ... " name="name" class="uk-form-success" style="position: relative;left: 10pc;width: 30pc;height: 2pc;border-radius: 9px;border: 1px;">
         <input type="text" placeholder=" Release Year ..." name="year" class="uk-form-success" style="position: relative;left: 14pc;width: 20pc;height: 2pc;border-radius: 9px;border: 1px;color: darkslategray;top: 7px;">
-        <a href="/user/ishows" target="_self" title="best tv season just one click away" style="position: relative;top: -58px;left: 37pc;color: slategrey;">
-            <i class="fa fa-tv" aria-hidden="true"></i>
-        </a>
-        <button class="uk-button-dark" type="submit" style="position: relative;top: -3.8pc;left: 37pc;border: none;background: transparent;">
+        <button class="uk-button-dark" type="submit" style="position: relative;top: -3.7pc;left: 38pc;border: none;background: transparent;">
             <span class="uk-margin-small-right" uk-icon="icon: search"></span>
         </button>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+
     </form>
 </div>
+
+<script>
+    
+    
+</script>
+
 </body>
 </html>
