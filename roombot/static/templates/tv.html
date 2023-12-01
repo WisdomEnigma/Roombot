@@ -11,7 +11,39 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
             integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
             crossorigin="anonymous"></script>
+    <style>
+        @keyframes move-in {
+            20%{
 
+                top: -119px;left: -252px; color: black;
+            }
+
+            40%{
+
+                top: -115px;left: -250px; color: grey;
+            }
+
+            60%{
+
+                top: -110px;left: -247px; color: darkgray;
+            }
+
+            80%{
+
+                top: -110px;left: -245px; color: darkslategray;
+            }
+
+            100%{
+
+                top: -115px;left: -250px; color: darkslategrey;
+            }
+
+            60%{
+
+                top: -119px;left: -252px; color: black;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -39,6 +71,9 @@
             <div class="official">
                 <a href="{{official}}" alt="imdb" target="_self"> <i class="fa fa-film" aria-hidden="true" style="font-size: xxx-large;color: darkslategray;position: relative;top: -8pc;left: 8pc;z-index: 2;"></i> </a>
                 <span style="position: relative;top: 0pc;color: darkslategray;font-size: revert;left: -4pc;font-family: system-ui;"> Phenomenal touch! unlock the magical door ... </span>
+                <button type="button" uk-button uk-button-default uk-toggle="target: #s01" style="position: relative;top: -119px;left: -252px;border: none;background: transparent;font-size: x-large;z-index: 2; cursor: pointer; animation: move-in 6s alternate; ">
+                    <i class="fa fa-search" aria-hidden="true"></i>
+                </button>
             </div>
             <div class="title" style="position: relative;top: -16pc;left: -10pc;width: 20pc;">
                 <h2 style="font-size: xxx-large;color: darkslategray;font-family: monospace;"> {{title}}</h2>
@@ -49,6 +84,19 @@
                 <span style="position: absolute;top: -1pc;font-size: medium;font-family: monospace;">{{ genre_0 }}</span>
                 <span style="position: absolute;top: 7pc;font-size: small;font-family: monospace;">{{ genre_1 }}</span>
                 <span style="position: absolute;top: 15pc;font-size: small;font-family: monospace;">{{ genre_2 }}</span>
+            </div>
+
+            <div id="s01" uk-modal>
+                <div class="uk-modal-dialog uk-modal-body" style="border-radius : 2pc;">
+                    <h2 class="uk-modal-title"></h2>
+                    <button class="uk-modal-close" uk-button uk-button-default type="button" style="position: relative;top: -3pc;left: 539px;background: transparent;border: none;">
+                        <i class="fa fa-close" aria-hidden="true"></i>
+                    </button>
+                    <form method="post" action="/user/itvshows/epic{search}">
+                        <input class="uk-input" type="text" placeholder="Any special episode ..." name="episode" id="epic" style="border-radius: 2pc;">
+                        <button type="submit" uk-button uk-button-default style="width: 60px;position: relative;left: 15pc;top: 1pc;"></button>
+                    </form>
+                </div>
             </div>
     </div> 
     

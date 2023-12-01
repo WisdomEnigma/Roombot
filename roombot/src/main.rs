@@ -6,6 +6,9 @@
 ///
 /// Contact us
 ///   github.com/WisdomEnigma                   wizdwarfs@gmail.com
+
+
+
 use actix_files::NamedFile;
 #[warn(non_camel_case_types)]
 #[warn(unused_imports)]
@@ -24,7 +27,8 @@ use music_stream::{music, pinata_content};
 use once_cell::sync::OnceCell;
 use pinata_ipfs::ipinata;
 use mongodb::Database;
-use std::path::PathBuf;
+use dotenv::dotenv;
+use std::{path::PathBuf, env, fs::File, io::Read};
 
 // private structures
 
@@ -168,6 +172,13 @@ struct SongEngine {
     user_comments: i64,
 }
 
+
+#[derive(Serialize, Deserialize, Debug)]
+struct EpisodeSearch{
+
+    episode : String,
+}
+
 // static variables
 
 static mut ME: u64 = 0;
@@ -177,8 +188,9 @@ static mut PLAY: i64 = 0;
 static mut USERCOMMENTS: i64 = 0;
 static GLOBAL_SONG: OnceCell<String> = OnceCell::new();
 static MY_COMMENT: OnceCell<String> = OnceCell::new();
+static ENV_TOKEN : OnceCell<String> = OnceCell::new();
 static EMAIL : OnceCell<String> = OnceCell::new();
-
+static SEARCHEPIC : OnceCell<String> = OnceCell::new();
 
 // routes
 
@@ -1265,6 +1277,9 @@ async fn search_shows(
         0,
     );
 
+
+    let _ = SEARCHEPIC.set(query.to_owned().to_string());
+
     
     
     if let Some(itv) = imovies.imdb_season(client).await{
@@ -1289,8 +1304,54 @@ async fn search_shows(
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
+
+#[post("/user/itvshows/epic{search}")]
+async fn search_epic(form: web::Form<EpisodeSearch>,
+    hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    let qsearch = &form.episode;
+
+    println!("Query : {:?}", qsearch);
+
+    let client = MovieRate::imdb_client().await;
+
+
+    let mut genre: Vec<Emotionfilter> = Vec::<Emotionfilter>::new();
+
+    genre.push(Emotionfilter::None);
+
+    if let Some(query) = SEARCHEPIC.get(){
+
+        let mut imovies = MovieRate::new(
+            query.to_owned().to_string(),
+            0,
+            genre,
+            "".to_owned().to_string(),
+            Content::None,
+            0,
+        );
+    
+        let epic_name =  imovies.get_episode_name(client, qsearch.to_owned().to_string()).await;
+        println!("Name {:?}", epic_name);
+    }
+
+
+    
+
+    
+
+    
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
+
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    
+    // These lines allow to read secrets that is require to complete the process.
+    dotenv().ok();    
+    let _token = ENV_TOKEN.set(env::var("OPENAI_API_KEY").expect("token is not provided").to_string());
+    
     // create handlebar new object, direct towards template directory. This direct used as reference for direction purpose.
     let mut handlebars_obj = Handlebars::new();
     handlebars_obj
@@ -1326,6 +1387,7 @@ async fn main() -> std::io::Result<()> {
             .service(profile)
             .service(shows)
             .service(search_shows)
+            .service(search_epic)
         // .service(register_user)
         // .service(register_face)
         // .service(login)
