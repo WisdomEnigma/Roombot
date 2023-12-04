@@ -19,13 +19,11 @@ pub mod movies_rating{
 
     use serde::{Deserialize, Serialize};
     use imdb_async::{Client, Movie, Genre, Show};
-    use std::{time::Duration, path::Path, time::Instant, env::var};
+    use std::{time::Duration, path::Path, time::Instant};
     use once_cell::sync::OnceCell;
 
-    pub static TV_SHOWS: OnceCell<String> = OnceCell::new();
-    pub static TV_SHOWS_RELEASE: OnceCell<u16> = OnceCell::new();
-
-    static MOVIE_GPT_KEY : &str = "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";
+    pub static TV_SHOWS: OnceCell<String> = OnceCell::new(); // SEASON NAME
+    pub static TV_SHOWS_RELEASE: OnceCell<u16> = OnceCell::new(); // SEASON RELEASE YEAR
 
     /// Movie Rate is a very powerful structure [name, release, genre, adult, watch_min,official].
 
@@ -99,8 +97,8 @@ pub mod movies_rating{
     }
 
 
-    #[derive(Deserialize, Serialize, Debug)]
-struct ITV{
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct ITV{
 
     title : Vec::<String>,
     season : Vec::<u16>,
@@ -556,13 +554,16 @@ struct ITV{
             let elapsed = dur.elapsed();
             println!("Time duration of tv shows {:?}", elapsed);
 
+            let _ = TV_SHOWS.set(self.name.to_owned().to_string());
+            let _ = TV_SHOWS_RELEASE.set(self.release.to_owned());
+
                         
             
         }
 
-        async fn get_episode_details(&mut self, mut client : Client) -> ITV{
+        async fn get_episode_details(&mut self, mut client : Client) -> Vec::<ITV>{
 
-            let mut itV = Vec::<ITV>::new();
+            let mut it_v = Vec::<ITV>::new();
 
             let dur = Instant::now();
 
@@ -595,17 +596,15 @@ struct ITV{
                                     title.push(episode.to_owned().title().to_string());
                             }
                         
-                            itV.push(ITV { title, season, episode: episodes, imdb_id, year: release, minutes });
+                            it_v.push(ITV { title, season, episode: episodes, imdb_id, year: release, minutes });
 
                             self.name = itv.title().to_string();
                             self.release = itv.start_year();
                             self.imdb_id = itv.imdb_id().to_string();
 
-                            let _ = TV_SHOWS.set(self.name.to_owned());
-                            let _ = TV_SHOWS_RELEASE.set(self.release.to_owned());
-
                             let elapsed = dur.elapsed();
                             println!("Time duration of tv shows details {:?}", elapsed);
+
                         }
                     }   
 
@@ -613,35 +612,107 @@ struct ITV{
             }   
 
             
-            ITV{
-                season : Vec::<u16>::new(),
-                title : Vec::<String>::new(),
-                episode : Vec::<u16>::new(),
-                imdb_id : Vec::<u32>::new(),
-                year : Vec::<std::option::Option<u16>>::new(),
-                minutes : Vec::<std::option::Option<u16>>::new(),
-            }
+            it_v
         }      
 
-        pub async fn get_episode_name(&mut self, client : Client, name : String) -> String{
+        pub async fn get_episode(&mut self, client :Client) -> Vec::<ITV> {
 
-        
-           let details = self.get_episode_details(client).await;
-
-            for data in details.title{
-
-                if data.eq(&name.to_owned()){
-
-                    return data.to_owned();
-                }
-            }
-
-            "".to_owned()
+           self.get_episode_details(client).await
+           
         } 
         
         
-        
-    }
+        pub async fn get_episode_name(&mut self, itv : Vec::<ITV> ,  show :String) -> (i64, bool){
 
+            let mut count: i64 = 0;
+            let mut iterate = itv.into_iter();
+
+            for data in iterate.by_ref(){
+
+                let mut it = data.title.into_iter();
+
+                for name in it.by_ref(){
+
+                    if name.eq(&show){
+
+                        return  (count, true);
+                    }
+
+                    count+=1;
+                }
+            }
+
+            (-1, false) 
+        }
+
+        pub async fn get_episode_label(&mut self, itv : Vec::<ITV> ,  echo : i64, name : String) -> u16{
+
+            
+            let mut iterate = itv.into_iter();
+
+            for data in iterate.by_ref(){
+
+                if data.title[echo as usize].eq(&name){
+
+                    return data.season[echo as usize];
+                }
+            }
+
+            5000 
+        }
+
+        pub async fn get_episode_epic(&mut self, itv : Vec::<ITV> ,  echo : i64, name : String) -> u16{
+
+            
+            let mut iterate = itv.into_iter();
+
+            for data in iterate.by_ref(){
+
+                if data.title[echo as usize].eq(&name){
+
+                    return data.episode[echo as usize];
+                }
+            }
+
+            5000 
+        }
     
+        pub async fn get_episode_watch(&mut self, itv : Vec::<ITV> ,  echo : i64, name : String) -> std::option::Option<u16>{
+
+            
+            let mut iterate = itv.into_iter();
+
+            for data in iterate.by_ref(){
+
+                if data.title[echo as usize].eq(&name){
+
+                    return data.minutes[echo as usize];
+                }
+            }
+
+            Some(5000) 
+        }
+
+        pub async fn get_episode_id(&mut self, itv : Vec::<ITV> ,  echo : i64, name : String) -> u32{
+
+            
+            let mut iterate = itv.into_iter();
+
+            for data in iterate.by_ref(){
+
+                if data.title[echo as usize].eq(&name){
+
+                    return data.imdb_id[echo as usize];
+                }
+            }
+
+            5000 
+        }
+    
+    }      
+
+        
+           
+        
+        
 }

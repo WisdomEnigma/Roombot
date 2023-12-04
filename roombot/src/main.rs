@@ -28,7 +28,7 @@ use once_cell::sync::OnceCell;
 use pinata_ipfs::ipinata;
 use mongodb::Database;
 use dotenv::dotenv;
-use std::{path::PathBuf, env, fs::File, io::Read};
+use std::{path::PathBuf, env};
 
 // private structures
 
@@ -79,6 +79,12 @@ struct SearchPlaylist {
 struct SearchMoviesPlaylist {
     name: String,
     year: String,
+}
+
+#[derive(Deserialize, Debug)]
+struct EpisodeSearch{
+
+    name : String,
 }
 
 #[derive(Serialize)]
@@ -172,11 +178,14 @@ struct SongEngine {
     user_comments: i64,
 }
 
+#[derive(Serialize)]
+struct Recorded{
 
-#[derive(Serialize, Deserialize, Debug)]
-struct EpisodeSearch{
-
-    episode : String,
+    name : String,
+    episode : u16,
+    seasons : u16,
+    watch : u16,
+    link : String, 
 }
 
 // static variables
@@ -191,6 +200,7 @@ static MY_COMMENT: OnceCell<String> = OnceCell::new();
 static ENV_TOKEN : OnceCell<String> = OnceCell::new();
 static EMAIL : OnceCell<String> = OnceCell::new();
 static SEARCHEPIC : OnceCell<String> = OnceCell::new();
+static SEASONRELEASE : OnceCell<String> = OnceCell::new();
 
 // routes
 
@@ -1279,7 +1289,7 @@ async fn search_shows(
 
 
     let _ = SEARCHEPIC.set(query.to_owned().to_string());
-
+    let _ = SEASONRELEASE.set(yr.to_owned().to_string());
     
     
     if let Some(itv) = imovies.imdb_season(client).await{
@@ -1305,16 +1315,13 @@ async fn search_shows(
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
-#[post("/user/itvshows/epic{search}")]
+#[post("/user/itvshows/epic/{search}")]
 async fn search_epic(form: web::Form<EpisodeSearch>,
     hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
-    let qsearch = &form.episode;
-
-    println!("Query : {:?}", qsearch);
+    let qsearch = &form.name;
 
     let client = MovieRate::imdb_client().await;
-
 
     let mut genre: Vec<Emotionfilter> = Vec::<Emotionfilter>::new();
 
@@ -1322,17 +1329,45 @@ async fn search_epic(form: web::Form<EpisodeSearch>,
 
     if let Some(query) = SEARCHEPIC.get(){
 
-        let mut imovies = MovieRate::new(
-            query.to_owned().to_string(),
-            0,
-            genre,
-            "".to_owned().to_string(),
-            Content::None,
-            0,
-        );
-    
-        let epic_name =  imovies.get_episode_name(client, qsearch.to_owned().to_string()).await;
-        println!("Name {:?}", epic_name);
+        if let Some(year) = SEASONRELEASE.get(){
+
+            let yr = year.to_owned().to_string().parse::<u16>().unwrap();
+
+            let mut imovies = MovieRate::new(
+                query.to_owned().to_string(),
+                yr,
+                genre,
+                "".to_owned().to_string(),
+                Content::None,
+                0,
+            );
+        
+            let bank =  imovies.get_episode(client).await;
+            
+            let (steps, flag) = imovies.get_episode_name(bank.to_owned(), qsearch.to_owned().to_string()).await;
+            let show_label = imovies.get_episode_label(bank.to_owned(), steps, qsearch.to_owned().to_string()).await;
+            let show_epic = imovies.get_episode_epic(bank.to_owned(), steps, qsearch.to_owned().to_string()).await;
+            let show_watch = match imovies.get_episode_watch(bank.to_owned(), steps, qsearch.to_owned().to_string()).await{
+                Some(min) => min,
+                None => panic!("Error report"),
+            };
+
+            let show_id = imovies.get_episode_id(bank.to_owned(), steps, qsearch.to_owned().to_string()).await;
+
+            if (flag == true && show_label != 5000) && (show_epic != 5000 && show_watch != 5000) && (show_id != 5000){
+
+                return HttpResponse::Ok().body(hbr.render("epic", &Recorded {
+                    name : qsearch.to_owned().to_string(),
+                    episode : show_label,
+                    seasons : show_epic,
+                    watch : show_watch,
+                    link :  ("https://www.imdb.com/title/tt".to_string() + &show_id.to_owned().to_string() + &"/mediaindex/?ref_=tt_mv_sm".to_string()),
+                }).unwrap());            
+                
+            }
+        }
+
+        
     }
 
 
