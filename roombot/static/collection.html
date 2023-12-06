@@ -39,7 +39,64 @@
         <button class="uk-button-dark" type="submit" style="position: relative;top: -1.7pc;left: 38pc;border: none;background: transparent;">
             <span class="uk-margin-small-right" uk-icon="icon: search"></span>
         </button>
+        <button class="uk-button-dark" type="button" title="filter" style="position: relative;top: -1.7pc;left: 33pc;border: none;background: transparent;">
+            <span class="uk-margin-small-right" uk-icon="icon: thumbnails"></span>
+        </button>
     </form>
+    <div uk-dropdown="mode: click" style="border-radius: 2pc;">
+        <button class="uk-button-default" uk-toggle="target: #artist" type="button" title="Artist" style="border: none;background: transparent;">
+            <span class="uk-margin-small-right" uk-icon="icon: users"></span>
+        </button>
+        <button class="uk-button-default" type="button" uk-toggle="target: #emotion" title="Your emotion" style="border: none;background: transparent;">
+            <span class="uk-margin-small-right" uk-icon="icon: heart"></span>
+        </button>
+        <button class="uk-button-default" type="button" title="genre" uk-toggle="target: #genre" style="border: none;background: transparent;">
+            <span class="uk-margin-small-right" uk-icon="icon: more"></span>
+        </button>
+        
+        <div id="artist" uk-modal>
+            <div class="uk-modal-dialog uk-modal-body" style="border-radius: 2pc;">
+                <h2 class="uk-modal-title"></h2>
+                <button class="uk-modal-close-full uk-close-large" type="button" style="border: none; background: transparent;" uk-close></button>
+                    <form class="_f0a" method="post" action="/user/library/{search}/{artist}">
+                        <input class="uk-input" type="text" name="name" placeholder="Your eyes looking for ? " style="position: relative; top: 2pc; border-radius: 2pc;">
+                        <span class="uk-margin-small-left" uk-icon="icon: users" style="position: relative; top: -3pc;"></span>
+                        <button type="submit" class="uk-button-dark" title="submit" style="position: relative; left: 28pc; border: none; background: transparent;">
+                            <span class="uk-margin-small-right" uk-icon="icon: database"></span>
+                        </button>
+                    </form>
+            </div>
+        </div>
+
+        <div id="emotion" uk-modal>
+            <div class="uk-modal-dialog uk-modal-body" style="border-radius: 2pc;">
+                <h2 class="uk-modal-title"></h2>
+                <button class="uk-modal-close-full uk-close-large" type="button" style="border: none; background: transparent;" uk-close></button>
+                    <form method="post" action="#">
+                        <input type="text" class="uk-input" style="position: relative; top: 2pc; border-radius: 2pc;">
+                        <span class="uk-margin-small-left" uk-icon="icon: heart"></span>
+                        <button type="submit" class="uk-button-dark" title="submit" style="position: relative; left: 28pc; background: transparent; border: none;">
+                            <span class="uk-margin-small-right" uk-icon="icon: database"></span>
+                        </button>
+                    </form>
+            </div>
+        </div>
+        
+        <div id="genre" uk-modal>
+            <div class="uk-modal-dialog uk-modal-body" style="border-radius: 2pc;">
+                <h2 class="uk-modal-title"></h2>
+                <button class="uk-modal-close-full uk-close-large" type="button" style="border: none; background: transparent;" uk-close></button>
+                    <form method="post" action="#">
+                        <input type="text" class="uk-input" style="position: relative; top: 2pc; border-radius: 2pc;">
+                        <span class="uk-margin-small-left" uk-icon="icon: crosshairs"></span>
+                        <button type="submit" class="uk-button-dark" title="submit" style="position: relative; left: 28pc; background: transparent; border: none;">
+                            <span class="uk-margin-small-right" uk-icon="icon: database"></span>
+                        </button>
+                    </form>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 </body>
 </html>

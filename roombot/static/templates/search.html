@@ -96,9 +96,29 @@
         </button>
         <form method="post" action="/me/comment" class="_a002" style="display: none;">
             <input type="text" placeholder="typing ..." class="icomment" name="icomment" style="width: 30pc;height: 2pc;border: none;position: relative;top: 5pc;left: 2pc;"/>
-            <button type="submit" style="position: relative;left: -5pc;top: 79px;border: none;background: transparent;color: slategrey;">
+            <button type="submit" style="position: relative;left: -2pc;top: 80px;border: none;background: transparent;color: slategrey;">
                 <i class="fa fa-commenting" aria-hidden="true"></i>
             </button>
+            <button type="button" uk-button uk-button-default style="position: relative;top: 80px;left: -2pc;border: none;background: transparent;color: darkslategrey;">
+                <i class="fa fa-smile-o" aria-hidden="true"></i>
+            </button>
+            <div uk-dropdown="mode: click" style="border-radius: 2pc;">
+                <button type="button" class="smile" uk-button uk-button-default title="Iam happy for you" style="border: none; background: transparent;">
+                    <i class="fa fa-smile-o" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="frown" uk-button uk-button-default title="I do not like " style="border: none; background: transparent;">
+                    <i class="fa fa-frown-o" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="coffee" uk-button uk-button-default title="virtual meeting" style="border: none; background: transparent;">
+                    <i class="fa fa-coffee" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="meh" uk-button uk-button-default title="good but not energetic" style="border: none; background: transparent;">
+                    <i class="fa fa-meh-o" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="gift"  uk-button uk-button-default title="gift" style="border: none; background: transparent;">
+                    <i class="fa fa-gift" aria-hidden="true"></i>
+                </button>
+            </div>
         </form>
     </div> 
     <section style="position: relative;width: 18pc;left: 8pc;height: 10pc;font-size: xx-large;top: -11pc;">
@@ -1052,6 +1072,8 @@
 
     });
 
+
+    // active comment box for comments on comment
     document.getElementsByClassName('btn-link')[0].addEventListener('click', (e) =>{
         
         if (document.getElementsByClassName('_a002')[0].style.display === 'none' ){
@@ -1060,12 +1082,42 @@
         }
     });
 
+
+    // Comments length should not be greater than 10 alphabets or a word.
     document.getElementsByClassName('icomment')[0].addEventListener('change', (e) =>{
 
 
         if (document.getElementsByClassName('icomment')[0].value.length > 10){
             alert('Comment should not be greater than 10 words')
         }
+    });
+
+
+    // When user press smile , smile added as comment
+    document.getElementsByClassName('smile')[0].addEventListener('click', (e) =>{
+        document.getElementsByClassName('icomment')[0].value = '🙂';
+    });
+
+    // When user press frown , frown added as comment
+    document.getElementsByClassName('frown')[0].addEventListener('click', (e) =>{
+        document.getElementsByClassName('icomment')[0].value = '🙁';
+    });
+
+
+    // When user press coffee , coffee added as comment
+    document.getElementsByClassName('coffee')[0].addEventListener('click', (e) =>{
+        document.getElementsByClassName('icomment')[0].value = '☕';
+    });
+
+
+    // When user press meh , meh added as comment
+    document.getElementsByClassName('meh')[0].addEventListener('click', (e) =>{
+        document.getElementsByClassName('icomment')[0].value = '😐';
+    });
+
+    // When user press gift , gift added as comment
+    document.getElementsByClassName('gift')[0].addEventListener('click', (e) =>{
+        document.getElementsByClassName('icomment')[0].value = '🎁';
     });
     </script>
 </body>

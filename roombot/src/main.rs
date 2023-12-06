@@ -7,12 +7,14 @@
 /// Contact us
 ///   github.com/WisdomEnigma                   wizdwarfs@gmail.com
 
-
-
-use actix_files::NamedFile;
+// development marco's 
 #[warn(non_camel_case_types)]
 #[warn(unused_imports)]
 #[warn(unused_assignments)]
+
+
+// import libraries
+use actix_files::NamedFile;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
 use auth::gatekeeper;
 use gpt_text::openai;
@@ -30,13 +32,90 @@ use mongodb::Database;
 use dotenv::dotenv;
 use std::{path::PathBuf, env};
 
-// private structures
+//  user submit their choices through html forms. 
+// These forms have following implementation [Deserialize, Debug].
 
 #[derive(Deserialize)]
 struct TranslateFormData {
     query: String,
     call: String,
 }
+
+#[derive(Deserialize)]
+struct SearchPlaylist {
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct SearchMoviesPlaylist {
+    name: String,
+    year: String,
+}
+
+#[derive(Deserialize, Debug)]
+struct EpisodeSearch{
+
+    name : String,
+}
+
+
+#[derive(Deserialize)]
+struct SearchArtist{
+
+    name : String,
+}
+
+#[derive(Deserialize)]
+struct SearchEmotion{
+
+    mood : String,
+}
+
+#[derive(Deserialize)]
+
+struct SearchGenre{
+
+    genre : String,
+}
+
+#[derive(Deserialize)]
+struct Commenting {
+    icomment: String,
+}
+
+
+#[derive(Deserialize)]
+struct MusicStream {
+    cover: String,
+    artist: String,
+    mfile: String,
+    date: String,
+    genre: String,
+    composer: String,
+
+    lyricst: String,
+    studio: String,
+    website: String,
+    brand: String,
+    royalty: String,
+    ltbtc: String,
+
+    lightnode: String,
+    work: String,
+    future: String,
+    ownership: String,
+    email: String,
+}
+
+#[derive(Deserialize, Debug)]
+
+struct Authenicate {
+    username: String,
+    email: String,
+}
+
+// User choices responses return html template for different html page's. 
+
 
 #[derive(Serialize)]
 struct ResponseTranslateForm {
@@ -70,23 +149,6 @@ struct Nftmint {
     amount: String,
 }
 
-#[derive(Deserialize)]
-struct SearchPlaylist {
-    name: String,
-}
-
-#[derive(Deserialize)]
-struct SearchMoviesPlaylist {
-    name: String,
-    year: String,
-}
-
-#[derive(Deserialize, Debug)]
-struct EpisodeSearch{
-
-    name : String,
-}
-
 #[derive(Serialize)]
 
 struct MovieRecomend {
@@ -110,41 +172,6 @@ struct ITV{
     year :  Vec::<std::option::Option<u16>>,
     minutes : Vec::<std::option::Option<u16>>,
 
-}
-
-#[derive(Deserialize)]
-struct Commenting {
-    icomment: String,
-}
-
-#[derive(Deserialize)]
-struct MusicStream {
-    cover: String,
-    artist: String,
-    mfile: String,
-    date: String,
-    genre: String,
-    composer: String,
-
-    lyricst: String,
-    studio: String,
-    website: String,
-    brand: String,
-    royalty: String,
-    ltbtc: String,
-
-    lightnode: String,
-    work: String,
-    future: String,
-    ownership: String,
-    email: String,
-}
-
-#[derive(Deserialize, Debug)]
-
-struct Authenicate {
-    username: String,
-    email: String,
 }
 
 #[derive(Serialize)]
@@ -188,6 +215,9 @@ struct Recorded{
     link : String, 
 }
 
+
+
+
 // static variables
 
 static mut ME: u64 = 0;
@@ -201,6 +231,9 @@ static ENV_TOKEN : OnceCell<String> = OnceCell::new();
 static EMAIL : OnceCell<String> = OnceCell::new();
 static SEARCHEPIC : OnceCell<String> = OnceCell::new();
 static SEASONRELEASE : OnceCell<String> = OnceCell::new();
+
+
+
 
 // routes
 
@@ -275,12 +308,44 @@ async fn word2word(
         Err(e) => panic!("Error = {:?}", e),
     };
 
+    let flag_words = responses.to_owned().len().eq(&10);
+        
+    if flag_words == true{
+
+            let client = match gatekeeper::mongodb_client().await {
+                Ok(list) => list,
+                Err(e) => panic!("{:?}", e),
+            };
+    
+            let db = client.database(music::MUSIC_RECORD);
+            let fees : u64 = 25;     
+            
+            unsafe{
+                let nodeless = INodeless::new(
+                    fees,
+                    "".to_owned().to_string(),
+                    fees as f64,
+                    "poetry composition".to_owned().to_string(),
+                    ME.to_owned().to_string(),
+                    lightnode_net::TransactionStatus::Pending,
+                    "".to_string(),
+                );
+    
+                if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await{
+    
+                    println!("Payment received {:?}", result);
+                };
+            }
+
+            
+        }
+
     HttpResponse::Ok().body(
         hbr.render(
             "translate",
             &ResponseTranslateForm {
                 query: input.to_string(),
-                response: responses,
+                response: responses.to_owned().to_string(),
             },
         )
         .unwrap(),
@@ -372,52 +437,52 @@ async fn search_movies(
         if imovies.release as i64 <= 1975{
 
             unsafe{
-            let mut record = music::new_beat(
-                "".to_owned().to_string(),
-                Vec::<String>::new(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                false,
-                false,
-                false,
-                false,
-                false,
-                "".to_string(),
-                ME.to_string(),
-                0.0,
-            );
+               let mut record = music::new_beat(
+                    "".to_owned().to_string(),
+                    Vec::<String>::new(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    "".to_string(),
+                    ME.to_string(),
+                    0.0,
+                );
         
 
-            let client = match record.create_mongo_connection().await {
-                Ok(list) => list,
-                Err(e) => panic!("{:?}", e),
-            };
+                let client = match record.create_mongo_connection().await {
+                    Ok(list) => list,
+                    Err(e) => panic!("{:?}", e),
+                };
 
 
-            let nodeless = INodeless::new(
-                100,
-                "".to_string(),
-                100.00,
-                "enjoy weekend with old stories".to_string(),
-                ME.to_owned().to_string(),
-                lightnode_net::TransactionStatus::Pending,
-                "".to_string(),
-            );
+                let nodeless = INodeless::new(
+                    100,
+                    "".to_string(),
+                    100.00,
+                    "enjoy weekend with old stories".to_string(),
+                    ME.to_owned().to_string(),
+                    lightnode_net::TransactionStatus::Pending,
+                    "".to_string(),
+                );
 
-            let db = client.database(music::MUSIC_RECORD);
-            if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await{
+                let db = client.database(music::MUSIC_RECORD);
+                if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await{
 
-                println!("Payment received {:?}", result);
-            };
+                    println!("Payment received {:?}", result);
+                };
+            }
         }
-    }
 
         return HttpResponse::Ok().body(
             hbr.render(
@@ -518,6 +583,11 @@ async fn collection(
 
                 let stream_record = record.get_song_from_playlist(db).await;
 
+                if stream_record.song_name.to_owned().eq(&""){
+
+                    return HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
+                }
+
                 let mut content = pinata_content::Content::new(
                     ME.to_string(),
                     "".to_string(),
@@ -537,6 +607,7 @@ async fn collection(
                 let db = client.database(music::MUSIC_RECORD);
 
                 if content.session != stream_record.session {
+                    
                     let list = content.get_playlist_by_song(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
@@ -632,6 +703,12 @@ async fn collection(
                 let db = client.database(music::MUSIC_RECORD);
 
                 let stream_record = record.get_song_from_playlist(db).await;
+                
+
+                if stream_record.song_name.to_owned().eq(&""){
+
+                    return HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
+                }
 
                 let mut content = pinata_content::Content::new(
                     ME.to_string(),
@@ -1210,7 +1287,6 @@ async fn poetry(
     if let Ok(take_action) = action {
         if take_action {
             println!("Check your text there may be something which is not acceptable");
-
             HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
         }
     }
@@ -1229,11 +1305,75 @@ async fn poetry(
             Err(e) => panic!("Error = {:?}", e),
         };
 
+        let flag_lines = responses.to_owned().lines().count().eq(&10);
+        let mut flag_words = responses.to_owned().len().eq(&300);
+        
+        if flag_lines == true || flag_words == true{
+
+            let client = match gatekeeper::mongodb_client().await {
+                Ok(list) => list,
+                Err(e) => panic!("{:?}", e),
+            };
+    
+            let db = client.database(music::MUSIC_RECORD);
+            let fees : u64 = 20;     
+            
+            unsafe{
+                let nodeless = INodeless::new(
+                    fees,
+                    "".to_owned().to_string(),
+                    fees as f64,
+                    "poetry composition".to_owned().to_string(),
+                    ME.to_owned().to_string(),
+                    lightnode_net::TransactionStatus::Pending,
+                    "".to_string(),
+                );
+    
+                if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await{
+    
+                    println!("Payment received {:?}", result);
+                };
+            }
+   
+        }
+
+        flag_words = responses.to_owned().len().eq(&1000);
+        
+        if flag_words == true{
+
+            let client = match gatekeeper::mongodb_client().await {
+                Ok(list) => list,
+                Err(e) => panic!("{:?}", e),
+            };
+    
+            let db = client.database(music::MUSIC_RECORD);
+            let fees : u64 = 50;     
+            
+            unsafe{
+                let nodeless = INodeless::new(
+                    fees,
+                    "".to_owned().to_string(),
+                    fees as f64,
+                    "poetry composition".to_owned().to_string(),
+                    ME.to_owned().to_string(),
+                    lightnode_net::TransactionStatus::Pending,
+                    "".to_string(),
+                );
+    
+                if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await{
+    
+                    println!("Payment received {:?}", result);
+                };
+            }
+
+            
+        }
+
         return HttpResponse::Ok().body(
             hbr.render(
                 "translate",
                 &ResponseTranslateForm {
-                    query: input.to_string(),
+                    query: input.to_owned().to_string(),
                     response: responses,
                 },
             )
@@ -1270,8 +1410,20 @@ async fn search_shows(
     let query = &form.name;
     let year = &form.year;
 
-    let client = MovieRate::imdb_client().await;
 
+    // check whether session expire
+
+    unsafe {
+        let expire = gatekeeper::login_expire(ME);
+
+        if expire {
+            println!("Make sure you have provide correct information or session expired. ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    let client = MovieRate::imdb_client().await;
     let yr = year.to_owned().to_string().parse::<u16>().unwrap();
 
     let mut genre: Vec<Emotionfilter> = Vec::<Emotionfilter>::new();
@@ -1293,8 +1445,32 @@ async fn search_shows(
     
     
     if let Some(itv) = imovies.imdb_season(client).await{
-    
-       let _ = imovies.tv_shows(itv).await;     
+       let _ = imovies.tv_shows(itv).await;
+
+       let client = match gatekeeper::mongodb_client().await {
+            Ok(list) => list,
+            Err(e) => panic!("{:?}", e),
+        };
+
+        let db = client.database(music::MUSIC_RECORD);
+        let fees : u64 = 20;     
+
+        unsafe{
+            let nodeless = INodeless::new(
+                fees,
+                "".to_owned().to_string(),
+                fees as f64,
+                "user preference tv season".to_owned().to_string(),
+                ME.to_owned().to_string(),
+                lightnode_net::TransactionStatus::Pending,
+                "".to_string(),
+            );
+
+            if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await{
+
+                println!("Payment received {:?}", result);
+            };
+        }
         
         return HttpResponse::Ok().body(hbr.render("tv", &MovieRecomend{
             
@@ -1308,10 +1484,9 @@ async fn search_shows(
             watch_min : imovies.watch_min.to_owned() as i64,
             official : imovies.official.to_owned(),
         }).unwrap());
-       }
+    }
 
-        
-
+    println!("Unfortunately Movie Title is not found");
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
@@ -1369,16 +1544,128 @@ async fn search_epic(form: web::Form<EpisodeSearch>,
 
         
     }
-
-
     
-
-    
-
-    
+    println!("Unfortunately Show Title is not found");
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+#[post("/user/library/{search}/{artist}")]
+async fn search_artist(form: web::Form<SearchArtist>,
+    hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+        let asearch = &form.name;
+
+        let mut art = Vec::<String>::new();
+        art.push(asearch.to_owned().to_string());
+
+        unsafe{
+
+            // validate user session
+            let expire = gatekeeper::login_expire(ME);
+
+            if expire {
+                println!("Make sure you have provide correct information or session expired. ");
+                return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
+            let mut record = music::new_beat(
+                "".to_owned().to_string(),
+                art,
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+                false,
+                false,
+                false,
+                false,
+                false,
+                "".to_string(),
+                ME.to_string(),
+                0.0,);
+
+                let client = match record.create_mongo_connection().await {
+                    Ok(list) => list,
+                    Err(e) => panic!("{:?}", e),
+                };
+
+                let db = client.database(music::MUSIC_RECORD);
+
+                let stream_record = record.get_song_from_playlist_through_artist(db).await;
+
+                if stream_record[0].song_name.to_owned().eq(&""){
+
+                    return HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
+                }
+
+                let mut iterate = stream_record.to_owned().into_iter();
+
+                let mut record = Vec::<music::MusicRecord>::new();
+
+                for music in iterate.by_ref(){
+
+                    if music.song_name.to_owned().eq(&""){
+                        continue; 
+                    }
+
+                    record.push(music);}
+
+            unsafe{
+            
+                let mut content = pinata_content::Content::new(
+                    ME.to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    record[0].song_name.to_owned().to_string(),
+                    pinata_content::genre_to_emotions(stream_record[0].genre.to_owned().to_string()),
+                    false,
+                    0,
+                    0,
+                );
+
+
+                let client = match gatekeeper::mongodb_client().await {
+                    Ok(list) => list,
+                    Err(e) => panic!("{:?}", e),
+                };
+
+                let db = client.database(music::MUSIC_RECORD);
+
+               let playlist_song = content.get_playlist_by_song(db).await;
+                return HttpResponse::Ok().body(
+                    hbr.render(
+                        "search",
+                        &SongEngine {
+                            pmusic_artist: record[0].artist[0].to_owned(),
+                            pmusic_compose: record[0].compose.to_owned(),
+                            pmusic_genre:   record[0].genre.to_owned(),
+                            pmusic_ilink: playlist_song.cid_icontent.to_owned(),
+                            pmusic_lyric: record[0].lyrics.to_owned(),
+                            session: ME.to_string(),
+                            name: record[0].song_name.to_owned(),
+                            pmusic_mlink: playlist_song.cid_mcontent.to_owned(),
+                            pnumic_production: record[0].studio_name.to_owned(),
+                            favourite: playlist_song.like.to_owned(),
+                            favourite_count: playlist_song.like_count.to_owned(),
+                            played: playlist_song.play_count.to_owned(),
+                            emotion: playlist_song.emotion.to_owned(),
+                            comment: playlist_song.comment.to_owned(),
+                            comment_like_count: playlist_song.comment_like_count.to_owned(),
+                            comment_likes: playlist_song.comment_likes.to_owned(),
+                            user_comments: playlist_song.followers_comments.to_owned(),
+                        },).unwrap(),);
+               
+                    }
+            
+                }
+        // HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -1423,6 +1710,7 @@ async fn main() -> std::io::Result<()> {
             .service(shows)
             .service(search_shows)
             .service(search_epic)
+            .service(search_artist)
         // .service(register_user)
         // .service(register_face)
         // .service(login)

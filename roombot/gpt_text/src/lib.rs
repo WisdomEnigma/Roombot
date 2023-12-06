@@ -77,8 +77,8 @@ pub mod openai{
             .user(self.end_user.clone())
             .build()?;
 
-            let response : _ = create(&client_fieri, &parameters);
-            response.await
+            create(&client_fieri, &parameters).await
+            
         }
 
 
@@ -97,8 +97,8 @@ pub mod openai{
             .user(self.end_user.clone())
             .build()?;
 
-            let response : _ =  create(&client_fieri, &parameters);
-            response.await
+            create(&client_fieri, &parameters).await
+            
         }
 
 

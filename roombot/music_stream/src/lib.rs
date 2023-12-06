@@ -273,6 +273,61 @@ pub mod music{
             Ok(song_class)
         }
         
+        // find artist is a function designed to look after artist in the database and return songs.
+
+        async fn find_artist(&mut self, db : mongodb::Database) -> std::io::Result<Vec::<MusicRecord>>{
+
+            let collection = db.collection::<MusicRecord>(SONG_DB);
+            let mut song_class = Vec::<MusicRecord> ::new();
+
+            song_class.push(MusicRecord{
+                song_name : "".to_string(), 
+                artist : Vec::<String>::new(),
+                cover_image : "".to_string(), 
+                release_date :"".to_string(), 
+                light_node_addr : "".to_string(),
+                lyrics: "".to_string(),
+                studio_name : "".to_string(),
+                genre: "".to_string(),
+                compose : "".to_string(),
+                studio_website: "".to_string(), 
+                collobarate : "".to_string(),
+                royalty : false,
+                lightnode: false,
+                asset : false,
+                research :false,
+                ownership: false,
+                email: "".to_string(), 
+                session: "".to_string(), price : 0.0,});
+
+                let filter = doc!{"artist" : self.artist[0].to_owned()};
+                let find_opts = FindOptions::builder().sort(doc!{"artist" : 1}).build();
+
+                let mut cursor = collection.find(filter, find_opts).await.unwrap();
+
+                while let Some(record) = cursor.try_next().await.unwrap(){
+                    
+                    if record.artist[0].eq(&""){
+
+                        println!("Do you wanna find something then kindly type ?");
+                        return Ok(song_class);
+                    } 
+
+                    if record.artist[0].eq(&self.artist[0].to_owned()){
+
+                        song_class.push(record.to_owned());
+                    }
+
+                    if !record.artist[0].eq(&self.artist[0].to_owned()){
+
+                        println!("No record of  these Artists & Co-Artists ?");
+                        return Ok(song_class);
+                    }
+                    
+                }
+
+            Ok(song_class)
+        }
 
         /// get song from playlist return whole record of a song. from genre to artists...
         pub async fn get_song_from_playlist(&mut self, db: mongodb::Database) -> MusicRecord{
@@ -313,6 +368,59 @@ pub mod music{
             song_class
                 
             }
+            
+            
+            pub async fn get_song_from_playlist_through_artist(&mut self, db: mongodb::Database) -> Vec::<MusicRecord>{
+
+                let mut song_class = Vec::<MusicRecord>::new();
+                
+                song_class.push(MusicRecord{
+                    song_name : "".to_string(), 
+                    artist : Vec::<String>::new(),
+                    cover_image : "".to_string(), 
+                    release_date :"".to_string(), 
+                    light_node_addr : "".to_string(),
+                    lyrics: "".to_string(),
+                    studio_name : "".to_string(),
+                    genre: "".to_string(),
+                    compose : "".to_string(),
+                    studio_website: "".to_string(), 
+                    collobarate : "".to_string(),
+                    royalty : false,
+                    lightnode: false,
+                    asset : false,
+                    research :false,
+                    ownership: false,
+                    email: "".to_string(), 
+                    session: "".to_string(), price : 0.0});
+                
+                let result_data = self.find_artist(db).await;
+
+                if let Ok(data) = result_data{
+
+                    
+                    let mut iterate = data.to_owned().into_iter();
+
+                    for result in iterate.by_ref(){
+                    
+                        let art = result.artist.to_owned().into_iter();
+
+                        for composer in art{
+
+                            if composer.eq(&""){
+                                continue;
+                            }
+
+                            song_class.push(result.to_owned());
+                        }
+                            
+                    }
+
+                } 
+    
+                song_class
+                    
+                }
     }
     
     
