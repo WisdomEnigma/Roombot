@@ -61,9 +61,14 @@
         <div class="spheader" style="position: relative;top: -4pc;left: 3pc;font-family: 'Tangerine';font-size: xx-large;">
             <h5>{{name}} {{pmusic_artist}}</h5>
         </div>
-        <div class="spbody">
-            <img src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_ilink}}" alt="cover_image" style="position: relative;width : 20pc;"/>
-                <audio controls autoplay style="position: relative;top: 27pc;left: -19pc;width: 26pc;" onpause="clip_pause(); onended=clip_end();">
+        <div class="spbody" style="position: relative;top: 4pc;width: 37pc;height: 223px;">
+            
+            <i class="fa fa-headphones" aria-hidden="true" style="position: relative;font-size: large;left: -4px;top: 9pc;"></i>
+            <i class="fa fa-sticky-note" aria-hidden="true" style="position: relative;font-size: large;left: 85px;top: 9pc;"></i>
+            <i class="fa fa-building-o" aria-hidden="true" style="position: relative;font-size: large;left: 237px;top: 9pc;"></i>
+
+            <img src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_ilink}}" alt="cover_image" style="position: relative;top: 27pc;left: 0pc;width: 22pc;"/>
+                <audio controls autoplay style="position: relative;top: 27pc;left: -19pc;width: 26pc;" onpause="clip_pause();" onend="clip_end();">
                     <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/mpeg">
                     <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/wav">
                 </audio>
@@ -89,7 +94,7 @@
             </div>
         </div>
     </div>
-    <div class="_a001" style="position: relative;top: 12pc;left: 41pc;">
+    <div class="_a001" style="position: relative;top: 32pc;left: 41pc;">
         
         <button class="btn-link" type="button" style="position: relative;left: 12pc;top: 9px;border: none;background: transparent;color: slategrey;">
             <i class="fa fa-link" aria-hidden="true"></i>

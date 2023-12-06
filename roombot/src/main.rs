@@ -1599,7 +1599,7 @@ async fn search_artist(form: web::Form<SearchArtist>,
 
                 let stream_record = record.get_song_from_playlist_through_artist(db).await;
 
-                if stream_record[0].song_name.to_owned().eq(&""){
+                if stream_record.len() > 0 && stream_record[stream_record.len()-1].song_name.to_owned().eq(&""){
 
                     return HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
                 }
@@ -1622,8 +1622,8 @@ async fn search_artist(form: web::Form<SearchArtist>,
                     ME.to_string(),
                     "".to_string(),
                     "".to_string(),
-                    record[0].song_name.to_owned().to_string(),
-                    pinata_content::genre_to_emotions(stream_record[0].genre.to_owned().to_string()),
+                    record[record.len()-1].song_name.to_owned().to_string(),
+                    pinata_content::genre_to_emotions(stream_record[record.len()-1].genre.to_owned().to_string()),
                     false,
                     0,
                     0,
@@ -1642,15 +1642,15 @@ async fn search_artist(form: web::Form<SearchArtist>,
                     hbr.render(
                         "search",
                         &SongEngine {
-                            pmusic_artist: record[0].artist[0].to_owned(),
-                            pmusic_compose: record[0].compose.to_owned(),
-                            pmusic_genre:   record[0].genre.to_owned(),
+                            pmusic_artist: record[record.len()-1].artist[0].to_owned(),
+                            pmusic_compose: record[record.len()-1].compose.to_owned(),
+                            pmusic_genre:   record[record.len()-1].genre.to_owned(),
                             pmusic_ilink: playlist_song.cid_icontent.to_owned(),
-                            pmusic_lyric: record[0].lyrics.to_owned(),
+                            pmusic_lyric: record[record.len()-1].lyrics.to_owned(),
                             session: ME.to_string(),
-                            name: record[0].song_name.to_owned(),
+                            name: record[record.len()-1].song_name.to_owned(),
                             pmusic_mlink: playlist_song.cid_mcontent.to_owned(),
-                            pnumic_production: record[0].studio_name.to_owned(),
+                            pnumic_production: record[record.len()-1].studio_name.to_owned(),
                             favourite: playlist_song.like.to_owned(),
                             favourite_count: playlist_song.like_count.to_owned(),
                             played: playlist_song.play_count.to_owned(),
