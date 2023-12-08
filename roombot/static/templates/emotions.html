@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+    <a href="/" style="position: relative;left: 40pc;top: 3.9pc;color: black;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
+    <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #offcanvas-nav-primary" style="position: relative;top: 4pc;left: 48pc;border: none;">
+        <i class="fa fa-bars" aria-hidden="true"></i>
+    </button>
+
+<div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+
+        <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
+            <li class="uk-active"><a href="#"> Music is only language , even when deaf listen he will dance on his foot </a></li>
+            <li class="uk-nav-header">Header</li>
+            <li class="uk-nav-divider"></li>
+            <li><a href="/user/composer"><span class="uk-margin-small-right" uk-icon="icon: cloud-upload"></span> Artists </a></li>
+            <li><a href="/user/imovies"><span class="uk-margin-small-right" uk-icon="icon: play-circle"></span> Movies </a></li>
+            <li><a href="/user/library"><span class="uk-margin-small-right" uk-icon="icon: play"></span> Collection </a></li>
+        </ul>
+    </div>
+</div>
+
+    <div class="uk-container" style="position: relative;top: 15pc;left: 270px;">
+        
+        <div class="uk-container"> 
+            {{#with song}}
+            <span style="position: relative;top: 0pc;left: 17pc;font-family: 'Tangerine';font-style: italic;font-size: medium;"> {{0}} </span>
+            <button class="uk-button-default" type="button" uk-toggle="target : #s01" style="position: relative;top: 0px;left: 35pc;border: none;background: transparent;">
+                <span uk-icon="play-circle"></span>
+            </button>
+            {{/with}}
+            {{#with song}}
+            <span style="position: relative;top: 4pc;left: 146px;font-family: 'Tangerine';font-style: italic;font-size: medium;"> {{1}}</span>
+            <button class="uk-button-default" type="button" uk-toggle="target : #s02" style="position: relative;top: 63px;left: 22.5pc;border: none;background: transparent;">
+                <span uk-icon="play"></span>
+            </button>
+            {{/with}}
+            <span class="uk-badge" style="position: relative; top: 20pc;left: 10pc;background: red;">{{song_count}}</span>
+            <div id="s01" class="uk-modal" uk-modal>
+                <div class="uk-modal-dialog" style="width: 100pc; height: 50pc;">
+                    <button class="uk-modal-close uk-close-large" type="button" uk-close style="position: relative; left: 78pc; top: 1pc;"></button>
+                    {{#with song}}
+                    <span style="position: relative;top: 15pc;left: 5pc;font-family: 'Tangerine';font-style: italic;font-size: medium;"> {{0}} </span>
+                    {{/with}}
+
+
+                    {{#with cid_icontent}}
+                    <img src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{0}}" alt="cover_image" style="position: relative; top: 2pc;left: 22pc; width: 10pc; height: 10pc;"/>
+                    {{/with}}
+                    
+                    {{#with cid_mcontent}}
+                    <audio controls nodownload style="position: relative; top: 15pc;left: 10pc; width: 50pc;">
+                        <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{0}}" type="audio/mpeg">
+                        <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{0}}" type="audio/wav">
+                    </audio>
+                    {{/with}}
+                    
+                    {{#with like_count}}
+                    <span uk-icon="heart" style="position: relative; top: 20pc;left: -40pc; color: red;"></span>
+                    <span class="uk-badge" style="position: relative;top: 20pc;left: -40pc; background: red;">{{0}}</span>
+                    {{/with}}
+                    
+                    {{#with followers_comments}}
+                    <span uk-icon="users" style="position: relative; top: 20pc;left: -20pc; color: darkslategrey;"></span>
+                    <span class="uk-badge" style="position: relative;top: 20pc;left: -20pc; background: red;">{{0}}</span>
+                    {{/with}}
+                    
+                    {{#with comment}}
+                    <span uk-icon="comments" style="position: relative; top: 20pc;left: 0pc; color: darkslategrey;"></span>
+                    <span class="uk-badge" style="position: relative;top: 20pc;left: 0pc; background: red;">{{0}}</span>
+                    {{/with}}
+                    
+                    {{#with comment_like_count}}
+                    <span uk-icon="user" style="position: relative;top: 25pc;left: -57pc;color: darkslategrey;"></span>
+                    <span class="uk-badge" style="position: relative;top: 20pc;left: 23pc;background: red;">{{0}}</span>
+                    {{/with}}
+                    
+                    
+                    {{#with emotion}}
+                    <span uk-icon="hashtag" style="position: relative;top: 19pc;left: 57pc;color: darkslategrey;"></span>
+                    <span class="uk-badge" style="position: relative;top: 19pc;left: 57pc;background: red;">{{0}}</span>
+                    {{/with}}
+                </div>
+            </div>
+
+            <div id="s02" class="uk-modal" uk-modal>
+                <div class="uk-modal-dialog" style="width: 100pc; height: 50pc;">
+                    <button class="uk-modal-close uk-close-large" type="button" uk-close style="position: relative; left: 78pc; top: 1pc;"></button>
+                    {{#with song}}
+                    <span style="position: relative;top: 15pc;left: 5pc;font-family: 'Tangerine';font-style: italic;font-size: medium;"> {{1}} </span>
+                    {{/with}}
+
+
+                    {{#with cid_icontent}}
+                    <img src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{1}}" alt="cover_image" style="position: relative; top: 2pc;left: 22pc; width: 10pc; height: 10pc;"/>
+                    {{/with}}
+                    
+                    {{#with cid_mcontent}}
+                    <audio controls nodownload style="position: relative; top: 15pc;left: 0pc; width: 50pc;">
+                        <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{1}}" type="audio/mpeg">
+                        <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{1}}" type="audio/wav">
+                    </audio>
+                    {{/with}}
+                    
+                    {{#with like_count}}
+                    <span uk-icon="heart" style="position: relative; top: 20pc;left: -40pc; color: red;"></span>
+                    <span class="uk-badge" style="position: relative;top: 20pc;left: -40pc; background: red;">{{1}}</span>
+                    {{/with}}
+                    
+                    {{#with followers_comments}}
+                    <span uk-icon="users" style="position: relative; top: 20pc;left: -20pc; color: darkslategrey;"></span>
+                    <span class="uk-badge" style="position: relative;top: 20pc;left: -20pc; background: red;">{{1}}</span>
+                    {{/with}}
+                    
+                    {{#with comment}}
+                    <span uk-icon="comments" style="position: relative; top: 20pc;left: -6pc; color: darkslategrey;"></span>
+                    <span class="uk-badge" style="position: relative;top: 16pc;left: 72pc;background: red;">{{1}}</span>
+                    {{/with}}
+                    
+                    {{#with comment_like_count}}
+                    <span uk-icon="user" style="position: relative;top: 19pc;left: 23pc;color: darkslategrey;"></span>
+                    <span class="uk-badge" style="position: relative;top: 20pc;left: 23pc;background: red;">{{1}}</span>
+                    {{/with}}
+                    
+                    
+                    {{#with emotion}}
+                    <span uk-icon="hashtag" style="position: relative;top: 19pc;left: 57pc;color: darkslategrey;"></span>
+                    <span class="uk-badge" style="position: relative;top: 19pc;left: 57pc;background: red;">{{1}}</span>
+                    {{/with}}
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+</body>
+</html>

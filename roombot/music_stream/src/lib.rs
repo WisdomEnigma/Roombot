@@ -328,6 +328,7 @@ pub mod music{
 
             Ok(song_class)
         }
+        
 
         /// get song from playlist return whole record of a song. from genre to artists...
         pub async fn get_song_from_playlist(&mut self, db: mongodb::Database) -> MusicRecord{
@@ -451,7 +452,7 @@ pub mod pinata_content{
     // imports 
     
     use std::panic;
-    use mongodb::{options::{FindOptions, FindOneAndUpdateOptions}, bson::doc, results::{InsertOneResult, InsertManyResult}, Database};
+    use mongodb::{options::{FindOptions, FindOneAndUpdateOptions}, bson::{doc}, results::{InsertOneResult, InsertManyResult}, Database};
     use futures_util::stream::TryStreamExt;
     use serde::{Deserialize, Serialize};
 
@@ -490,7 +491,7 @@ pub mod pinata_content{
     }
 
     /// Emotion Filter enumerate allow further definition. Classification of beats
-    #[derive(Debug, Serialize, Deserialize, Clone)]
+    #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
     pub enum Emotionfilter{
 
         Dancing,
@@ -542,7 +543,6 @@ pub mod pinata_content{
         }
     }
 
-
     
 
     impl Content{
@@ -551,6 +551,10 @@ pub mod pinata_content{
         pub fn new(id : String, imghash : String, audiohash : String, song : String, views : Emotionfilter, like : bool, like_count: i64, play : i64) -> Self{
             Self { session: id.to_string(), cid_icontent: imghash.to_string(), cid_mcontent: audiohash.to_string(), song : song.to_string(), like, like_count, play_count : play, emotion : views, comment : "".to_string(),comment_like_count : 0, comment_likes : false, followers_comments : 0,  }
         }
+
+
+
+        
 
         
 
@@ -630,11 +634,34 @@ pub mod pinata_content{
         }
 
 
+        async fn find_playlist_through_beat(&mut self, db : Database, uem : String) -> std::io::Result<Vec::<Content>>{
+
+        
+            let collect = db.collection::<Content>(COLLECTION);
+
+            let mut playlist = Vec::<Content>::new();
+            
+            playlist.push(Content{ session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0});
+
+            
+            let filter = doc!{ "emotion" : uem};
+            let find_opts = FindOptions::builder().sort(doc!{ "emotion" : 1}).build();
+            let mut cursor = collect.find(filter, find_opts).await.unwrap();
+            
+            while let Some(record) = cursor.try_next().await.unwrap(){
+
+                playlist.push(record);
+                    
+            }
+
+            Ok(playlist)
+        }
+        
+
         /// get playlist return all songs that exit in the platform.
         pub async fn get_playlist(&mut self, db : Database) -> Content{
 
             
-
             let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
 
     
@@ -645,6 +672,29 @@ pub mod pinata_content{
             }
 
             playlist 
+        }
+
+
+        pub async fn get_playlist_through_beat(&mut self, db : Database, uem : String) -> Vec::<Content>{
+
+            let mut content = Vec::<Content>::new();
+            
+            if let Ok(result) = self.find_playlist_through_beat(db, uem).await{
+
+                let mut iterate = result.into_iter();
+
+                for data in iterate.by_ref(){
+
+                    if data.session.to_owned().eq(&"") {
+                        continue;
+                    }
+
+                    content.push(data);
+                }
+            };
+
+            content
+
         }
 
         // find playlist with song allow search song through song name.

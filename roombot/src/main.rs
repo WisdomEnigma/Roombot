@@ -15,7 +15,7 @@
 
 // import libraries
 use actix_files::NamedFile;
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use auth::gatekeeper;
 use gpt_text::openai;
 use serde::{Deserialize, Serialize};
@@ -68,15 +68,10 @@ struct SearchArtist{
 #[derive(Deserialize)]
 struct SearchEmotion{
 
-    mood : String,
+    name : String,
 }
 
-#[derive(Deserialize)]
 
-struct SearchGenre{
-
-    genre : String,
-}
 
 #[derive(Deserialize)]
 struct Commenting {
@@ -172,6 +167,24 @@ struct ITV{
     year :  Vec::<std::option::Option<u16>>,
     minutes : Vec::<std::option::Option<u16>>,
 
+}
+
+
+#[derive(Serialize, Debug)]
+struct Playlist{
+
+    song : Vec::<String>,
+    cid_icontent : Vec::<String>,
+    cid_mcontent : Vec::<String>,
+    session : Vec::<String>,
+    like : Vec::<bool>,
+    like_count : Vec::<i64>,
+    emotion : Vec::<pinata_content::Emotionfilter>,
+    comment : Vec::<String>,
+    comment_like_count : Vec::<i64>,
+    comment_like : Vec::<bool>,
+    followers_comments : Vec::<i64>,
+    song_count : usize,
 }
 
 #[derive(Serialize)]
@@ -1560,35 +1573,37 @@ async fn search_artist(form: web::Form<SearchArtist>,
 
         unsafe{
 
-            // validate user session
-            let expire = gatekeeper::login_expire(ME);
+                // validate user session
+                let expire = gatekeeper::login_expire(ME);
 
-            if expire {
-                println!("Make sure you have provide correct information or session expired. ");
-                return HttpResponse::BadRequest()
-                    .body(hbr.render("music_error", &RequestError {}).unwrap());
-            }
+                if expire {
+                    
+                    println!("Make sure you have provide correct information or session expired. ");
+                    return HttpResponse::BadRequest()
+                                .body(hbr.render("music_error", 
+                                            &RequestError {}).unwrap());
+                }
 
-            let mut record = music::new_beat(
-                "".to_owned().to_string(),
-                art,
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                "".to_string(),
-                false,
-                false,
-                false,
-                false,
-                false,
-                "".to_string(),
-                ME.to_string(),
-                0.0,);
+                let mut record = music::new_beat(
+                    "".to_owned().to_string(),
+                    art,
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    "".to_string(),
+                    ME.to_string(),
+                    0.0);
 
                 let client = match record.create_mongo_connection().await {
                     Ok(list) => list,
@@ -1601,7 +1616,10 @@ async fn search_artist(form: web::Form<SearchArtist>,
 
                 if stream_record.len() > 0 && stream_record[stream_record.len()-1].song_name.to_owned().eq(&""){
 
-                    return HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
+                    println!("Artist yet not made content on our platform , hopefully soon your favourite artist on our platform");
+                    return HttpResponse::BadRequest()
+                                    .body(hbr.render("error", 
+                                            &RequestError {}).unwrap());
                 }
 
                 let mut iterate = stream_record.to_owned().into_iter();
@@ -1614,9 +1632,8 @@ async fn search_artist(form: web::Form<SearchArtist>,
                         continue; 
                     }
 
-                    record.push(music);}
-
-            unsafe{
+                    record.push(music);
+                }
             
                 let mut content = pinata_content::Content::new(
                     ME.to_string(),
@@ -1637,33 +1654,112 @@ async fn search_artist(form: web::Form<SearchArtist>,
 
                 let db = client.database(music::MUSIC_RECORD);
 
-               let playlist_song = content.get_playlist_by_song(db).await;
+                let playlist_song = content.get_playlist_by_song(db).await;
+                
                 return HttpResponse::Ok().body(
-                    hbr.render(
-                        "search",
-                        &SongEngine {
-                            pmusic_artist: record[record.len()-1].artist[0].to_owned(),
-                            pmusic_compose: record[record.len()-1].compose.to_owned(),
-                            pmusic_genre:   record[record.len()-1].genre.to_owned(),
-                            pmusic_ilink: playlist_song.cid_icontent.to_owned(),
-                            pmusic_lyric: record[record.len()-1].lyrics.to_owned(),
-                            session: ME.to_string(),
-                            name: record[record.len()-1].song_name.to_owned(),
-                            pmusic_mlink: playlist_song.cid_mcontent.to_owned(),
-                            pnumic_production: record[record.len()-1].studio_name.to_owned(),
-                            favourite: playlist_song.like.to_owned(),
-                            favourite_count: playlist_song.like_count.to_owned(),
-                            played: playlist_song.play_count.to_owned(),
-                            emotion: playlist_song.emotion.to_owned(),
-                            comment: playlist_song.comment.to_owned(),
-                            comment_like_count: playlist_song.comment_like_count.to_owned(),
-                            comment_likes: playlist_song.comment_likes.to_owned(),
-                            user_comments: playlist_song.followers_comments.to_owned(),
-                        },).unwrap(),);
-               
-                    }
+                    hbr.render("search",
+                                &SongEngine {
+                                        pmusic_artist: record[record.len()-1].artist[0].to_owned(),
+                                        pmusic_compose: record[record.len()-1].compose.to_owned(),
+                                        pmusic_genre:   record[record.len()-1].genre.to_owned(),
+                                        pmusic_ilink: playlist_song.cid_icontent.to_owned(),
+                                        pmusic_lyric: record[record.len()-1].lyrics.to_owned(),
+                                        session: ME.to_string(),
+                                        name: record[record.len()-1].song_name.to_owned(),
+                                        pmusic_mlink: playlist_song.cid_mcontent.to_owned(),
+                                        pnumic_production: record[record.len()-1].studio_name.to_owned(),
+                                        favourite: playlist_song.like.to_owned(),
+                                        favourite_count: playlist_song.like_count.to_owned(),
+                                        played: playlist_song.play_count.to_owned(),
+                                        emotion: playlist_song.emotion.to_owned(),
+                                        comment: playlist_song.comment.to_owned(),
+                                        comment_like_count: playlist_song.comment_like_count.to_owned(),
+                                        comment_likes: playlist_song.comment_likes.to_owned(),
+                                        user_comments: playlist_song.followers_comments.to_owned(),
+                        
+                }).unwrap());
+            }
+        
+        }
+        
+
+#[post("/user/library/{search}/{music}/{emotion}")]
+async fn search_emotion(form: web::Form<SearchEmotion>,
+    hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+        
+        let emo = &form.name;
+
+        unsafe{
+            let mut content = pinata_content::Content::new(
+                ME.to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_owned().to_string(),
+                pinata_content::genre_to_emotions(emo.to_owned().to_string()),
+                false,
+                0,
+                0,
+            );
+
+            let client = match gatekeeper::mongodb_client().await {
+                Ok(list) => list,
+                Err(e) => panic!("{:?}", e),
+            };
+
+            let db = client.database(music::MUSIC_RECORD);
+
+            let records = content.get_playlist_through_beat(db, emo.to_owned().to_string()).await;
+
+            let mut list = Playlist{
+                song : Vec::<String>::new(), 
+                session : Vec::<String>::new(), 
+                cid_icontent : Vec::<String>::new(), 
+                like : Vec::<bool>::new(), 
+                cid_mcontent : Vec::<String>::new(), 
+                like_count : Vec::<i64>::new(), 
+                emotion : Vec::<pinata_content::Emotionfilter>::new(), 
+                comment: Vec::<String>::new(), 
+                comment_like : Vec::<_>::new(), 
+                comment_like_count : Vec::<i64>::new(), 
+                followers_comments : Vec::<i64>::new(),
+                song_count: 0,
+            };
             
-                }
+            let mut it = records.to_owned().into_iter();
+
+
+            for data in it.by_ref(){
+
+                let song = data.song.clone();
+                let session = data.session.clone();
+                let cid_icontent = data.cid_icontent.clone();
+                let cid_mcontent = data.cid_mcontent.clone();
+                let like = data.like.clone();
+                let like_count = data.like_count.clone();
+                let comment_likes = data.comment_likes.clone();
+                let comment = data.comment.clone();
+                let emotion = data.emotion.clone();
+                let comment_like_count = data.comment_like_count.clone();
+                let followers_comments = data.followers_comments.clone();
+
+                list.song_count = records.len();
+
+                list.song.push(song);
+                list.session.push(session);
+                list.cid_icontent.push(cid_icontent);
+                list.cid_mcontent.push(cid_mcontent);
+                list.comment.push(comment);
+                list.like.push(like);
+                list.comment_like.push(comment_likes);
+                list.like_count.push(like_count);
+                list.emotion.push(emotion);
+                list.comment_like_count.push(comment_like_count);
+                list.followers_comments.push(followers_comments);
+            }
+
+            return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
+        }
         // HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
@@ -1711,6 +1807,7 @@ async fn main() -> std::io::Result<()> {
             .service(search_shows)
             .service(search_epic)
             .service(search_artist)
+            .service(search_emotion)
         // .service(register_user)
         // .service(register_face)
         // .service(login)
