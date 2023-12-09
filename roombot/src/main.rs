@@ -1158,12 +1158,15 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
     };
 
     let db = client.database(music::MUSIC_RECORD);
-    let fees : u64 = 200;
+    let fees : u64 = 300;
     
 
     unsafe {
+        
         if let Some(data) = GLOBAL_SONG.get() {
+            
             if data.to_owned().to_string().is_empty() {
+                
                 println!("Make sure you don't submit empty form. ");
                 return HttpResponse::BadRequest()
                     .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -1185,7 +1188,7 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
             COLORED = old.like;
             PLAY = old.play_count;
 
-            if LIKES >= 200 && PLAY >= 1000 {
+            if LIKES >= 500 && PLAY >= 1000 {
 
                 let nodeless = INodeless::new(
                     fees,
@@ -1319,7 +1322,7 @@ async fn poetry(
         };
 
         let flag_lines = responses.to_owned().lines().count().eq(&10);
-        let mut flag_words = responses.to_owned().len().eq(&300);
+        let mut flag_words = responses.to_owned().len().le(&1000);
         
         if flag_lines == true || flag_words == true{
 
@@ -1329,7 +1332,7 @@ async fn poetry(
             };
     
             let db = client.database(music::MUSIC_RECORD);
-            let fees : u64 = 20;     
+            let fees : u64 = 100;     
             
             unsafe{
                 let nodeless = INodeless::new(
@@ -1350,7 +1353,7 @@ async fn poetry(
    
         }
 
-        flag_words = responses.to_owned().len().eq(&1000);
+        flag_words = responses.to_owned().len().ge(&1000);
         
         if flag_words == true{
 
@@ -1360,7 +1363,7 @@ async fn poetry(
             };
     
             let db = client.database(music::MUSIC_RECORD);
-            let fees : u64 = 50;     
+            let fees : u64 = 500;     
             
             unsafe{
                 let nodeless = INodeless::new(
@@ -1458,6 +1461,7 @@ async fn search_shows(
     
     
     if let Some(itv) = imovies.imdb_season(client).await{
+       
        let _ = imovies.tv_shows(itv).await;
 
        let client = match gatekeeper::mongodb_client().await {
@@ -1466,7 +1470,7 @@ async fn search_shows(
         };
 
         let db = client.database(music::MUSIC_RECORD);
-        let fees : u64 = 20;     
+        let fees : u64 = 100;     
 
         unsafe{
             let nodeless = INodeless::new(
@@ -1616,10 +1620,10 @@ async fn search_artist(form: web::Form<SearchArtist>,
 
                 if stream_record.len() > 0 && stream_record[stream_record.len()-1].song_name.to_owned().eq(&""){
 
-                    println!("Artist yet not made content on our platform , hopefully soon your favourite artist on our platform");
-                    return HttpResponse::BadRequest()
-                                    .body(hbr.render("error", 
-                                            &RequestError {}).unwrap());
+                    println!("Artist yet not made content on our platform , hopefully next time .. ");
+                    return HttpResponse::Ok()
+                                    .body(hbr.render("collection", 
+                                            &Homepage {}).unwrap());
                 }
 
                 let mut iterate = stream_record.to_owned().into_iter();
@@ -1690,7 +1694,27 @@ async fn search_emotion(form: web::Form<SearchEmotion>,
         
         let emo = &form.name;
 
+        if emo.to_owned().eq(&"Depressed") || emo.to_owned().eq(&"Sucide") {
+
+            println!("Please visit doctor , medicate & listen light hearted songs");
+            return HttpResponse::Ok()
+                                    .body(hbr.render("collection", 
+                                            &Homepage {}).unwrap());
+        }
+
         unsafe{
+
+            // validate user session
+            let expire = gatekeeper::login_expire(ME);
+
+            if expire {
+                
+                println!("Make sure you have provide correct information or session expired. ");
+                return HttpResponse::BadRequest()
+                            .body(hbr.render("music_error", 
+                                        &RequestError {}).unwrap());
+            }
+
             let mut content = pinata_content::Content::new(
                 ME.to_string(),
                 "".to_string(),
@@ -1711,6 +1735,14 @@ async fn search_emotion(form: web::Form<SearchEmotion>,
 
             let records = content.get_playlist_through_beat(db, emo.to_owned().to_string()).await;
 
+            if records.len() == 0 {
+
+                    println!(" This emotion has no such playlist , hopefully next time .. ");
+                    return HttpResponse::Ok()
+                                    .body(hbr.render("collection", 
+                                            &Homepage {}).unwrap());
+                }
+
             let mut list = Playlist{
                 song : Vec::<String>::new(), 
                 session : Vec::<String>::new(), 
@@ -1725,6 +1757,8 @@ async fn search_emotion(form: web::Form<SearchEmotion>,
                 followers_comments : Vec::<i64>::new(),
                 song_count: 0,
             };
+
+
             
             let mut it = records.to_owned().into_iter();
 
@@ -1758,9 +1792,33 @@ async fn search_emotion(form: web::Form<SearchEmotion>,
                 list.followers_comments.push(followers_comments);
             }
 
+
+            let client = match gatekeeper::mongodb_client().await {
+                Ok(list) => list,
+                Err(e) => panic!("{:?}", e),
+            };
+    
+            let db = client.database(music::MUSIC_RECORD);
+            let fees : u64 = 300;
+
+            let nodeless = INodeless::new(
+                fees,
+                "".to_owned().to_string(),
+                fees as f64,
+                "search your emotion in our playlist... it's too hard ".to_owned().to_string(),
+                ME.to_owned().to_string(),
+                lightnode_net::TransactionStatus::Pending,
+                "".to_string(),
+            );
+
+            if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await{
+
+                println!("Payment received {:?}", result);
+            };
+
             return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
         }
-        // HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+        
 }
 
 #[actix_web::main]
