@@ -109,6 +109,18 @@ struct Authenicate {
     email: String,
 }
 
+
+#[derive(Deserialize)]
+struct VirtualBook{
+
+    name : String,
+    isbn : String,
+    publisher : String,
+    pages : i64,
+    description : String,
+    author : String,
+}
+
 // User choices responses return html template for different html page's. 
 
 
@@ -1821,6 +1833,31 @@ async fn search_emotion(form: web::Form<SearchEmotion>,
         
 }
 
+#[get("/user/library/add/book")]
+async fn virtual_book() -> impl Responder {
+    
+    NamedFile::open_async("./static/add_books.html").await
+}
+
+#[post("/user/library/add/book/{details}")]
+
+async fn add_virtual_book(form: web::Form<VirtualBook>,
+    hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+        let title = &form.name;
+        let author = &form.author;
+        let pages = &form.pages;
+        let description = &form.description;
+        let isbn = &form.isbn;
+        let publisher = &form.publisher;
+
+
+        println!("Title {:?}, Author {:?}, Pages {:?}, Description {:?}, Isbn {:?}, publisher {:?}", 
+            title,author,pages,description, isbn, publisher); 
+
+        return HttpResponse::Ok().body(hbr.render("home", &Homepage{}).unwrap());
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     
@@ -1866,6 +1903,8 @@ async fn main() -> std::io::Result<()> {
             .service(search_epic)
             .service(search_artist)
             .service(search_emotion)
+            .service(virtual_book)
+            .service(add_virtual_book)
         // .service(register_user)
         // .service(register_face)
         // .service(login)
