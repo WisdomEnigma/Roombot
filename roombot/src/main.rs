@@ -27,7 +27,7 @@ use l2net::lightnode_net::{self, INodeless};
 use movies::movies_rating::{Content, Emotionfilter, MovieRate};
 use music_stream::{music, pinata_content};
 use once_cell::sync::OnceCell;
-use pinata_ipfs::ipinata;
+use pinata_ipfs::{ipinata, ipfs_net};
 use mongodb::Database;
 use dotenv::dotenv;
 use std::{path::PathBuf, env};
@@ -287,13 +287,13 @@ async fn image_learning() -> impl Responder {
 }
 
 // 5. Translation => get
-#[get("/translation")]
+#[get("/user/translation")]
 async fn translator() -> impl Responder {
     NamedFile::open_async("./static/translate.html").await
 }
 
 // 5a. Translation => post
-#[post("/translation/user/{output}")]
+#[post("/user/translation/{output}")]
 async fn word2word(
     form: web::Form<TranslateFormData>,
     hbr: web::Data<Handlebars<'_>>,
@@ -966,7 +966,7 @@ async fn newsong_record(
                     Err(e) => panic!("{:?}", e),
                 };
 
-                let mut blob = ipinata::new_bolb_object(&path, ipinata::FileStatus::Pin);
+                let mut blob = ipinata::new_blob_object(&path, ipinata::FileStatus::Pin);
                 let pin_client = blob.pinta_client();
 
                 let _auth = pin_client.test_authentication().await;
@@ -991,7 +991,7 @@ async fn newsong_record(
 
                 let mp_path = PathBuf::from(mpfile);
 
-                let mut mp_blob = ipinata::new_bolb_object(&mp_path, ipinata::FileStatus::Pin);
+                let mut mp_blob = ipinata::new_blob_object(&mp_path, ipinata::FileStatus::Pin);
                 let connection = mp_blob.pinta_client();
 
                 let mp_content = mp_blob
@@ -1333,6 +1333,10 @@ async fn poetry(
             Err(e) => panic!("Error = {:?}", e),
         };
 
+
+        // check whether lines of generated response should be equal to 10 only then return true; if generated response words are less than 1000 then also return true;
+        // in any case true then active payment gateway .
+
         let flag_lines = responses.to_owned().lines().count().eq(&10);
         let mut flag_words = responses.to_owned().len().le(&1000);
         
@@ -1365,6 +1369,7 @@ async fn poetry(
    
         }
 
+        // there may be possible iff generated response greater than 1000 then active payment gateway for transactiion.
         flag_words = responses.to_owned().len().ge(&1000);
         
         if flag_words == true{
@@ -1428,7 +1433,7 @@ async fn shows() -> impl Responder {
     NamedFile::open_async("./static/episode.html").await
 }
 
-// 15. 
+// 15. search_itv => post
 #[post("/user/itvshows/{search}")]
 async fn search_shows(
     form: web::Form<SearchMoviesPlaylist>,
@@ -1439,8 +1444,7 @@ async fn search_shows(
     let year = &form.year;
 
 
-    // check whether session expire
-
+    // check whether user login through user credentials.
     unsafe {
         let expire = gatekeeper::login_expire(ME);
 
@@ -1451,9 +1455,13 @@ async fn search_shows(
         }
     }
 
+    // generate movies client and wait till the process should not complete; 
     let client = MovieRate::imdb_client().await;
+
+    // convert year into u16 format for further processing.
     let yr = year.to_owned().to_string().parse::<u16>().unwrap();
 
+    // declaration of emotion filter which is pre-requisite. Initally no emotion processing , so none will be store.
     let mut genre: Vec<Emotionfilter> = Vec::<Emotionfilter>::new();
 
     genre.push(Emotionfilter::None);
@@ -1471,6 +1479,8 @@ async fn search_shows(
     let _ = SEARCHEPIC.set(query.to_owned().to_string());
     let _ = SEASONRELEASE.set(yr.to_owned().to_string());
     
+
+    // look for relvant film/movies in the database; & active payment process 
     
     if let Some(itv) = imovies.imdb_season(client).await{
        
@@ -1519,6 +1529,9 @@ async fn search_shows(
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+
+// 16 search_epic => post
+
 #[post("/user/itvshows/epic/{search}")]
 async fn search_epic(form: web::Form<EpisodeSearch>,
     hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
@@ -1546,6 +1559,8 @@ async fn search_epic(form: web::Form<EpisodeSearch>,
                 0,
             );
         
+
+        // look for hollywood seasons for database
             let bank =  imovies.get_episode(client).await;
             
             let (steps, flag) = imovies.get_episode_name(bank.to_owned(), qsearch.to_owned().to_string()).await;
@@ -1558,6 +1573,7 @@ async fn search_epic(form: web::Form<EpisodeSearch>,
 
             let show_id = imovies.get_episode_id(bank.to_owned(), steps, qsearch.to_owned().to_string()).await;
 
+            // check whether all conditions meet 
             if (flag == true && show_label != 5000) && (show_epic != 5000 && show_watch != 5000) && (show_id != 5000){
 
                 return HttpResponse::Ok().body(hbr.render("epic", &Recorded {
@@ -1578,6 +1594,8 @@ async fn search_epic(form: web::Form<EpisodeSearch>,
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+
+// 17. search_artist => post
 #[post("/user/library/{search}/{artist}")]
 async fn search_artist(form: web::Form<SearchArtist>,
     hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
@@ -1630,6 +1648,8 @@ async fn search_artist(form: web::Form<SearchArtist>,
 
                 let stream_record = record.get_song_from_playlist_through_artist(db).await;
 
+                // check whether artist name present in our database, if not then retry again 
+
                 if stream_record.len() > 0 && stream_record[stream_record.len()-1].song_name.to_owned().eq(&""){
 
                     println!("Artist yet not made content on our platform , hopefully next time .. ");
@@ -1670,6 +1690,9 @@ async fn search_artist(form: web::Form<SearchArtist>,
 
                 let db = client.database(music::MUSIC_RECORD);
 
+
+                
+
                 let playlist_song = content.get_playlist_by_song(db).await;
                 
                 return HttpResponse::Ok().body(
@@ -1699,12 +1722,16 @@ async fn search_artist(form: web::Form<SearchArtist>,
         }
         
 
+        // 19. search_emotion => post
 #[post("/user/library/{search}/{music}/{emotion}")]
 async fn search_emotion(form: web::Form<SearchEmotion>,
     hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
         
         let emo = &form.name;
+
+
+        // warning : search emotion functionality allow you to listen base on your emotion. There maybe possible user are depressed then no song will be played;
 
         if emo.to_owned().eq(&"Depressed") || emo.to_owned().eq(&"Sucide") {
 
@@ -1833,14 +1860,18 @@ async fn search_emotion(form: web::Form<SearchEmotion>,
         
 }
 
-#[get("/user/library/add/book")]
+
+// 20. virtual book => get
+
+#[get("/user/library/books")]
 async fn virtual_book() -> impl Responder {
     
     NamedFile::open_async("./static/add_books.html").await
 }
 
-#[post("/user/library/add/book/{details}")]
 
+// 21. add book
+#[post("/user/library/books/{add}")]
 async fn add_virtual_book(form: web::Form<VirtualBook>,
     hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
@@ -1851,9 +1882,13 @@ async fn add_virtual_book(form: web::Form<VirtualBook>,
         let isbn = &form.isbn;
         let publisher = &form.publisher;
 
+        let mut instance =  ipfs_net::IpfsBucket::new(title.to_owned().to_string());
+        let path = instance.get_file_path();
 
-        println!("Title {:?}, Author {:?}, Pages {:?}, Description {:?}, Isbn {:?}, publisher {:?}", 
-            title,author,pages,description, isbn, publisher); 
+        println!("File Path {:?}", path);
+
+        println!("Author {:?}, Pages {:?}, Description {:?}, Isbn {:?}, Publisher {:?}", author, pages, description, isbn, publisher);
+
 
         return HttpResponse::Ok().body(hbr.render("home", &Homepage{}).unwrap());
 }

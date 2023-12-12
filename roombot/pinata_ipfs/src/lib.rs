@@ -33,7 +33,7 @@ pub mod ipinata{
 
 
     /// new blob object create pinata credentials for users.
-    pub fn new_bolb_object<'a>(file : &'a Path, operation : FileStatus) -> Blob<'a>{
+    pub fn new_blob_object<'a>(file : &'a Path, operation : FileStatus) -> Blob<'a>{
 
         let (key, pass, _) = create_credentials();
         
@@ -57,9 +57,19 @@ pub mod ipinata{
 
 
     impl <'a> Blob<'a>{
-
+        
 
         /// BY pinata client Definition only ipinata require to complete the task. There may be possible server loss connectivity. 
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use pinata_ipfs::ipinata::Blob;
+        ///
+        /// let mut blob = Blob{file : &PathBuf::from("abc.to_owned()"), api :"", token : "", status : FileStatus::Pin,  } ;
+        /// assert_eq!(blob.pinta_client(), PinataApi{api_key : "", secret_api_key : ""});
+        /// 
+        /// ```
         pub fn pinta_client(&mut self) -> PinataApi {
 
            PinataApi::new(self.api, self.token).unwrap()
@@ -89,6 +99,14 @@ pub mod ipinata{
 
     /// change path allow you read a song from audio directory. [./Music]. Incase song might not be exist in music directory of a system irrelavant of os.
     /// There may be possible file return different path then throw error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use pinata_ipfs::ipinata::change_path;
+    ///
+    /// assert_eq!(change_path(dir, song), );
+    /// ```
     pub fn change_path(dir : UserDirs, song : String) -> String{
 
         let mut relative_path : String = "".to_string();
@@ -106,3 +124,92 @@ pub mod ipinata{
     }
 
 }
+
+
+/// This ipfs client handle books on public network in decentralize way like music (pinata). The reason 
+/// because pinata is very delicated network which is very good for specialize content while ipfs is open
+/// which is good for other purposes.
+/// 
+/// 
+pub mod ipfs_net{
+
+    use directories::UserDirs;
+    use std::path::PathBuf;
+
+    #[derive(Debug)]
+    pub struct IpfsBucket<'a>{
+
+        name : String,
+        file_ops : IpfsFileOp,
+        format : &'a str,
+    }
+
+    #[derive(Debug)]
+    pub enum IpfsFileOp{
+
+        Copy,
+        Mv,
+        Remove,
+        None,
+        Add,
+    }  
+
+    pub enum IpfsFileAdvance{
+
+        Stats,
+        Size,
+        Pin,
+        Unpin,
+        None,
+    }
+
+
+    impl <'a> IpfsBucket<'a>{
+
+        /// .
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use pinata_ipfs::ipfs_net::IpfsBucket;
+        ///
+        /// assert_eq!(IpfsBucket::new(name), IpfsBucket{name : "abc.to_owned().to_string()", file_ops : IpfsFileOp::None, format : ".pdf"});
+        /// ```
+        pub fn new(name : String) -> Self{
+            
+            Self{
+
+                name,
+                file_ops : IpfsFileOp::None,
+                format : ".pdf"
+            }
+        }
+
+        /// Returns the get file path of this [`IpfsBucket`].
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use pinata_ipfs::ipfs_net::IpfsBucket;
+        ///
+        /// let mut ipfs_bucket = IpfsBucket::new(name);
+        /// assert_eq!(ipfs_bucket.get_file_path(), "~/Download/abc.pdf");
+        /// 
+        /// ```
+        pub fn get_file_path(&mut self) -> String {
+
+            if let Some(down_dir) = UserDirs::new() {
+                if let Some(path) = down_dir.download_dir() {
+                    if !path.join(PathBuf::from(self.name.to_owned())).exists(){
+
+                        return "".to_string();
+                    }
+
+                    return path.display().to_string();
+                }
+            }
+
+            return "".to_string();
+        }
+    }
+} 
