@@ -30,7 +30,7 @@ pub mod movies_rating{
     /// name => name of movie
     /// release => release of movie date,
     /// genre => EmotionFilter [action, adventure]
-    /// imdb_id => imdb_id [1075611]
+    /// imdb_id => imdb_id (1075611)
     /// adult => Movie type [Family or Adult]
     /// watch_min => Movie teaser watch
     /// official => imdb_link  
@@ -139,6 +139,7 @@ pub struct ITV{
         /// imdb client is a asynchronus declaration which allow to connect imdb . Client definition require two 
         /// parameters cache time for data access & cache path. Because of asynchronous definition until 
         /// the process complete.
+        
         pub async fn imdb_client() -> Client{
 
             Client::new(Duration::from_secs(30), Path::new("./movie")).await.unwrap()
@@ -371,6 +372,7 @@ pub struct ITV{
             
         }
 
+        /// tv shows return tv shows which user want to watch or get information about.
         pub async fn tv_shows(&mut self, itv : Show) {
 
             let dur = Instant::now();
@@ -551,8 +553,13 @@ pub struct ITV{
             self.official = "https://www.imdb.com/title/tt".to_string() + & itv.imdb_id().to_owned().to_string();
             
 
+            // how many seconds function complete it's task.
+
             let elapsed = dur.elapsed();
             println!("Time duration of tv shows {:?}", elapsed);
+
+
+            // set global variables
 
             let _ = TV_SHOWS.set(self.name.to_owned().to_string());
             let _ = TV_SHOWS_RELEASE.set(self.release.to_owned());
@@ -561,6 +568,8 @@ pub struct ITV{
             
         }
 
+        // get episode details take a parameter client return vector ITV. 
+        // This function return all the details about an episode that user want to watch. This is private function  
         async fn get_episode_details(&mut self, mut client : Client) -> Vec::<ITV>{
 
             let mut it_v = Vec::<ITV>::new();
@@ -615,13 +624,15 @@ pub struct ITV{
             it_v
         }      
 
+
+        /// get episode is a calling function which take responsbility of a task( get episode details ). Because it's a async function this task follow parallelism.
         pub async fn get_episode(&mut self, client :Client) -> Vec::<ITV> {
 
            self.get_episode_details(client).await
            
         } 
         
-        
+        /// get episode name itv vector of ITV and string (show name) as a paramter. This function return i64 & bool.  The main purpose is to find episode name in a tv season. 
         pub async fn get_episode_name(&mut self, itv : Vec::<ITV> ,  show :String) -> (i64, bool){
 
             let mut count: i64 = 0;
@@ -633,7 +644,7 @@ pub struct ITV{
 
                 for name in it.by_ref(){
 
-                    if name.eq(&show){
+                    if name.to_owned().eq(&show){
 
                         return  (count, true);
                     }
@@ -645,6 +656,8 @@ pub struct ITV{
             (-1, false) 
         }
 
+        /// get episode season number; You're watching a netflix season (Pennyworth), that season's further classified into season class number [1 - 8]. Such as S-01
+        /// where s is a prefix of season & 01 is season of the show. This function return season number of a season.   
         pub async fn get_episode_label(&mut self, itv : Vec::<ITV> ,  echo : i64, name : String) -> u16{
 
             
@@ -652,15 +665,17 @@ pub struct ITV{
 
             for data in iterate.by_ref(){
 
-                if data.title[echo as usize].eq(&name){
+                if data.title[echo as usize].to_owned().eq(&name){
 
-                    return data.season[echo as usize];
+                    return data.season[echo as usize].to_owned();
                 }
             }
 
             5000 
         }
 
+        /// get episode of a season number; You're watching a netflix season (Pennyworth), that season's further classified episode number [1 - 20]. Such as S01.E022
+        /// where E is a prefix of episode & 022 is the episode of the show. This function return episode number of a season.
         pub async fn get_episode_epic(&mut self, itv : Vec::<ITV> ,  echo : i64, name : String) -> u16{
 
             
@@ -668,15 +683,16 @@ pub struct ITV{
 
             for data in iterate.by_ref(){
 
-                if data.title[echo as usize].eq(&name){
+                if data.title[echo as usize].to_owned().eq(&name){
 
-                    return data.episode[echo as usize];
+                    return data.episode[echo as usize].to_owned();
                 }
             }
 
             5000 
         }
     
+    /// get episode watch; You're watching a netflix season (Pennyworth), each episode have paticular watch min. This function how many minutes this episode running.
         pub async fn get_episode_watch(&mut self, itv : Vec::<ITV> ,  echo : i64, name : String) -> std::option::Option<u16>{
 
             
@@ -684,15 +700,16 @@ pub struct ITV{
 
             for data in iterate.by_ref(){
 
-                if data.title[echo as usize].eq(&name){
+                if data.title[echo as usize].to_owned().eq(&name){
 
-                    return data.minutes[echo as usize];
+                    return data.minutes[echo as usize].to_owned();
                 }
             }
 
             Some(5000) 
         }
 
+        /// . get episode id return id of a netflix season to complete the process.
         pub async fn get_episode_id(&mut self, itv : Vec::<ITV> ,  echo : i64, name : String) -> u32{
 
             
@@ -700,9 +717,9 @@ pub struct ITV{
 
             for data in iterate.by_ref(){
 
-                if data.title[echo as usize].eq(&name){
+                if data.title[echo as usize].to_owned().eq(&name){
 
-                    return data.imdb_id[echo as usize];
+                    return data.imdb_id[echo as usize].to_owned();
                 }
             }
 
@@ -711,8 +728,4 @@ pub struct ITV{
     
     }      
 
-        
-           
-        
-        
 }

@@ -55,7 +55,7 @@ pub mod gatekeeper{
     // As the name reference verified is a private definition which verify the authenication inside the black box.  
     fn verified(old : String, new : String) -> bool{
 
-        if old == new{
+        if old.to_owned().eq(&new){
             return true;
         }
     
@@ -81,7 +81,7 @@ pub mod gatekeeper{
     pub fn login_expire(me : u64) -> bool {
         
         
-            if me == 0 {
+            if me.to_owned().eq(&0) {
                 return true;
             }
     
@@ -169,7 +169,7 @@ pub mod gatekeeper{
             
             while let Some(profile) = cursor.try_next().await.unwrap(){
 
-                if profile.username == " "{
+                if profile.username.to_owned().eq(&" "){
                     panic!("Unforuente query must be empty ");
                 }
 
@@ -182,6 +182,7 @@ pub mod gatekeeper{
             Ok(())
         }
 
+        /// When user login his or her account. Session will be created... 
         async fn find_with_session(&mut self, value : String, database : Database) -> String {
             
 
@@ -196,7 +197,7 @@ pub mod gatekeeper{
             
             while let Some(profile) = cursor.try_next().await.unwrap(){
 
-                if profile.username == " "{
+                if profile.username.to_owned().eq(&" "){
                     panic!("Unforuente query must be empty ");
                 }
 

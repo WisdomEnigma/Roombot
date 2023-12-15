@@ -135,6 +135,8 @@ pub mod ipfs_net{
 
     use directories::UserDirs;
     use std::path::PathBuf;
+    use ipfs_api::{IpfsClient, Form, IpfsApi};
+    use std::io::Cursor;
 
     #[derive(Debug)]
     pub struct IpfsBucket<'a>{
@@ -142,6 +144,7 @@ pub mod ipfs_net{
         name : String,
         file_ops : IpfsFileOp,
         format : &'a str,
+        additional : IpfsFileAdvance,
     }
 
     #[derive(Debug)]
@@ -151,9 +154,11 @@ pub mod ipfs_net{
         Mv,
         Remove,
         None,
-        Add,
+        Upload,
+        Download,
     }  
 
+    #[derive(Debug)]
     pub enum IpfsFileAdvance{
 
         Stats,
@@ -173,7 +178,7 @@ pub mod ipfs_net{
         /// ```
         /// use pinata_ipfs::ipfs_net::IpfsBucket;
         ///
-        /// assert_eq!(IpfsBucket::new(name), IpfsBucket{name : "abc.to_owned().to_string()", file_ops : IpfsFileOp::None, format : ".pdf"});
+        /// assert_eq!(IpfsBucket::new(name), IpfsBucket{name : "abc.to_owned().to_string()", file_ops : IpfsFileOp::None, format : ".pdf", additional : IpfsFileAdvance::None});
         /// ```
         pub fn new(name : String) -> Self{
             
@@ -181,7 +186,8 @@ pub mod ipfs_net{
 
                 name,
                 file_ops : IpfsFileOp::None,
-                format : ".pdf"
+                format : ".pdf",
+                additional : IpfsFileAdvance::None,
             }
         }
 
@@ -211,5 +217,37 @@ pub mod ipfs_net{
 
             return "".to_string();
         }
+
+        fn ipfs_client(&mut self) -> IpfsClient{
+
+            IpfsClient::default()
+        }
+
+
+        /// ipfs_file add allow you to save file on ipfs public network.  The advantage over this network it's secure & purely decentralized.
+        /// How ? Because it's public network and depend on content routing algorithm which is similar like url of content.
+        pub async fn ipfs_file_add(&mut self, path : String) -> Result<Vec<ipfs_api::response::AddResponse>, ipfs_api::Error> {
+
+            let mut form = Form::default();
+
+            self.file_ops = IpfsFileOp::Upload;
+
+            let file = PathBuf::from(self.name.to_owned().to_string()).join(self.format.to_owned()).display().to_string();
+            form.add_reader_file(path, Cursor::new(Vec::new()), file);
+
+            let ipfs_client = self.ipfs_client();
+            let _dns = ipfs_client.dns("ipfs.io", true).await;
+            
+
+            let add = ipfs_api::request::Add{
+                wrap_with_directory : Some(true),
+                ..Default::default()
+            };
+            
+            ipfs_client.add_with_form(form, add).await
+        }
+
+
+
     }
 } 

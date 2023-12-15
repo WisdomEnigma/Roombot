@@ -307,7 +307,7 @@ pub mod music{
 
                 while let Some(record) = cursor.try_next().await.unwrap(){
                     
-                    if record.artist[0].eq(&""){
+                    if record.artist[0].to_owned().eq(&""){
 
                         println!("Do you wanna find something then kindly type ?");
                         return Ok(song_class);
@@ -452,7 +452,7 @@ pub mod pinata_content{
     // imports 
     
     use std::panic;
-    use mongodb::{options::{FindOptions, FindOneAndUpdateOptions}, bson::{doc}, results::{InsertOneResult, InsertManyResult}, Database};
+    use mongodb::{options::{FindOptions, FindOneAndUpdateOptions}, bson::doc, results::{InsertOneResult, InsertManyResult}, Database};
     use futures_util::stream::TryStreamExt;
     use serde::{Deserialize, Serialize};
 
@@ -617,11 +617,11 @@ pub mod pinata_content{
             
             while let Some(record) = cursor.try_next().await.unwrap(){
 
-                if record.session == " "{
+                if record.session.to_owned().eq(&""){
                     panic!("Unforuente query must be empty ");
                 }
 
-                if record.song == self.song{
+                if record.song.to_owned().eq(&self.song){
 
                     playlist = record;
                     break;
@@ -675,6 +675,7 @@ pub mod pinata_content{
         }
 
 
+        /// sometime user want to listen song according to his or her emotion's or mood.  
         pub async fn get_playlist_through_beat(&mut self, db : Database, uem : String) -> Vec::<Content>{
 
             let mut content = Vec::<Content>::new();
@@ -714,7 +715,7 @@ pub mod pinata_content{
             while let Some(record) = cursor.try_next().await.unwrap(){
 
                 
-                if record.session == " "{
+                if record.session.to_owned().eq(&" "){
                     panic!("Unforuente query must be empty ");
                 }
 

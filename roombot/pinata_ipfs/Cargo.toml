@@ -17,6 +17,6 @@ publish = true
 
 [dependencies]
 directories = "5.0.1"
-ipfs-api = "0.17.0"
+ipfs-api = {version = "0.17.0", features = ["with-actix"], default-features = false}
 pinata-sdk = "1.1.0"
 reqwest = {version = "0.11.20", features = ["multipart"]}
