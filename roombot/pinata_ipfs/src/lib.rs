@@ -12,6 +12,7 @@ pub mod ipinata{
     use std::{path::Path, path::PathBuf};
     use pinata_sdk::{PinataApi,PinByFile, PinnedObject, ApiError};
     use directories::UserDirs;
+    
 
     
     /// Blob is a powerful object which require following incridents file, api, token & status. 
@@ -134,9 +135,11 @@ pub mod ipinata{
 pub mod ipfs_net{
 
     use directories::UserDirs;
-    use std::path::PathBuf;
-    use ipfs_api::{IpfsClient, Form, IpfsApi};
-    use std::io::Cursor;
+    use pinata_sdk::{PinataApi, PinByFile};
+    use std::{path::PathBuf, result::Result};
+    use serde::{Deserialize, Serialize};
+
+    use mongodb::{Client, Database, bson::doc, options::{ClientOptions}};
 
     #[derive(Debug)]
     pub struct IpfsBucket<'a>{
@@ -144,15 +147,15 @@ pub mod ipfs_net{
         name : String,
         file_ops : IpfsFileOp,
         format : &'a str,
+        token : &'a str,
+
+        #[warn(dead_code)]
         additional : IpfsFileAdvance,
     }
 
     #[derive(Debug)]
     pub enum IpfsFileOp{
 
-        Copy,
-        Mv,
-        Remove,
         None,
         Upload,
         Download,
@@ -162,12 +165,10 @@ pub mod ipfs_net{
     pub enum IpfsFileAdvance{
 
         Stats,
-        Size,
         Pin,
         Unpin,
         None,
     }
-
 
     impl <'a> IpfsBucket<'a>{
 
@@ -188,6 +189,7 @@ pub mod ipfs_net{
                 file_ops : IpfsFileOp::None,
                 format : ".pdf",
                 additional : IpfsFileAdvance::None,
+                token : "",
             }
         }
 
@@ -204,50 +206,163 @@ pub mod ipfs_net{
         /// ```
         pub fn get_file_path(&mut self) -> String {
 
+
+            let mut cpath = "".to_string();
+
             if let Some(down_dir) = UserDirs::new() {
+                
                 if let Some(path) = down_dir.download_dir() {
-                    if !path.join(PathBuf::from(self.name.to_owned())).exists(){
+                                        
+                    if path.join(PathBuf::from(self.name.to_owned().to_string() + &self.format.to_owned().to_string())).exists(){
 
-                        return "".to_string();
+                        cpath = path.display().to_string();
                     }
-
-                    return path.display().to_string();
                 }
             }
 
-            return "".to_string();
+            return cpath;
         }
 
-        fn ipfs_client(&mut self) -> IpfsClient{
+        // create credentials is a private function which only accessible within module. This function return string literals as arguments.
+    fn create_credentials<'b>(&mut self) -> (&'b str, &'b str, &'b str){
 
-            IpfsClient::default()
-        }
+        const KEY : &'static str = "2a5fcc53ad9c7e814daa";
+        const SECRET : &'static str = "496a37d27f698a32f7161d993455643f055e47606af98bc2ddf2c19403f4cb49";
+        const  CODE : &'static str = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzOTA5YWE1NC1kNmI2LTQxN2MtYmQxZC1mMDVlZDE5ZDhmNzIiLCJlbWFpbCI6ImFsaWRldmVsb3Blcjk1QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImlkIjoiTllDMSIsImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxfV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiIyYTVmY2M1M2FkOWM3ZTgxNGRhYSIsInNjb3BlZEtleVNlY3JldCI6IjQ5NmEzN2QyN2Y2OThhMzJmNzE2MWQ5OTM0NTU2NDNmMDU1ZTQ3NjA2YWY5OGJjMmRkZjJjMTk0MDNmNGNiNDkiLCJpYXQiOjE2OTMzODgzMTZ9.bj-XI0u01IU8Gov0mjxwnh2lYdL9ln1rXvCNS5dwWrI";
+        (KEY, SECRET, CODE)
+    }
+
+    pub fn pinta_client(&mut self) -> PinataApi {
+
+            let (api, key, token) = self.create_credentials();
+            self.token = token;
+            PinataApi::new(api, key).unwrap()
+    }
 
 
-        /// ipfs_file add allow you to save file on ipfs public network.  The advantage over this network it's secure & purely decentralized.
-        /// How ? Because it's public network and depend on content routing algorithm which is similar like url of content.
-        pub async fn ipfs_file_add(&mut self, path : String) -> Result<Vec<ipfs_api::response::AddResponse>, ipfs_api::Error> {
-
-            let mut form = Form::default();
-
+        pub async fn publish_book(&mut self, client : PinataApi, path : String) -> Result<pinata_sdk::PinnedObject, pinata_sdk::ApiError> {
+            
             self.file_ops = IpfsFileOp::Upload;
+            self.additional = IpfsFileAdvance::Pin;
 
-            let file = PathBuf::from(self.name.to_owned().to_string()).join(self.format.to_owned()).display().to_string();
-            form.add_reader_file(path, Cursor::new(Vec::new()), file);
+            client.pin_file(PinByFile::new(PathBuf::from(path.to_owned()).join(self.name.to_owned().to_string() + & self.format.to_owned().to_string()).display().to_string())).await
 
-            let ipfs_client = self.ipfs_client();
-            let _dns = ipfs_client.dns("ipfs.io", true).await;
-            
-
-            let add = ipfs_api::request::Add{
-                wrap_with_directory : Some(true),
-                ..Default::default()
-            };
-            
-            ipfs_client.add_with_form(form, add).await
         }
-
-
 
     }
+
+
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Books<'b>{
+
+        book : &'b str,
+        author : &'b str,
+        publisher : &'b str,
+        page : u16,
+        description : &'b str,
+        ipfs_link : &'b str,
+        coonect : Peer,
+    }
+
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    struct Peer{
+
+        session : String,
+    }
+    
+    impl <'b> Books<'b>{
+
+        pub fn new(book : &'b str, author : &'b str, publisher : &'b str, page : u16, description : &'b str, ipfs_link : &'b str) -> Books<'b>{
+
+            Self{
+                book,
+                author,
+                publisher,
+                page,
+                description,
+                ipfs_link,
+                coonect: Peer{session : "".to_string()},
+            }
+        }
+
+        pub async fn mongo_init() -> Client{
+
+           Client::with_options(ClientOptions::parse("mongodb+srv://enigmabot:nigkjv8emfgPpoeI@streambusiness.nkakl0h.mongodb.net/").await.unwrap()).unwrap()
+
+        }
+
+        pub fn set_session(&mut self, session : String){
+
+            self.coonect.session = session;
+        }
+
+        pub async fn get_session(&mut self) -> String {
+            
+            self.coonect.session.to_owned().to_string()
+        
+        }
+
+        
+
+
+        pub fn access_credentials(&mut self, client : Client) -> mongodb::Database {
+
+            client.database("Artists_Record")
+        }
+
+        pub async fn create_book_doc(&mut self, db : Database) -> Result<String, String>{
+
+          let col = db.collection::<Books>("enigmahouse");
+          let book : Books<'_>;
+
+          while let Ok(list) = db.list_collection_names(doc! {"book" : self.book.to_owned()}).await{
+
+             if list.is_empty(){
+                
+                book = Books{
+                    book : self.book.clone(),
+                    author : self.author.clone(),
+                    publisher : self.publisher.clone(),
+                    page : self.page.to_owned(),
+                    ipfs_link : self.ipfs_link.clone(),
+                    description : self.description.clone(),
+                    coonect : self.coonect.clone(),
+                };
+
+                let _ = col.insert_one(book, None).await;
+                break;
+             }
+
+             if list.len().ge(&1){
+                
+                return Err("This book already present in our database".to_string());
+             }
+          } 
+
+          
+            Ok("".to_string())            
+        }
+
+        pub fn on_self(&mut self) -> f64{
+
+            if self.page.to_owned().eq(&150){
+
+                return 20.00;
+            }
+            
+            if self.page.to_owned().ge(&200) && self.page.to_owned().le(&500){
+
+                return 50.00;
+            }
+
+            if self.page.to_owned().ge(&500) && self.page.to_owned().eq(&700){
+
+                return 100.00;
+            }
+
+            return 200.00;
+        }
+        
+    }
+    
 } 

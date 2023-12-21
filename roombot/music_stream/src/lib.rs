@@ -14,7 +14,7 @@ pub mod music{
 
     /// ****************************************
     // import
-    use mongodb::{Client, options::{ClientOptions,FindOptions}, bson::doc, results::{InsertOneResult, InsertManyResult}};
+    use mongodb::{Client, options::{ClientOptions,FindOptions}, bson::doc};
     use futures_util::{stream::TryStreamExt, future::ok};
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
@@ -191,11 +191,11 @@ pub mod music{
 
                 
 
-                if record.song_name == " "{
+                if record.song_name.to_owned().eq(&" "){
                     panic!("Unforuente query must be empty ");
                 }
 
-                if record.song_name != self.song_name{
+                if !record.song_name.to_owned().eq(&self.song_name){
 
                     panic!("No Data found ");
                 }
@@ -262,7 +262,7 @@ pub mod music{
             
                 while let Some(record) = cursor.try_next().await.unwrap(){
 
-                    if record.song_name == ""{
+                    if record.song_name.to_owned().eq(&""){
 
                         panic!("Unforuente query must be empty ");
                     }
@@ -300,6 +300,9 @@ pub mod music{
                 email: "".to_string(), 
                 session: "".to_string(), price : 0.0,});
 
+
+                // find artist in a record
+
                 let filter = doc!{"artist" : self.artist[0].to_owned()};
                 let find_opts = FindOptions::builder().sort(doc!{"artist" : 1}).build();
 
@@ -307,12 +310,15 @@ pub mod music{
 
                 while let Some(record) = cursor.try_next().await.unwrap(){
                     
+                    // check whether artist in a record should not be empty
                     if record.artist[0].to_owned().eq(&""){
 
                         println!("Do you wanna find something then kindly type ?");
                         return Ok(song_class);
                     } 
 
+
+                    // check whether artist in a record should be same as provided name.
                     if record.artist[0].eq(&self.artist[0].to_owned()){
 
                         song_class.push(record.to_owned());
@@ -353,10 +359,14 @@ pub mod music{
                 email: "".to_string(), 
                 session: "".to_string(), price : 0.0};
             
+
+            // find song from the record
             let result_data = self.find_song(db).await;
 
             if let Ok(result) = result_data{
                 
+
+                // if song name should be match with record song then ok
                 
                 if !self.matches(result.song_name.to_owned()){
 
@@ -371,6 +381,7 @@ pub mod music{
             }
             
             
+            // find song through artist name 
             pub async fn get_song_from_playlist_through_artist(&mut self, db: mongodb::Database) -> Vec::<MusicRecord>{
 
                 let mut song_class = Vec::<MusicRecord>::new();
@@ -397,6 +408,7 @@ pub mod music{
                 
                 let result_data = self.find_artist(db).await;
 
+                // artist sing many songs, that why array return 
                 if let Ok(data) = result_data{
 
                     
@@ -408,7 +420,7 @@ pub mod music{
 
                         for composer in art{
 
-                            if composer.eq(&""){
+                            if composer.to_owned().eq(&""){
                                 continue;
                             }
 
@@ -426,7 +438,7 @@ pub mod music{
     
     
     
-    
+    // access mongodb client which allow app to update application record otherwise throw errors.
     async fn mongodb_client() -> Result<Client,mongodb::error::Error>{
 
         let client_opts = match ClientOptions::parse("mongodb+srv://enigmabot:nigkjv8emfgPpoeI@streambusiness.nkakl0h.mongodb.net/").await{
@@ -452,7 +464,7 @@ pub mod pinata_content{
     // imports 
     
     use std::panic;
-    use mongodb::{options::{FindOptions, FindOneAndUpdateOptions}, bson::doc, results::{InsertOneResult, InsertManyResult}, Database};
+    use mongodb::{options::{FindOptions, FindOneAndUpdateOptions}, bson::doc, Database};
     use futures_util::stream::TryStreamExt;
     use serde::{Deserialize, Serialize};
 
@@ -610,17 +622,19 @@ pub mod pinata_content{
 
             let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
 
-            
+            // find user session from database
             let filter = doc!{ "session" : self.session.to_owned()};
             let find_opts = FindOptions::builder().sort(doc!{ "session" : -1}).build();
             let mut cursor = collect.find(filter, find_opts).await.unwrap();
             
             while let Some(record) = cursor.try_next().await.unwrap(){
 
+                // check whether session exist or not ; if not then throw error
                 if record.session.to_owned().eq(&""){
                     panic!("Unforuente query must be empty ");
                 }
 
+                // check whether song should be exist in a record.
                 if record.song.to_owned().eq(&self.song){
 
                     playlist = record;
@@ -630,9 +644,12 @@ pub mod pinata_content{
                  continue       
             }
 
+            // return record
             Ok(playlist)
         }
 
+        // this is a private function which find emotion based on user mood. 
+        // It's a definition with in a modulle & access through get receiver.
 
         async fn find_playlist_through_beat(&mut self, db : Database, uem : String) -> std::io::Result<Vec::<Content>>{
 
@@ -643,6 +660,7 @@ pub mod pinata_content{
             
             playlist.push(Content{ session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0});
 
+            // search emotion in our record
             
             let filter = doc!{ "emotion" : uem};
             let find_opts = FindOptions::builder().sort(doc!{ "emotion" : 1}).build();
@@ -654,6 +672,7 @@ pub mod pinata_content{
                     
             }
 
+            // record
             Ok(playlist)
         }
         
@@ -671,6 +690,7 @@ pub mod pinata_content{
                 playlist = content;
             }
 
+            // record
             playlist 
         }
 
@@ -686,6 +706,7 @@ pub mod pinata_content{
 
                 for data in iterate.by_ref(){
 
+                    
                     if data.session.to_owned().eq(&"") {
                         continue;
                     }
