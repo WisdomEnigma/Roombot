@@ -333,15 +333,32 @@ async fn word2word(
                 fees,
                 "".to_owned().to_string(),
                 fees as f64,
-                "poetry composition".to_owned().to_string(),
+                "translate language".to_owned().to_string(),
                 ME.to_owned().to_string(),
                 lightnode_net::TransactionStatus::Pending,
                 "".to_string(),
             );
 
-            if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await {
-                println!("Payment received {:?}", result);
-            };
+            let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+            if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+
+                println!("Nodeless Bitcoin Gateway down");
+                return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
+            if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+
+                println!("Internet disconnect ");
+                return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
+            if status.to_owned().to_string().eq(&"Payment acccept"){
+
+                println!("Payment Accepted ");
+                println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));        
+            }
         }
     }
 
@@ -483,9 +500,27 @@ async fn search_movies(
                 );
 
                 let db = client.database(music::MUSIC_RECORD);
-                if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await {
-                    println!("Payment received {:?}", result);
-                };
+                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+
+                        println!("Nodeless Bitcoin Gateway down");
+                        return HttpResponse::BadRequest()
+                                .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+
+                        println!("Internet disconnect ");
+                        return HttpResponse::BadRequest()
+                                .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Payment acccept"){
+
+                        println!("Payment Accepted ");
+                        println!("Result ready! {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+                
+                }
             }
         }
 
@@ -1023,9 +1058,27 @@ async fn newsong_record(
                             "".to_string(),
                         );
 
-                        if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await {
-                            println!("Payment received {:?}", result);
-                        };
+                        let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                        if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+
+                            println!("Nodeless Bitcoin Gateway down");
+                            return HttpResponse::BadRequest()
+                                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+                        }
+
+                        if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+
+                            println!("Internet disconnect ");
+                            return HttpResponse::BadRequest()
+                                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+                        }
+
+                        if status.to_owned().to_string().eq(&"Payment acccept"){
+
+                            println!("Payment Accepted ");
+                            println!("Result ready! {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+        
+                        }
                     } else {
                         return HttpResponse::BadRequest()
                             .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -1218,9 +1271,28 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                     "".to_string(),
                 );
 
-                if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await {
-                    println!("Payment received {:?}", result);
-                };
+                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+
+                        println!("Nodeless Bitcoin Gateway down");
+                        return HttpResponse::BadRequest()
+                            .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+
+                        println!("Internet disconnect ");
+                        return HttpResponse::BadRequest()
+                            .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Payment acccept"){
+
+                        println!("Payment Accepted ");
+                        println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+
+                    
+                }
             }
 
             // check whether any user like the song who will not rate song before, then update
@@ -1348,6 +1420,7 @@ async fn poetry(
         let mut flag_words = responses.to_owned().len().le(&1000);
 
         if flag_lines == true || flag_words == true {
+            
             let client = match gatekeeper::mongodb_client().await {
                 Ok(list) => list,
                 Err(e) => panic!("{:?}", e),
@@ -1368,9 +1441,27 @@ async fn poetry(
                     "".to_string(),
                 );
 
-                if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await {
-                    println!("Payment received {:?}", result);
-                };
+                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+
+                    println!("Nodeless Bitcoin Gateway down");
+                    return HttpResponse::BadRequest()
+                            .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+
+                    println!("Internet disconnect ");
+                    return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Payment acccept"){
+
+                    println!("Payment Accepted ");
+                    println!("Result ready! {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+        
+                }
             }
         }
 
@@ -1399,9 +1490,26 @@ async fn poetry(
                     "".to_string(),
                 );
 
-                if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await {
-                    println!("Payment received {:?}", result);
-                };
+                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+
+                        println!("Nodeless Bitcoin Gateway down");
+                        return HttpResponse::BadRequest()
+                                .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+
+                        println!("Internet disconnect ");
+                        return HttpResponse::BadRequest()
+                                .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Payment acccept".to_string()){
+
+                        println!("Payment Accepted ");
+                        println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));        
+                }
             }
         }
 
@@ -1504,9 +1612,27 @@ async fn search_shows(
                 "".to_string(),
             );
 
-            if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await {
-                println!("Payment received {:?}", result);
-            };
+            let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+            if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+
+                println!("Nodeless Bitcoin Gateway down");
+                return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
+            if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+
+                println!("Internet disconnect ");
+                return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
+            if status.to_owned().to_string().eq(&"Payment acccept"){
+
+                println!("Payment Accepted ");
+                println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));        
+            }
+    
         }
 
         return HttpResponse::Ok().body(hbr.render(
@@ -1878,10 +2004,26 @@ async fn search_emotion(
             "".to_string(),
         );
 
-        if let Ok(result) = payment_gateway(nodeless, db.to_owned()).await {
-            
-            println!("Payment received {:?}", result);
-        };
+        let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+        if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+
+            println!("Nodeless Bitcoin Gateway down");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+
+        if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+
+             println!("Internet disconnect ");
+             return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+
+        if status.to_owned().to_string().eq(&"Payment acccept"){
+
+            println!("Payment Accepted ");
+            println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));        
+        }
 
         // re-render data on emotion page after deposit service charges.
         return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
@@ -2037,10 +2179,10 @@ async fn add_virtual_book(
                     .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
 
-        if status.to_owned().to_string().eq(&"Payment acccept".to_string()){
+        if status.to_owned().to_string().eq(&"Payment acccept"){
 
             println!("Payment Accepted ");
-            println!("Book added {:?} ", status.to_owned().to_string().eq(&""));
+            println!("Book added {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
 
             return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());        
         }
