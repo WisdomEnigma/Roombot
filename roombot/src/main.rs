@@ -108,6 +108,7 @@ struct VirtualBook {
     pages: i64,
     description: String,
     author: String,
+    lighting : String,
 }
 
 // User choices responses return html template for different html page's.
@@ -264,6 +265,8 @@ async fn avatari() -> impl Responder {
 async fn image_learning() -> impl Responder {
     NamedFile::open_async("./static/assets/translation.png").await
 }
+
+
 
 // 5. Translation => get
 #[get("/user/translation")]
@@ -2182,7 +2185,7 @@ async fn add_virtual_book(
         if status.to_owned().to_string().eq(&"Payment acccept"){
 
             println!("Payment Accepted ");
-            println!("Book added {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+            println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
 
             return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());        
         }
