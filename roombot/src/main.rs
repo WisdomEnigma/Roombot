@@ -100,6 +100,21 @@ struct Authenicate {
     email: String,
 }
 
+#[derive(Deserialize, Debug)]
+struct EditAccount{
+
+    name : String,
+    lastname : String,
+    sname : String,     // school name
+    degree : String,
+    cname : String,     // campany name
+    work : String,
+    city : String,
+    country : String,
+    bitcoin : String,
+    
+}
+
 #[derive(Deserialize)]
 struct VirtualBook {
     name: String,
@@ -108,7 +123,6 @@ struct VirtualBook {
     pages: i64,
     description: String,
     author: String,
-    lighting : String,
 }
 
 // User choices responses return html template for different html page's.
@@ -373,6 +387,7 @@ async fn word2word(
                         ).unwrap(),
     )
 }
+
 
 // #[get("/user/register")]
 // async fn register_user() -> impl Responder{
@@ -1373,6 +1388,9 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+
+
+
 // 12. poetry => get
 
 #[get("/user/poetry/topics")]
@@ -2205,6 +2223,43 @@ async fn add_virtual_book(
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+#[get("/user/sociallink/edit")]
+async fn edit() -> impl Responder{
+
+    NamedFile::open_async("./static/profile.html").await
+}
+
+#[post("/user/sociallink/profile/{edit}/{your}/{account}")]
+async fn details(form: web::Form<EditAccount>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    let name = &form.name;
+    let last = &form.lastname;
+    let city = &form.city;
+    let country = &form.country;
+    let degree = &form.degree;
+    let baddress = &form.bitcoin;
+    let work = &form.work;
+    let company = &form.cname;
+    let university = &form.sname;  
+
+
+    // check whether user login through user credentials.
+    unsafe {
+        let expire = gatekeeper::login_expire(ME);
+
+        if expire {
+            
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+
+}
+
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     
@@ -2216,10 +2271,6 @@ async fn main() -> std::io::Result<()> {
             .expect("token is not provided")
             .to_string(),
     );
-
-    
-
-
 
     // create handlebar new object, direct towards template directory. This direct used as reference for direction purpose.
     let mut handlebars_obj = Handlebars::new();
@@ -2254,6 +2305,8 @@ async fn main() -> std::io::Result<()> {
             .service(configurations)
             .service(sociallink)
             .service(profile)
+            .service(edit)
+            .service(details)
             .service(shows)
             .service(search_shows)
             .service(search_epic)
