@@ -100,7 +100,7 @@ struct Authenicate {
     email: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct EditAccount{
 
     name : String,
@@ -113,6 +113,14 @@ struct EditAccount{
     country : String,
     bitcoin : String,
     
+}
+
+
+#[derive(Deserialize)]
+
+struct SearchParam{
+
+    query : String,
 }
 
 #[derive(Deserialize)]
@@ -2223,17 +2231,19 @@ async fn add_virtual_book(
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
-#[get("/user/sociallink/edit")]
+#[get("/user/sociallink/profile/edit")]
 async fn edit() -> impl Responder{
 
     NamedFile::open_async("./static/profile.html").await
 }
 
-#[post("/user/sociallink/profile/{edit}/{your}/{account}")]
-async fn details(form: web::Form<EditAccount>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+#[post("/user/sociallink/profile/edit/{your}")]
+async fn details(
+    form: web::Form<EditAccount>, 
+    hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
     let name = &form.name;
-    let last = &form.lastname;
+    let lastname = &form.lastname;
     let city = &form.city;
     let country = &form.country;
     let degree = &form.degree;
@@ -2255,10 +2265,68 @@ async fn details(form: web::Form<EditAccount>, hbr: web::Data<Handlebars<'_>>) -
         }
     }
 
+    if name.to_owned().to_string().eq(&""){
+
+        println!("Make sure your first name should not be empty ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
+
+
+    if lastname.to_owned().to_string().eq(&""){
+
+        println!("Make sure your last name should not be empty ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
+
+    if baddress.to_owned().to_string().eq(&""){
+
+        println!("Make sure your bitcoin address should not be empty ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
+
+
+    let mut my_info = auth::accounts::Info::new(&name, &lastname, &university, &degree, &company, &work,  &city, &country, &baddress);
+
+    unsafe{
+        
+        my_info.set_session(ME.to_owned().to_string());
+    }
+
+    let mongo = my_info.mongo_init().await;
+    let cred = my_info.access_credentials(mongo);
+    let record = my_info.create_record_doc(cred).await.unwrap();
+
+    if record.to_owned().to_string().eq(&"your info already present in our database"){
+
+        println!("Your information already present in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
+
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 
 }
 
+#[get("/user/sociallink/profile/search")]
+async fn search() -> impl Responder{
+
+    NamedFile::open_async("./static/search_person.html").await
+}
+
+#[post("/user/sociallink/profile/search/{your}/{friend}")]
+async fn searching(
+    form: web::Form<SearchParam>, 
+    hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+        let query = &form.query;
+
+        println!("Query {:?}", query.to_owned().to_string());
+
+        HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+    }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -2307,6 +2375,8 @@ async fn main() -> std::io::Result<()> {
             .service(profile)
             .service(edit)
             .service(details)
+            .service(search)
+            .service(searching)
             .service(shows)
             .service(search_shows)
             .service(search_epic)

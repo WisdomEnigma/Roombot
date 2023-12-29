@@ -215,3 +215,146 @@ pub mod gatekeeper{
     }
     
 }
+
+pub mod accounts{
+
+
+    use futures_util::{future::ok, TryStreamExt, StreamExt};
+    use mongodb::{Client, options::{ClientOptions, FindOptions, CountOptions}, Database, bson::doc};
+    use serde::{Deserialize,Serialize}; 
+    
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Info<'a>{
+
+        firstname : &'a str,
+        lastname : &'a str,
+        institute : &'a str,
+        degree : &'a str,
+        workplace : &'a str,
+        city : &'a str,
+        country : &'a str,
+        bitcoinaddr : &'a str,
+        work : &'a str,
+        session : String,
+    }
+
+    impl <'a> Info<'a>{
+
+        pub fn new(firstname : &'a str, lastname : &'a str, 
+        institute : &'a str, degree : &'a str, 
+        workplace : &'a str, work : &'a str,
+        city : &'a str, country : &'a str, bitcoinaddr : &'a str) -> Info<'a>{
+            
+            Self { firstname, 
+                lastname, 
+                institute, 
+                degree, 
+                workplace, 
+                city, 
+                country, 
+                work,
+                bitcoinaddr, session : "".to_string() }
+
+        }
+
+        pub async fn mongo_init(&mut self) -> Client{
+
+            Client::with_options(ClientOptions::parse("mongodb+srv://enigmabot:nigkjv8emfgPpoeI@streambusiness.nkakl0h.mongodb.net/").await.unwrap()).unwrap()
+ 
+         }
+ 
+         pub fn set_session(&mut self, session : String){
+ 
+             self.session = session;
+         }
+ 
+         pub async fn get_session(&mut self) -> String {
+             
+             self.session.to_owned().to_string()
+         
+         }
+
+         pub fn access_credentials(&mut self, client : Client) -> Database {
+
+            client.database("Artists_Record")
+        }
+
+         pub async fn create_record_doc(&mut self, db : Database) -> Result<String, String>{
+
+                let info : Info<'_>;
+
+                let col = db.collection::<Info>("accounts");
+
+                while let Ok(record) = db.list_collection_names(doc!{
+                    "firstname" : self.firstname,
+                    "session" : self.get_session().await,
+                }).await {
+                    
+                    if record.is_empty(){
+                        
+                        info = Info{
+
+                            firstname : self.firstname.clone(),
+                            lastname : self.lastname.clone(),
+                            session : self.get_session().await,
+                            city : self.city.clone(),
+                            country : self.country.clone(),
+                            bitcoinaddr : self.bitcoinaddr.clone(),
+                            workplace : self.workplace.clone(),
+                            work: self.work.clone(),
+                            institute : self.institute.clone(),
+                            degree : self.degree.clone(),
+                        };
+
+                        let _ = col.insert_one(info, None).await;
+                        break;
+                    }
+
+                    if record.len().ge(&1){
+                        
+                        return Err("your info already present in our database".to_string());
+
+                    }
+                }
+
+                return Ok("".to_string()) 
+         }
+
+         async fn count_people(&mut self, db : Database) -> Result<u64, u64>{
+
+                let mut counter : u64 = 0;
+
+                let col = db.collection::<Info>("accounts");
+
+                while let Ok(record) = col.count_documents(doc! {"firstname" : doc! {"$exists" : true}}, None).await{
+
+                        if record.eq(&0){
+                            return Err(record)
+                        }
+
+
+                        if record.ge(&1){
+
+                            counter = record;
+                        }
+                }
+                Ok(counter)  
+         }
+
+         async fn find_people_with_name(&mut self, db : Database) -> Result<Vec<String>, Vec<String>>{
+
+            let mut v : Vec::<String> = Vec::<_>::new();
+            while let Ok(record) = db.list_collection_names(doc!{
+                "firstname" : self.firstname}).await  {
+                
+                if record.is_empty(){
+                    return Err(record);
+                }
+
+                v = record;
+            }
+            
+            Ok(v)
+         }
+    }
+}

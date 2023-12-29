@@ -21,25 +21,25 @@
 
 <div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
     <div class="uk-offcanvas-bar uk-flex uk-flex-column">
-
         <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
             <li class="uk-active"><a href="#"> Have you notice we both have deep connection? </a></li>
             <li class="uk-nav-header">Header</li>
             <li class="uk-nav-divider"></li>
-            <li><a href="/user/sociallink/profile/edit"><span class="uk-margin-small-right" uk-icon="icon: user"></span> Edit Profile <span class="uk-badge"> new </span> </a> </li>
+            <li><a href="/user/sociallink"><span class="uk-margin-small-right" uk-icon="icon: user"></span> Profile <span class="uk-badge"> new </span> </a> </li>
+            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: search"></span> Search <span class="uk-badge"> new </span> </a> </li>
         </ul>
     </div>
 </div>
-<div class="feature_0" style="position: relative;top: 14pc;left: 25pc;">
-    <form method="post" action="/user/sociallink/profile">
-    <input type="text" placeholder="Enter your username" name="username" style="width: 20pc;height: 2pc;left: 5pc;border-radius: 2pc;border: 1px slategray dotted;"/>
-    <input type="email" placeholder="Enter email address" name="email" style="width: 20pc;height: 2pc;border-radius: 2pc;border: 1px slategray dotted;">
-    <button type="submit" style="position: relative;top: 0pc;left: -3pc;border: none;background: transparent;color: darkslategray;font-size: small;">
-        <i class="fa fa-check" aria-hidden="true"></i>
-    </button>
+<div class="uk-container" style="position: relative;top: 10pc;width: 26pc;left: 6pc;">
+    <form method="post" action="#">
+        <input class="uk-input" type="text" placeholder="Search your peer" name="query" style="border: 1px silver dashed; border-radius: 2pc;"/>
+        <p class="uk-text-right" style="position: relative;top: 5pc;left: -11pc;">
+            <button class="uk-button uk-button-primary" type="submit" style="position: relative; top: -5pc; border-radius: 2pc;">
+                <i class="fa fa-send" aria-hidden="true"></i>
+            </button>
+        </p>
     </form>
 </div>
-
 
 </body>
 </html>

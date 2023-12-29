@@ -26,108 +26,26 @@
             <li class="uk-active"><a href="#"> Have you notice we both have deep connection? </a></li>
             <li class="uk-nav-header">Header</li>
             <li class="uk-nav-divider"></li>
-            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: user"></span> Edit Profile <span class="uk-badge"> new </span> </a> </li>
+            <li><a href="/user/sociallink"><span class="uk-margin-small-right" uk-icon="icon: user"></span> Profile <span class="uk-badge"> new </span> </a> </li>
+            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: search"></span> Search <span class="uk-badge"> new </span> </a> </li>
         </ul>
     </div>
 </div>
 
     <div class="uk-container">
-        <form method="post" action="/user/sociallink/profile/{edit}/{your}/{account}">
-            <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #_n001" title="edit your name" style="position: relative; top: 8pc; left: 30pc; border: none; background: transparent;">
-                <i class="fa fa-user-circle-o" aria-hidden="true"></i>
-            </button> <span style="position: relative; top: 8.1pc;left: 30pc;"> Your Name </span>
-    
-            <div id="_n001" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <h2 class="uk-modal-title"></h2>
-                    <input type="text" placeholder="Name ...." name="name" style="width: 20pc; height: 5pc; border-radius: 1pc; border: 1px silver dashed;"/>
-                </div>
-            </div>
-            <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #_n002" title="edit your lastname" style="position: relative; top: 8pc; left: 40pc; border: none; background: transparent;">
-                <i class="fa fa-user-circle" aria-hidden="true"></i>
-            </button> <span style="position: relative; top: 8.1pc;left: 40pc;"> Your Lastname </span>
-    
-            <div id="_n002" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <h2 class="uk-modal-title"></h2>
-                    <input type="text" placeholder="Last Name ..." name="lastname" style="width: 20pc; height: 5pc; border-radius: 1pc; border: 1px silver dashed;"/>
-                </div>
-            </div>
-
-            <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #_n003" title="education details" style="position: relative; top: 11pc; left: 6.8pc; border: none; background: transparent;">
-                <i class="fa fa-university" aria-hidden="true"></i>
-            </button> <span style="position: relative; top: 11.1pc;left: 6pc;"> Your School name </span>
-    
-            <div id="_n003" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <h2 class="uk-modal-title"></h2>
-                    <input type="text" placeholder="School/University Name ..." name="sname" style="width: 20pc; height: 5pc; border-radius: 1pc; border: 1px silver dashed;"/>
-                </div>
-            </div>
-            <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #_n004" title="associate degree " style="position: relative; top: 11pc; left: 13.5pc; border: none; background: transparent;">
-                <i class="fa fa-book" aria-hidden="true"></i>
-            </button> <span style="position: relative; top: 11.1pc;left: 13.5pc;"> Associate Degree </span>
-    
-            <div id="_n004" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <h2 class="uk-modal-title"></h2>
-                    <input type="text" placeholder="Highest Associate Degree... " name="degree" style="width: 20pc; height: 5pc; border-radius: 1pc; border: 1px silver dashed;"/>
-                </div>
-            </div>
-
-            <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #_n005" title="career" style="position: relative; top: 14pc; left: -20.5pc; border: none; background: transparent;">
-                <i class="fa fa-building" aria-hidden="true"></i>
-            </button> <span style="position: relative; top: 14.1pc;left: -20.5pc;"> Career </span>
+        <form method="post" action="/user/sociallink/profile/edit/{your}">
             
-            <div id="_n005" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <h2 class="uk-modal-title"></h2>
-                    <input type="text" placeholder="Company Name ...." name="cname" style="width: 20pc; height: 5pc; border-radius: 1pc; border: 1px silver dashed;"/>
-                </div>
-            </div>
-            <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #_n006" title="career status" style="position: relative; top: 14pc; left: -9pc; border: none; background: transparent;">
-                <i class="fa fa-star" aria-hidden="true"></i>
-            </button> <span style="position: relative; top: 14.1pc;left: -9pc;"> Work </span>
-    
-            <div id="_n006" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <h2 class="uk-modal-title"></h2>
-                    <input type="text" placeholder=" Work ... " name="work" style="width: 20pc; height: 5pc; border-radius: 1pc; border: 1px silver dashed;"/>
-                </div>
-            </div>
-
-            <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #_n007" title="city" style="position: relative; top: 17pc; left: -37pc; border: none; background: transparent;">
-                <i class="fa fa-thumb-tack" aria-hidden="true"></i>
-            </button> <span style="position: relative; top: 17.1pc;left: -37pc;"> City </span>
+            <input class="uk-input" type="text"  placeholder="Name ...." name="name"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 9pc;left: 32pc;">
+            <input class="uk-input" type="text"  placeholder="Last Name ...." name="lastname"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 9pc;left: 35pc;">
+            <input class="uk-input" type="text"  placeholder="School/University name ...." name="sname"  style="width: 19pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 12pc;left: 8pc;">
+            <input class="uk-input" type="text"  placeholder="Associate Highest Degree ...." name="degree"  style="width: 16pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 12pc;left: 9pc;">
+            <input class="uk-input" type="text"  placeholder="Company Name ...." name="cname"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 15pc;left: -28pc;">
+            <input class="uk-input" type="text"  placeholder="Career ...." name="work"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 13pc;left: 47pc;">
+            <input class="uk-input" type="text"  placeholder="City ...." name="city"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 16pc;left: 20pc;">
+            <input class="uk-input" type="text"  placeholder="Country ...." name="country"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 16pc;left: 22.5pc;">
+            <input class="uk-input" type="password"  placeholder="Bitcoin Address ...." name="bitcoin"  style="width: 15pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 19pc;left: 2pc;">
             
-            <div id="_n007" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <h2 class="uk-modal-title"></h2>
-                    <input type="text" placeholder="City Name ..." name="city" style="width: 20pc; height: 5pc; border-radius: 1pc; border: 1px silver dashed;"/>
-                </div>
-            </div>
-            <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #_n008" title="country" style="position: relative; top: 15pc; left: 50.7pc; border: none; background: transparent;">
-                <i class="fa fa-location-arrow" aria-hidden="true"></i>
-            </button> <span style="position: relative; top: 15.1pc;left: 51pc;"> Country </span>
-    
-            <div id="_n008" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <h2 class="uk-modal-title"></h2>
-                    <input type="text" placeholder=" Countrymen ... " name="country" style="width: 20pc; height: 5pc; border-radius: 1pc; border: 1px silver dashed;"/>
-                </div>
-            </div>
-            <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #_n009" title="bitcoin address" style="position: relative;top: 18pc;left: 21.7pc;border: none;background: transparent;">
-                <i class="fa fa-btc" aria-hidden="true"></i>
-            </button> <span style="position: relative;top: 18.1pc;left: 21.5pc;"> My Bitcoin Address </span>
-    
-            <div id="_n009" uk-modal>
-                <div class="uk-modal-dialog uk-modal-body">
-                    <h2 class="uk-modal-title"></h2>
-                    <input type="text" placeholder=" My Bitcoin Address ... " name="bitcoin" style="width: 20pc; height: 5pc; border-radius: 1pc; border: 1px silver dashed;"/>
-                </div>
-            </div>
-
-            <p class="uk-text-right">
+            <p class="uk-text-right" style="position: relative;top: 7pc;">
                 <button class="uk-button uk-button-primary" type="submit" style="position: relative; top: -5pc; border-radius: 2pc;">
                     <i class="fa fa-send" aria-hidden="true"></i>
                 </button>
