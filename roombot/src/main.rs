@@ -246,6 +246,18 @@ struct Recorded {
     link: String,
 }
 
+
+#[derive(Serialize, Debug)]
+struct Searched{
+
+    name : Vec::<String>,
+    counter : String,
+    leads : String,
+    follower : String,
+    session : String,
+    resp : bool,
+}
+
 // static variables
 
 static mut ME: u64 = 0;
@@ -2255,7 +2267,7 @@ async fn details(
 
     // check whether user login through user credentials.
     unsafe {
-        let expire = gatekeeper::login_expire(ME);
+        let expire = gatekeeper::login_expire(ME.to_owned());
 
         if expire {
             
@@ -2288,7 +2300,7 @@ async fn details(
     }
 
 
-    let mut my_info = auth::accounts::Info::new(&name, &lastname, &university, &degree, &company, &work,  &city, &country, &baddress);
+    let mut my_info = auth::accounts::Info::new(name.to_owned().to_string(), lastname.to_owned().to_string(), university.to_owned().to_string(), degree.to_owned().to_string(), company.to_owned().to_string(), work.to_owned().to_string(),  city.to_owned().to_string(), country.to_owned().to_string(), baddress.to_owned().to_string());
 
     unsafe{
         
@@ -2321,11 +2333,59 @@ async fn searching(
     form: web::Form<SearchParam>, 
     hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
+
+        // initalization & declaration 
         let query = &form.query;
+        let mut search_b : bool;
+        let mut search_q : Vec::<String> = Vec::<String>::new();
+        let mut search_resp : Searched = Searched { name: search_q.to_owned(), counter: 0.to_string(), leads: 0.to_string(), follower: 0.to_string(), session: "".to_string(), resp: false };
+        let mut tofind = auth::accounts::Info::new(query.to_owned().to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string());
+        
+        let minit = tofind.mongo_init().await;
+        let access = tofind.access_credentials(minit);
+       
+       unsafe{
+        
+            tofind.set_session(ME.to_owned().to_string());
 
-        println!("Query {:?}", query.to_owned().to_string());
+        }
 
-        HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+        let resp = tofind.find_people_with_name(access.to_owned()).await.unwrap();
+
+        let count = tofind.count_people(access.to_owned()).await.unwrap();
+        
+
+        if resp.is_empty(){
+
+            println!("No record exist in our database.. try different keyword ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+
+        if resp.len().to_owned().ge(&1){
+
+            let mut iterate = resp.into_iter();
+
+            for entity in iterate.next(){
+
+                search_q.push(entity.firstname + &entity.lastname);
+                search_resp.session = entity.session.clone();
+                search_resp.resp = true;
+            }
+
+            
+            
+            
+        }
+        
+        search_resp.name = search_q.to_owned();
+        search_resp.counter = count.to_owned().to_string();
+        search_resp.leads = 0.to_owned().to_string();
+        search_resp.follower = 0.to_owned().to_string();
+        
+
+        HttpResponse::Ok()
+                .body(hbr.render("person", &search_resp).unwrap())
     }
 
 #[actix_web::main]

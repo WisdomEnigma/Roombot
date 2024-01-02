@@ -219,31 +219,31 @@ pub mod gatekeeper{
 pub mod accounts{
 
 
-    use futures_util::{future::ok, TryStreamExt, StreamExt};
+    use futures_util::{future::ok, TryStreamExt};
     use mongodb::{Client, options::{ClientOptions, FindOptions, CountOptions}, Database, bson::doc};
     use serde::{Deserialize,Serialize}; 
     
     #[derive(Debug, Serialize, Deserialize, Clone)]
-    pub struct Info<'a>{
+    pub struct Info{
 
-        firstname : &'a str,
-        lastname : &'a str,
-        institute : &'a str,
-        degree : &'a str,
-        workplace : &'a str,
-        city : &'a str,
-        country : &'a str,
-        bitcoinaddr : &'a str,
-        work : &'a str,
-        session : String,
+        pub firstname : String,
+        pub lastname : String,
+        institute : String,
+        degree : String,
+        workplace : String,
+        city : String,
+        country : String,
+        pub bitcoinaddr : String,
+        work : String,
+        pub session : String,
     }
 
-    impl <'a> Info<'a>{
+    impl Info{
 
-        pub fn new(firstname : &'a str, lastname : &'a str, 
-        institute : &'a str, degree : &'a str, 
-        workplace : &'a str, work : &'a str,
-        city : &'a str, country : &'a str, bitcoinaddr : &'a str) -> Info<'a>{
+        pub fn new(firstname : String, lastname : String, 
+        institute : String, degree : String, 
+        workplace : String, work : String,
+        city : String, country : String, bitcoinaddr : String) -> Info{
             
             Self { firstname, 
                 lastname, 
@@ -281,12 +281,12 @@ pub mod accounts{
 
          pub async fn create_record_doc(&mut self, db : Database) -> Result<String, String>{
 
-                let info : Info<'_>;
+                let info : Info;
 
                 let col = db.collection::<Info>("accounts");
 
                 while let Ok(record) = db.list_collection_names(doc!{
-                    "firstname" : self.firstname,
+                    "firstname" : self.firstname.to_owned(),
                     "session" : self.get_session().await,
                 }).await {
                     
@@ -294,16 +294,16 @@ pub mod accounts{
                         
                         info = Info{
 
-                            firstname : self.firstname.clone(),
-                            lastname : self.lastname.clone(),
+                            firstname : self.firstname.to_owned(),
+                            lastname : self.lastname.to_owned(),
                             session : self.get_session().await,
-                            city : self.city.clone(),
-                            country : self.country.clone(),
-                            bitcoinaddr : self.bitcoinaddr.clone(),
-                            workplace : self.workplace.clone(),
-                            work: self.work.clone(),
-                            institute : self.institute.clone(),
-                            degree : self.degree.clone(),
+                            city : self.city.to_owned(),
+                            country : self.country.to_owned(),
+                            bitcoinaddr : self.bitcoinaddr.to_owned(),
+                            workplace : self.workplace.to_owned(),
+                            work: self.work.to_owned(),
+                            institute : self.institute.to_owned(),
+                            degree : self.degree.to_owned(),
                         };
 
                         let _ = col.insert_one(info, None).await;
@@ -320,7 +320,7 @@ pub mod accounts{
                 return Ok("".to_string()) 
          }
 
-         async fn count_people(&mut self, db : Database) -> Result<u64, u64>{
+         pub async fn count_people(&mut self, db : Database) -> Result<u64, u64>{
 
                 let mut counter : u64 = 0;
 
@@ -328,32 +328,39 @@ pub mod accounts{
 
                 while let Ok(record) = col.count_documents(doc! {"firstname" : doc! {"$exists" : true}}, None).await{
 
-                        if record.eq(&0){
+                        if record.to_owned().eq(&0){
                             return Err(record)
                         }
 
 
-                        if record.ge(&1){
+                        if record.to_owned().ge(&1){
 
                             counter = record;
+                            break;
                         }
+
                 }
                 Ok(counter)  
          }
 
-         async fn find_people_with_name(&mut self, db : Database) -> Result<Vec<String>, Vec<String>>{
+         pub async fn find_people_with_name(&mut self, db : Database) -> Result<Vec<Info>, Vec<Info>>{
 
-            let mut v : Vec::<String> = Vec::<_>::new();
-            while let Ok(record) = db.list_collection_names(doc!{
-                "firstname" : self.firstname}).await  {
-                
-                if record.is_empty(){
-                    return Err(record);
+            let mut v : Vec::<Info> = Vec::<_>::new();
+
+            let col = db.collection::<Info>("accounts");
+
+            let mut iterate = col.find(doc!{"firstname" : self.firstname.to_owned()}, None).await.unwrap();
+ 
+            while let Ok(Some(record)) = iterate.try_next().await{
+
+                if record.firstname.to_owned().to_string().is_empty(){
+
+                    return Err(v);
                 }
-
-                v = record;
+                
+                v.push(record);
             }
-            
+
             Ok(v)
          }
     }

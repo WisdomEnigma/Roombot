@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+    <a href="/" style="position: relative;left: 40pc;top: 3.9pc;color: black;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
+    <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #offcanvas-nav-primary" style="position: relative;top: 4pc;left: 48pc;border: none;">
+        <i class="fa fa-bars" aria-hidden="true"></i>
+    </button>
+
+<div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+        <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
+            <li class="uk-active"><a href="#"> Have you notice we both have deep connection? </a></li>
+            <li class="uk-nav-header">Header</li>
+            <li class="uk-nav-divider"></li>
+            <li><a href="/user/sociallink"><span class="uk-margin-small-right" uk-icon="icon: user"></span> Profile <span class="uk-badge"> new </span> </a> </li>
+            <li><a href="/user/sociallink/profile/search"><span class="uk-margin-small-right" uk-icon="icon: search"></span> Search <span class="uk-badge"> new </span> </a> </li>
+        </ul>
+    </div>
+</div>
+<div class="uk-container" style="position: relative;top: 10pc;width: 26pc;left: 6pc;">
+    <form method="post" action="/user/sociallink/profile/search/{your}/{friend}">
+        <input class="uk-input" type="text" placeholder="Search your peer" name="query" style="border: 1px silver dashed; border-radius: 2pc;"/>
+        <p class="uk-text-right" style="position: relative;top: 5pc;left: -11pc;">
+            <button class="uk-button uk-button-primary" type="submit" style="position: relative; top: -5pc; border-radius: 2pc;">
+                <i class="fa fa-send" aria-hidden="true"></i>
+            </button>
+        </p>
+    </form>
+    <div class="uk-container" style="position: relative;top: 2pc;">
+        <div class="uk-inline">
+            <button type="button" id="_b01" style="border: none; background:  transparent;">
+                <span class="uk-button uk-button-dark" uk-icon="icon:user"><span class="uk-badge">{{counter}}</span>
+            </button>
+            <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc;">
+                
+                {{#with name}}
+                <span class="_s0">{{0}}</span>
+                {{/with}}   
+                
+                <button type="button" id="reset0" style="border: none;background:  transparent;position: relative;left: 3pc;">
+                    <span class="uk-button uk-button-dark" uk-icon="icon:trash"></span>
+                </button>
+                <div class="uk-container" id="_a0" style="position: relative;top: 2pc;width: 12pc; visibility: visible;">
+                    <span class="uk-button uk-button-dark" uk-icon="icon:star" title="lead"> {{leads}} <div class="uk-badge">0</div> </span>
+                    <span class="uk-button uk-button-default" uk-icon="icon:heart" title="follower" style="position: relative;top: -2.3pc;left: 5pc;border: none;"> {{follower}} <div class="uk-badge">0</div></span>      
+                </div>
+
+                {{#with name}}
+                <span class="_s1">{{1}}</span>
+                {{/with}}
+                
+                <button type="button" id="reset1" style="border: none;background:  transparent;position: relative;left: 3pc; visibility: hidden;">
+                    <span class="uk-button uk-button-dark" uk-icon="icon:trash"></span>
+                </button>
+                <div class="uk-container" id="_a1" style="position: relative;top: 2pc;width: 12pc; visibility: hidden;">
+                    <span class="uk-button uk-button-dark" uk-icon="icon:star" title="lead"> <div class="uk-badge">0</div> </span>
+                    <span class="uk-button uk-button-default" uk-icon="icon:heart" title="follower" style="position: relative;top: -2.3pc;left: 5pc;border: none;"> <div class="uk-badge">0</div></span>      
+                </div>
+                <span id="warns" style="visibility: hidden;"> Results are removed; for time being </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    document.getElementById('reset0').addEventListener('click', (e)=>{
+        
+        document.getElementsByClassName('_s0')[0].innerHTML = '';
+        document.getElementById('reset0').style.visibility = 'hidden';
+        document.getElementById('_a0').style.visibility = 'hidden';
+        document.getElementById('_dp01').style.height = '5pc';
+        document.getElementById('warns').style.position = 'relative';
+        document.getElementById('warns').style.top = '-15pc';
+        document.getElementById('warns').style.visibility = 'visible';
+        document.getElementById('_b01').children[0].innerHTML = '0';
+    });
+
+
+    document.getElementById('reset1').addEventListener('click', (e)=>{
+        
+        document.getElementsByClassName('_s1')[0].innerHTML = '';
+        document.getElementById('reset1').style.visibility = 'hidden';
+        document.getElementById('_a1').style.visibility = 'hidden';
+        document.getElementById('_dp01').style.height = '5pc';
+        document.getElementById('warns').style.position = 'relative';
+        document.getElementById('warns').style.top = '-15pc';
+        document.getElementById('warns').style.visibility = 'visible';
+        document.getElementById('_b01').children[0].innerHTML = '0';
+    });
+
+    if (document.getElementById('_b01').children[0].innerHTML === 2){
+
+        document.getElementsByClassName('_a1')[0].style.visibility = 'visible';
+        document.getElementById('reset1').style.visibility = 'visible';
+    } 
+
+
+</script>
+
+
+</body>
+</html>
