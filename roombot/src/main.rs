@@ -255,7 +255,6 @@ struct Searched{
     leads : String,
     follower : String,
     session : String,
-    resp : bool,
 }
 
 // static variables
@@ -2172,7 +2171,7 @@ async fn add_virtual_book(
 
     let hash = publish_hash.unwrap();
 
-    let mut books = pinata_ipfs::ipfs_net::Books::new(&title, &author, &publisher, *pages as u16, &description, &hash.ipfs_hash);
+    let mut books = pinata_ipfs::ipfs_net::Books::new(title.to_string(), author.to_string(), publisher.to_string(), *pages as u16, description.to_string(), hash.ipfs_hash.to_string());
 
     let db = books.access_credentials(mongoclient.to_owned());
 
@@ -2187,46 +2186,47 @@ async fn add_virtual_book(
     if book_status.to_owned().to_string().eq(&"".to_string()){
 
         // active payment gateway for further transactions
-        let client = match gatekeeper::mongodb_client().await {
-            Ok(list) => list,
-            Err(e) => panic!("{:?}", e),
-        };
+        
+        // let client = match gatekeeper::mongodb_client().await {
+        //     Ok(list) => list,
+        //     Err(e) => panic!("{:?}", e),
+        // };
 
-        let db = client.database(music::MUSIC_RECORD);
-        let fees: u64 = books.on_self() as u64;
+        // let db = client.database(music::MUSIC_RECORD);
+        // let fees: u64 = books.on_self() as u64;
 
-        let nodeless = INodeless::new(
-            fees,
-            "".to_owned().to_string(),
-            fees as f64,
-            "reader borrow masterpiece and pay for alchemy".to_owned().to_string(),
-            books.get_session().await,
-            lightnode_net::TransactionStatus::Pending,
-            "".to_string(),
-        );
+        // let nodeless = INodeless::new(
+        //     fees,
+        //     "".to_owned().to_string(),
+        //     fees as f64,
+        //     "reader borrow masterpiece and pay for alchemy".to_owned().to_string(),
+        //     books.get_session().await,
+        //     lightnode_net::TransactionStatus::Pending,
+        //     "".to_string(),
+        // );
 
-        let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-        if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+        // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+        // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
 
-            println!("Nodeless Bitcoin Gateway down");
-            return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
-        }
+        //     println!("Nodeless Bitcoin Gateway down");
+        //     return HttpResponse::BadRequest()
+        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+        // }
 
-        if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+        // if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
 
-             println!("Internet disconnect ");
-             return HttpResponse::BadRequest()
-                    .body(hbr.render("music_error", &RequestError {}).unwrap());
-        }
+        //      println!("Internet disconnect ");
+        //      return HttpResponse::BadRequest()
+        //             .body(hbr.render("music_error", &RequestError {}).unwrap());
+        // }
 
-        if status.to_owned().to_string().eq(&"Payment acccept"){
+        // if status.to_owned().to_string().eq(&"Payment acccept"){
 
-            println!("Payment Accepted ");
-            println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+        //     println!("Payment Accepted ");
+        //     println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
 
-            return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());        
-        }
+        //     return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());        
+        // }
 
         
     }
@@ -2336,9 +2336,8 @@ async fn searching(
 
         // initalization & declaration 
         let query = &form.query;
-        let mut search_b : bool;
         let mut search_q : Vec::<String> = Vec::<String>::new();
-        let mut search_resp : Searched = Searched { name: search_q.to_owned(), counter: 0.to_string(), leads: 0.to_string(), follower: 0.to_string(), session: "".to_string(), resp: false };
+        let mut search_resp : Searched = Searched { name: search_q.to_owned(), counter: 0.to_string(), leads: 0.to_string(), follower: 0.to_string(), session: "".to_string()};
         let mut tofind = auth::accounts::Info::new(query.to_owned().to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string());
         
         let minit = tofind.mongo_init().await;
@@ -2370,7 +2369,6 @@ async fn searching(
 
                 search_q.push(entity.firstname + &entity.lastname);
                 search_resp.session = entity.session.clone();
-                search_resp.resp = true;
             }
 
             

@@ -139,7 +139,8 @@ pub mod ipfs_net{
     use std::{path::PathBuf, result::Result};
     use serde::{Deserialize, Serialize};
 
-    use mongodb::{Client, Database, bson::doc, options::{ClientOptions}};
+    use mongodb::{Client, Database, bson::doc, options::{ClientOptions, FindOptions}};
+    use futures_util::{stream::TryStreamExt};
 
     #[derive(Debug)]
     pub struct IpfsBucket<'a>{
@@ -253,14 +254,14 @@ pub mod ipfs_net{
 
 
     #[derive(Debug, Serialize, Deserialize, Clone)]
-    pub struct Books<'b>{
+    pub struct Books{
 
-        book : &'b str,
-        author : &'b str,
-        publisher : &'b str,
+        book : String,
+        author : String,
+        publisher : String,
         page : u16,
-        description : &'b str,
-        ipfs_link : &'b str,
+        description : String,
+        ipfs_link : String,
         coonect : Peer,
     }
 
@@ -270,9 +271,9 @@ pub mod ipfs_net{
         session : String,
     }
     
-    impl <'b> Books<'b>{
+    impl Books{
 
-        pub fn new(book : &'b str, author : &'b str, publisher : &'b str, page : u16, description : &'b str, ipfs_link : &'b str) -> Books<'b>{
+        pub fn new(book : String, author : String, publisher : String, page : u16, description : String, ipfs_link : String) -> Books{
 
             Self{
                 book,
@@ -313,20 +314,20 @@ pub mod ipfs_net{
         pub async fn create_book_doc(&mut self, db : Database) -> Result<String, String>{
 
           let col = db.collection::<Books>("enigmahouse");
-          let book : Books<'_>;
+          let book : Books;
 
           while let Ok(list) = db.list_collection_names(doc! {"book" : self.book.to_owned()}).await{
 
              if list.is_empty(){
                 
                 book = Books{
-                    book : self.book.clone(),
-                    author : self.author.clone(),
-                    publisher : self.publisher.clone(),
+                    book : self.book.to_owned(),
+                    author : self.author.to_owned(),
+                    publisher : self.publisher.to_owned(),
                     page : self.page.to_owned(),
-                    ipfs_link : self.ipfs_link.clone(),
-                    description : self.description.clone(),
-                    coonect : self.coonect.clone(),
+                    ipfs_link : self.ipfs_link.to_owned(),
+                    description : self.description.to_owned(),
+                    coonect : self.coonect.to_owned(),
                 };
 
                 let _ = col.insert_one(book, None).await;
@@ -361,6 +362,32 @@ pub mod ipfs_net{
             }
 
             return 200.00;
+        }
+
+        pub async fn find_book_for_me(&mut self, db : Database) -> Result<Books, Books> {
+
+            let collection = db.collection::<Books>("enigmahouse");
+            let mut library : Books = Books { book: "".to_string(), author: "".to_string(), publisher: "".to_string(), page: 0, description: "".to_string(), ipfs_link: "".to_string(), coonect:  Peer { session: "".to_string() }};
+    
+            let findopts = doc!{"book" : self.book.to_owned()};
+            let mut cursor = collection.find(findopts, None).await.unwrap(); 
+
+            while let Ok(Some(record)) = cursor.try_next().await{
+                
+
+                if record.book.to_owned().eq(&""){
+                    return Err(library);
+                }else{
+
+                    library = record;
+                    break;
+                }
+
+                
+                
+            }
+    
+            Ok(library)
         }
         
     }
