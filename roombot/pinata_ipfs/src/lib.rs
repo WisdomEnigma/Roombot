@@ -364,6 +364,7 @@ pub mod ipfs_net{
                         
         }
 
+        /// onself is a  method which return price of a rent space of a book for a user. 
         pub fn on_self(&mut self) -> f64{
 
             if self.page.to_owned().eq(&150){

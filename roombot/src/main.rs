@@ -2314,14 +2314,18 @@ async fn details(
 
     let mongo = my_info.mongo_init().await;
     let cred = my_info.access_credentials(mongo);
-    let record = my_info.create_record_doc(cred).await.unwrap();
+    let record = match my_info.create_record_doc(cred).await{
 
-    if record.to_owned().to_string().eq(&"your info already present in our database"){
+        Ok(r) => {
+            r
+        },
+        Err(e) => {
 
-        println!("Your information already present in our database ");
+            println!("Error {:?} ", e);
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
-    }
+        }
+    };
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 

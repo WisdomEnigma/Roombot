@@ -216,6 +216,7 @@ pub mod gatekeeper{
     
 }
 
+/// Accounts handle user related tasks such as add user information ; update information; find person from record.
 pub mod accounts{
 
 
@@ -224,6 +225,8 @@ pub mod accounts{
     use serde::{Deserialize,Serialize}; 
     
     #[derive(Debug, Serialize, Deserialize, Clone)]
+
+    /// INFO hold information about user's (first name, lastname, work, company, education etc). Some fields are public & rest are not.. public fields are directly accessible for more information read documenation 
     pub struct Info{
 
         pub firstname : String,
@@ -240,6 +243,16 @@ pub mod accounts{
 
     impl Info{
 
+        /// create instance of user info
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use auth::accounts::Info;
+        ///
+        /// let result = Info::new(firstname, lastname, institute, degree, workplace, work, city, country, bitcoinaddr);
+        /// assert_eq!(result, Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()});
+        /// ```
         pub fn new(firstname : String, lastname : String, 
         institute : String, degree : String, 
         workplace : String, work : String,
@@ -257,37 +270,58 @@ pub mod accounts{
 
         }
 
+        /// mongo_init allow to create mongoclient instance for record keeping purpose. 
         pub async fn mongo_init(&mut self) -> Client{
 
             Client::with_options(ClientOptions::parse("mongodb+srv://enigmabot:nigkjv8emfgPpoeI@streambusiness.nkakl0h.mongodb.net/").await.unwrap()).unwrap()
  
          }
  
+        /// set user session  
          pub fn set_session(&mut self, session : String){
  
              self.session = session;
          }
  
+        /// get user session  
          pub async fn get_session(&mut self) -> String {
              
              self.session.to_owned().to_string()
          
          }
 
+        ///  get credentials 
          pub fn access_credentials(&mut self, client : Client) -> Database {
 
             client.database("Artists_Record")
         }
 
-         pub async fn create_record_doc(&mut self, db : Database) -> Result<String, String>{
+        /// create record doc bookkeep user information, if information should not be existed before in our record. 
+         ///
+        /// # Examples
+        ///
+        /// ```
+        ///     use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     let record = match my_info.create_record_doc(cred).await
+        /// 
+        ///     assert_eq!(info.create_record_doc(db), Ok("".to_string());
+        /// ```
+        pub async fn create_record_doc(&mut self, db : Database) -> Result<String, String>{
 
-                let info : Info;
+                let mut info : Info;
 
                 let col = db.collection::<Info>("accounts");
 
-                while let Ok(record) = db.list_collection_names(doc!{
-                    "firstname" : self.firstname.to_owned(),
-                    "session" : self.get_session().await,
+                while let Ok(record) = db.list_collection_names(doc!{"name" : "accounts"
                 }).await {
                     
                     if record.is_empty(){
@@ -312,15 +346,61 @@ pub mod accounts{
 
                     if record.len().ge(&1){
                         
-                        return Err("your info already present in our database".to_string());
+                        let findperson = self.find_people_with_name(db.to_owned()).await.unwrap();
 
+                        if findperson.len().eq(&1){
+
+                            for entity in findperson.into_iter().by_ref(){
+
+                                if entity.lastname.to_owned().eq(&self.lastname) && entity.bitcoinaddr.to_owned().eq(&self.bitcoinaddr){
+
+                                    return Err("your info already present in our database".to_string());
+                                }
+                            }
+                        }
+                        
+
+                        info = Info{
+
+                            firstname : self.firstname.to_owned(),
+                            lastname : self.lastname.to_owned(),
+                            session : self.get_session().await,
+                            city : self.city.to_owned(),
+                            country : self.country.to_owned(),
+                            bitcoinaddr : self.bitcoinaddr.to_owned(),
+                            workplace : self.workplace.to_owned(),
+                            work: self.work.to_owned(),
+                            institute : self.institute.to_owned(),
+                            degree : self.degree.to_owned(),
+                        };
+
+                        let _ = col.insert_one(info, None).await;
+                        break;
                     }
                 }
 
                 return Ok("".to_string()) 
          }
 
-         pub async fn count_people(&mut self, db : Database) -> Result<u64, u64>{
+
+        /// count people is a special method which return how many user's exist in our bookkeeping record. E.g "Ali" => 5.   
+         ///
+        /// # Examples
+        ///
+        /// ```
+        /// use auth::accounts::Info;
+        ///
+        /// let mut info = Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     assert_eq!(info.count_people(db).await, Ok(5));
+        /// ```
+        pub async fn count_people(&mut self, db : Database) -> Result<u64, u64>{
 
                 let mut counter : u64 = 0;
 
@@ -343,7 +423,27 @@ pub mod accounts{
                 Ok(counter)  
          }
 
-         pub async fn find_people_with_name(&mut self, db : Database) -> Result<Vec<Info>, Vec<Info>>{
+        /// find people with name as name specify , which allow extract name from our record  
+         ///
+        /// # Examples
+        ///
+        /// ```
+        /// use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), 
+        ///             "".to_string(), "".to_string(),"".to_string(),"".to_string(), 
+        ///             "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     
+        ///     assert_eq!(info.find_people_with_name(db), Ok([Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}]));
+        /// ```
+        pub async fn find_people_with_name(&mut self, db : Database) -> Result<Vec<Info>, Vec<Info>>{
 
             let mut v : Vec::<Info> = Vec::<_>::new();
 
