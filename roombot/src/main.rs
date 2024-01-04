@@ -2180,10 +2180,20 @@ async fn add_virtual_book(
        books.set_session(ME.to_owned().to_string());
     }
 
-    let book_status = books.create_book_doc(db).await.unwrap();
+    let book_status = match books.create_book_doc(db).await{
 
+        Ok(status ) => {
+            status
+        },
+        Err(e) => {
 
-    if book_status.to_owned().to_string().eq(&"".to_string()){
+            println!("Error {:?} ", e);
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    };
+
+    if book_status.to_owned().to_string().eq(&""){
 
         // active payment gateway for further transactions
         
@@ -2206,14 +2216,14 @@ async fn add_virtual_book(
         // );
 
         // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-        // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+        // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
 
         //     println!("Nodeless Bitcoin Gateway down");
         //     return HttpResponse::BadRequest()
         //         .body(hbr.render("music_error", &RequestError {}).unwrap());
         // }
 
-        // if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
+        // if status.to_owned().to_string().eq(&"Device is not connected with internet "){
 
         //      println!("Internet disconnect ");
         //      return HttpResponse::BadRequest()
@@ -2231,12 +2241,7 @@ async fn add_virtual_book(
         
     }
 
-    if book_status.to_owned().to_string().eq(&"This book already present in our database".to_string()){
-
-        println!("Book Already exist {:?} ", book_status.to_owned().to_string().eq(&"This book already present in our database".to_string()));
-        return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
-    }
+    
 
         
 

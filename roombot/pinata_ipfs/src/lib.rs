@@ -314,9 +314,9 @@ pub mod ipfs_net{
         pub async fn create_book_doc(&mut self, db : Database) -> Result<String, String>{
 
           let col = db.collection::<Books>("enigmahouse");
-          let book : Books;
+          let mut book : Books;
 
-          while let Ok(list) = db.list_collection_names(doc! {"book" : self.book.to_owned()}).await{
+          while let Ok(list) = db.list_collection_names(doc! {"name" : "enigmahouse"}).await{
 
              if list.is_empty(){
                 
@@ -336,12 +336,32 @@ pub mod ipfs_net{
 
              if list.len().ge(&1){
                 
-                return Err("This book already present in our database".to_string());
+                let findbook = self.find_book_for_me(db.to_owned()).await.unwrap();
+                
+                if findbook.book.to_owned().to_string().eq(&self.book) && findbook.ipfs_link.to_owned().to_string().eq(&self.ipfs_link){
+                    
+                    return Err("This book already present in our database".to_string());
+                
+                } 
+                
+                book = Books{
+                    book : self.book.to_owned(),
+                    author : self.author.to_owned(),
+                    publisher : self.publisher.to_owned(),
+                    page : self.page.to_owned(),
+                    ipfs_link : self.ipfs_link.to_owned(),
+                    description : self.description.to_owned(),
+                    coonect : self.coonect.to_owned(),
+                };
+
+                let _ = col.insert_one(book, None).await;
+                break;
              }
+
           } 
 
-          
-            Ok("".to_string())            
+          return Ok("".to_string());
+                        
         }
 
         pub fn on_self(&mut self) -> f64{
