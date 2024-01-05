@@ -66,8 +66,24 @@
         </div>
     </div>
 
-    <button type="button" class="uk-button-dark" title="ready" style="border: none;background: transparent;position: relative;left: 19pc;top: -1pc; cursor: pointer;">
+    <button type="button" uk-toggle="target: #_ab02" class="uk-button-dark" title="ready" style="border: none;background: transparent;position: relative;left: 19pc;top: -1pc; cursor: pointer;">
         <h4 style="color: darkslategrey;"> Find new releams then unlock ? </h4>
         <span class="uk-margin-small-right" uk-icon="icon:world"></span>
-    </button> 
+    </button>
+    <div id="_ab02" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body" style="border-radius: 2pc;height: 15pc;">
+            <h2 class="uk-modal-title"></h2>
+            <button class="uk-modal-close" type="button" style="position: relative;left: 33pc;border: none;background: transparent;top: -3pc;">
+                <span uk-icon="icon: close"></span>
+            </button>
+            <form method="post" action="/user/library/books/{find}/{book}/{name}">
+                <input class="uk-input" type="text" name="query" placeholder="Search any book ?" style="border-radius: 2pc;"/>
+                <p class="uk-text-right" style="position: relative;top: 7pc;">
+                    <button class="uk-button uk-button-dark" type="submit" style="position: relative; top: -5pc; border-radius: 2pc;">
+                        <i class="fa fa-send" aria-hidden="true"></i>
+                    </button>
+                </p>
+            </form>
+        </div>
+    </div> 
 </div>

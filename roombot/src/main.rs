@@ -116,7 +116,7 @@ struct EditAccount{
 }
 
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 
 struct SearchParam{
 
@@ -2241,12 +2241,9 @@ async fn add_virtual_book(
         
     }
 
-    
-
-        
-
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
+
 
 #[get("/user/sociallink/profile/edit")]
 async fn edit() -> impl Responder{
@@ -2314,7 +2311,7 @@ async fn details(
 
     let mongo = my_info.mongo_init().await;
     let cred = my_info.access_credentials(mongo);
-    let record = match my_info.create_record_doc(cred).await{
+    let _record = match my_info.create_record_doc(cred).await{
 
         Ok(r) => {
             r
@@ -2374,14 +2371,11 @@ async fn searching(
 
             let mut iterate = resp.into_iter();
 
-            for entity in iterate.next(){
+            for entity in iterate.by_ref(){
 
                 search_q.push(entity.firstname + &entity.lastname);
                 search_resp.session = entity.session.clone();
             }
-
-            
-            
             
         }
         
@@ -2394,6 +2388,19 @@ async fn searching(
         HttpResponse::Ok()
                 .body(hbr.render("person", &search_resp).unwrap())
     }
+
+    #[post("/user/library/books/{find}/{book}/{name}")]
+    
+    async fn search_book(form: web::Form<SearchParam>, 
+            hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+            let search_book = &form.query;
+
+            println!("SEARCH {:?}", search_book.to_owned());
+
+        HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+    }
+    
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -2451,6 +2458,7 @@ async fn main() -> std::io::Result<()> {
             .service(search_emotion)
             .service(virtual_book)
             .service(add_virtual_book)
+            .service(search_book)
         // .service(register_user)
         // .service(register_face)
         // .service(login)
