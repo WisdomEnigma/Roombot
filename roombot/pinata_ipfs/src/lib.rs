@@ -256,19 +256,19 @@ pub mod ipfs_net{
     #[derive(Debug, Serialize, Deserialize, Clone)]
     pub struct Books{
 
-        book : String,
-        author : String,
-        publisher : String,
-        page : u16,
-        description : String,
-        ipfs_link : String,
-        coonect : Peer,
+        pub book : String,
+        pub author : String,
+        pub publisher : String,
+        pub page : u16,
+        pub description : String,
+        pub ipfs_link : String,
+        pub coonect : Peer,
     }
 
     #[derive(Debug, Serialize, Deserialize, Clone)]
-    struct Peer{
+    pub struct Peer{
 
-        session : String,
+        pub session : String,
     }
     
     impl Books{

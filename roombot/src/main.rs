@@ -133,6 +133,12 @@ struct VirtualBook {
     author: String,
 }
 
+#[derive(Deserialize)]
+struct Booksearch{
+
+    bookname : String,
+}
+
 // User choices responses return html template for different html page's.
 
 #[derive(Serialize)]
@@ -255,6 +261,19 @@ struct Searched{
     leads : String,
     follower : String,
     session : String,
+}
+
+#[derive(Serialize , Debug)]
+
+struct GetBook{
+
+    name : String,
+    page : String,
+    description : String,
+    author : String,
+    publisher : String,
+    session : String,
+    ipfs_link : String,
 }
 
 // static variables
@@ -2389,16 +2408,51 @@ async fn searching(
                 .body(hbr.render("person", &search_resp).unwrap())
     }
 
-    #[post("/user/library/books/{find}/{book}/{name}")]
+    #[post("/user/library/books/{find}/{book}/{record}/{accept}")]
     
-    async fn search_book(form: web::Form<SearchParam>, 
+    async fn search_book(form: web::Form<Booksearch>, 
             hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
-            let search_book = &form.query;
+            let search_book = &form.bookname;
 
-            println!("SEARCH {:?}", search_book.to_owned());
+            if search_book.to_owned().to_string().eq(&""){
 
-        HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+                println!("Empty keyword {:?} ",  search_book.to_owned().to_string().eq(&""));
+                return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
+            let mut books = pinata_ipfs::ipfs_net::Books::new(search_book.to_owned().to_string(), "".to_string(), "".to_string(), 0 as u16, "".to_string(), "".to_string());
+            let mongoclient = pinata_ipfs::ipfs_net::Books::mongo_init().await;
+
+            let db = books.access_credentials(mongoclient.to_owned());
+
+            unsafe{
+        
+                books.set_session(ME.to_owned().to_string());
+            }
+
+            let record = match books.find_book_for_me(db.to_owned()).await{
+                Ok(r) => {r},
+                Err(e) =>{
+
+                    println!("Error {:?}", e);
+                    return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+            };       
+
+        HttpResponse::Ok().
+                    body(hbr.render("book", &GetBook {
+                        name : record.book.to_owned().to_string(),
+                        session : record.coonect.session.to_string(),
+                        author : record.author.to_owned().to_string(),
+                        publisher : record.publisher.to_owned().to_string(),
+                        ipfs_link : "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned() + &record.ipfs_link.to_owned().to_string(),
+                        description : record.description.to_owned().to_string(),
+                        page : record.page.to_owned().to_string()
+                    }).
+                    unwrap())
     }
     
 
