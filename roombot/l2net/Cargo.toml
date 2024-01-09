@@ -12,3 +12,5 @@ serde = { version = "1.0.188", features = ["derive"]}
 
 mongodb = {version = "2.6.1", default-features = false, features = ["async-std-runtime"]}
 url = "2.4.1"
+bitcoins = "0.7.0"
+coins-core = "0.8.7"

@@ -313,7 +313,7 @@ pub mod accounts{
         ///     let cred = my_info.access_credentials(mongo);
         ///     let record = match my_info.create_record_doc(cred).await
         /// 
-        ///     assert_eq!(info.create_record_doc(db), Ok("".to_string());
+        ///     assert_eq!(info.create_record_doc(cred), Ok("".to_string());
         /// ```
         pub async fn create_record_doc(&mut self, db : Database) -> Result<String, String>{
 
@@ -398,7 +398,7 @@ pub mod accounts{
         /// 
         ///     let mongo = my_info.mongo_init().await;
         ///     let cred = my_info.access_credentials(mongo);
-        ///     assert_eq!(info.count_people(db).await, Ok(5));
+        ///     assert_eq!(info.count_people(cred).await, Ok(5));
         /// ```
         pub async fn count_people(&mut self, db : Database) -> Result<u64, u64>{
 
@@ -424,7 +424,7 @@ pub mod accounts{
          }
 
         /// find people with name as name specify , which allow extract name from our record  
-         ///
+        ///
         /// # Examples
         ///
         /// ```
@@ -441,7 +441,7 @@ pub mod accounts{
         ///     let mongo = my_info.mongo_init().await;
         ///     let cred = my_info.access_credentials(mongo);
         ///     
-        ///     assert_eq!(info.find_people_with_name(db), Ok([Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}]));
+        ///     assert_eq!(info.find_people_with_name(cred), Ok([Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}]));
         /// ```
         pub async fn find_people_with_name(&mut self, db : Database) -> Result<Vec<Info>, Vec<Info>>{
 
@@ -463,5 +463,50 @@ pub mod accounts{
 
             Ok(v)
          }
+
+        ///   transaction status is a powerful function which authorize user & user have access to secure digital wallet for transaction purpose
+        /// 
+        /// use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), 
+        ///             "".to_string(), "".to_string(),"".to_string(),"".to_string(), 
+        ///             "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     
+        ///     assert_eq!(info.transaction_status(cred), Ok("b...........1j".to_string()));
+        /// ```text 
+         pub async fn transaction_status(&mut self, db : Database) -> Result<String, String>{
+
+            let mut myaddress = "".to_string(); 
+            
+            let col = db.collection::<Info>("accounts");
+
+            let mut iterate = col.find(doc!{"session" : self.session.to_owned()}, None).await.unwrap();
+ 
+            while let Ok(Some(record)) = iterate.try_next().await{
+
+                if record.session.to_owned().to_string().is_empty(){
+
+                    return Err("No record".to_string());
+                }
+
+                if record.bitcoinaddr.to_owned().to_string().is_empty(){
+
+                    return Err("No bitcoin address provided".to_string());
+                }
+
+                myaddress = record.bitcoinaddr.to_owned();
+                break;
+            }
+
+            return Ok(myaddress)
+         }
+
     }
 }

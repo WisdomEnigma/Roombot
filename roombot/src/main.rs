@@ -289,7 +289,7 @@ static ENV_TOKEN: OnceCell<String> = OnceCell::new();
 static EMAIL: OnceCell<String> = OnceCell::new();
 static SEARCHEPIC: OnceCell<String> = OnceCell::new();
 static SEASONRELEASE: OnceCell<String> = OnceCell::new();
-
+static MyBitcoinAddr : OnceCell<String> = OnceCell::new();
 
 
 // routes
@@ -332,8 +332,7 @@ async fn word2word(
     form: web::Form<TranslateFormData>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
-    
-    
+        
     
     // parse input values
     let input: _ = &form.query;
@@ -414,16 +413,31 @@ async fn word2word(
                 println!("Payment Accepted ");
                 println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));        
             }
+        
         }
+
+        let _gateway = match direct_gateway(fees).await{
+
+            Ok(_) => {
+
+                return HttpResponse::Ok().body(
+                    hbr.render("translate",&ResponseTranslateForm {
+                                                query: input.to_string(),
+                                                response: responses.to_owned().to_string(),
+                                            }).unwrap());
+            },
+            
+            Err(e) => {
+
+                    eprintln!("Error {:?}", e);
+
+                    return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+        };
     }
 
-    HttpResponse::Ok().body(
-                        hbr.render("translate",&ResponseTranslateForm {
-                                                    query: input.to_string(),
-                                                    response: responses.to_owned().to_string(),
-                                                },
-                        ).unwrap(),
-    )
+    HttpResponse::Ok().body(hbr.render("home", &Homepage{}).unwrap())
 }
 
 
@@ -512,6 +526,8 @@ async fn search_movies(
     if let Some(imdb) = movies {
         imovies.imdb_id = imdb.imdb_id().to_owned().to_string();
 
+        let fees = 100;
+
         let _ = imovies.movies_iterator(imdb);
 
         // check whether film release less than 1975; then open payment gateway and collect charges before provide information
@@ -546,9 +562,9 @@ async fn search_movies(
                 };
 
                 let nodeless = INodeless::new(
-                    100,
+                    fees,
                     "".to_string(),
-                    100.00,
+                    fees as f64,
                     "enjoy weekend with old stories".to_string(),
                     ME.to_owned().to_string(),
                     lightnode_net::TransactionStatus::Pending,
@@ -575,27 +591,50 @@ async fn search_movies(
 
                         println!("Payment Accepted ");
                         println!("Result ready! {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
-                
-                }
-            }
-        }
 
-        return HttpResponse::Ok().body(
-            hbr.render(
-                "movies",
-                &MovieRecomend {
-                    title: imovies.name.to_owned().to_string(),
-                    genre_0: imovies.genre[0].to_owned(),
-                    genre_1: imovies.genre[1].to_owned(),
-                    genre_2: imovies.genre[2].to_owned(),
-                    release: imovies.release.to_owned().to_string(),
-                    content: imovies.adult.to_owned(),
-                    watch_min: imovies.watch_min.to_owned() as i64,
-                    official: imovies.official.to_owned().to_string(),
-                },
-            )
-            .unwrap(),
-        );
+                        return HttpResponse::Ok().body(
+                            hbr.render(
+                                "movies",
+                                &MovieRecomend {
+                                    title: imovies.name.to_owned().to_string(),
+                                    genre_0: imovies.genre[0].to_owned(),
+                                    genre_1: imovies.genre[1].to_owned(),
+                                    genre_2: imovies.genre[2].to_owned(),
+                                    release: imovies.release.to_owned().to_string(),
+                                    content: imovies.adult.to_owned(),
+                                    watch_min: imovies.watch_min.to_owned() as i64,
+                                    official: imovies.official.to_owned().to_string(),
+                                }).unwrap());
+                }
+
+                let _gateway = match direct_gateway(fees).await{
+
+                    Ok(_) => {
+
+                        return HttpResponse::Ok().body(
+                            hbr.render("movies",
+                                    &MovieRecomend {
+                            title: imovies.name.to_owned().to_string(),
+                            genre_0: imovies.genre[0].to_owned(),
+                            genre_1: imovies.genre[1].to_owned(),
+                            genre_2: imovies.genre[2].to_owned(),
+                            release: imovies.release.to_owned().to_string(),
+                            content: imovies.adult.to_owned(),
+                            watch_min: imovies.watch_min.to_owned() as i64,
+                            official: imovies.official.to_owned().to_string(),
+                        }).unwrap());
+                    },
+
+                    Err(e) =>{
+
+                        eprintln!("Error {:?}", e);
+                        return HttpResponse::BadRequest()
+                                .body(hbr.render("music_error", &RequestError {}).unwrap());
+                    }
+                };
+            }   
+        }
+                
     }
 
     // if condition false then render homepage.
@@ -1135,24 +1174,36 @@ async fn newsong_record(
                             println!("Result ready! {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
         
                         }
+
+                        let _ = match direct_gateway(fees as u64).await{
+
+                            Ok(_) =>{
+                                return HttpResponse::Ok().body(
+                                    hbr.render(
+                                        "artists",
+                                        &Nftmint {
+                                            session: ME.to_string(),
+                                            song: music_file.to_owned().to_string(),
+                                            cid_image: cid_image.to_owned().to_string(),
+                                            cid_music: cid_music.to_owned().to_string(),
+                                            amount: fees.to_string(),
+                                        }).unwrap());
+                            },
+
+                            Err(e) => {
+
+                                    eprintln!("Error {:?}", e);
+                                    return HttpResponse::BadRequest()
+                                            .body(hbr.render("music_error", &RequestError {}).unwrap());        
+                            }
+                        };
+
                     } else {
                         return HttpResponse::BadRequest()
                             .body(hbr.render("music_error", &RequestError {}).unwrap());
                     }
 
-                    return HttpResponse::Ok().body(
-                        hbr.render(
-                            "artists",
-                            &Nftmint {
-                                session: ME.to_string(),
-                                song: music_file.to_owned().to_string(),
-                                cid_image: cid_image.to_owned().to_string(),
-                                cid_music: cid_music.to_owned().to_string(),
-                                amount: fees.to_string(),
-                            },
-                        )
-                        .unwrap(),
-                    );
+                    
                 }
             }
         }
@@ -1347,8 +1398,23 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                         println!("Payment Accepted ");
                         println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
 
-                    
+                        return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
                 }
+
+                let _gateway = match direct_gateway(fees).await{
+
+                    Ok(_) => {
+
+                        return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
+                    },
+
+                    Err(e) => {
+
+                            eprintln!("Error {:?}", e);
+                            return HttpResponse::BadRequest()
+                            .body(hbr.render("music_error", &RequestError {}).unwrap());
+                    }
+                };
             }
 
             // check whether any user like the song who will not rate song before, then update
@@ -1421,6 +1487,31 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
     if let Ok(client) = gatekeeper::mongodb_client().await {
         let db = client.database(music::MUSIC_RECORD);
         let _ = auth.create_record(db).await;
+
+        let mut user = auth::accounts::Info::new("".to_owned().to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string());
+        
+        let minit = user.mongo_init().await;
+        let access = user.access_credentials(minit);
+       
+       unsafe{
+        
+            user.set_session(ME.to_owned().to_string());
+
+        }
+
+        let tx_status = user.transaction_status(access.to_owned()).await.unwrap();
+           
+        if tx_status.to_owned().to_string().eq(&"No record"){
+
+            eprintln!("Error [No User]");
+        }else if tx_status.to_owned().to_string().eq(&"No bitcoin address provided"){
+
+            eprintln!("Error [You don't have secure wallet address, Ouuch! You're missing MARVELOUS Experience]");
+        }else{
+
+            let _ = MyBitcoinAddr.set(tx_status.to_owned());
+        }
+        
     };
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
@@ -1519,8 +1610,33 @@ async fn poetry(
 
                     println!("Payment Accepted ");
                     println!("Result ready! {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
-        
+                    
+                    return HttpResponse::Ok().body
+                     (hbr.render("translate",&ResponseTranslateForm {
+                                          query: input.to_owned().to_string(),
+                                          response: responses,
+                                      },
+                                  ).unwrap());    
                 }
+
+                let _ = match direct_gateway(fees).await{
+
+                    Ok(_) => {
+
+                        return HttpResponse::Ok().body
+                        (hbr.render("translate",&ResponseTranslateForm {
+                                          query: input.to_owned().to_string(),
+                                          response: responses,
+                                      },
+                                  ).unwrap());    
+                    }, Err(e) => {
+
+                        eprintln!("Error {:?}", e);
+                        return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                    }
+                };
+
             }
         }
 
@@ -1567,20 +1683,39 @@ async fn poetry(
                 if status.to_owned().to_string().eq(&"Payment acccept".to_string()){
 
                         println!("Payment Accepted ");
-                        println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));        
+                        println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+                        return HttpResponse::Ok().body
+                        (hbr.render("translate",&ResponseTranslateForm {
+                                          query: input.to_owned().to_string(),
+                                          response: responses,
+                                      },
+                                  ).unwrap());        
                 }
+
+                let _ = match direct_gateway(fees).await{
+
+                    Ok(_) => {
+
+                        return HttpResponse::Ok().body
+                        (hbr.render("translate",&ResponseTranslateForm {
+                                          query: input.to_owned().to_string(),
+                                          response: responses,
+                                      },
+                                  ).unwrap());    
+                    }, Err(e) => {
+
+                        eprintln!("Error {:?}", e);
+                        return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                    }
+                };        
             }
+
+                
         }
 
-        return HttpResponse::Ok().body
-                                      (hbr.render("translate",&ResponseTranslateForm {
-                                                                query: input.to_owned().to_string(),
-                                                                response: responses,
-                                                            },
-                                                        ).unwrap(),
-                                     );
     }
-
+        
     // there may be possible that gpt access is not working properly or bad formatting then throw error
     println!("Check your text there may be something which is not acceptable");
     HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap())
@@ -1661,6 +1796,7 @@ async fn search_shows(
         let fees: u64 = 100;
 
         unsafe {
+            
             let nodeless = INodeless::new(
                 fees,
                 "".to_owned().to_string(),
@@ -1689,13 +1825,9 @@ async fn search_shows(
             if status.to_owned().to_string().eq(&"Payment acccept"){
 
                 println!("Payment Accepted ");
-                println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));        
-            }
-    
-        }
-
-        return HttpResponse::Ok().body(hbr.render(
-                                                    "tv", &MovieRecomend {
+                println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+                
+                return HttpResponse::Ok().body(hbr.render("tv", &MovieRecomend {
                                                                 title: imovies.name.to_owned(),
                                                                 genre_0: imovies.genre[0].to_owned(),
                                                                 genre_1: imovies.genre[1].to_owned(),
@@ -1704,13 +1836,38 @@ async fn search_shows(
                                                                 content: imovies.adult.to_owned(),
                                                                 watch_min: imovies.watch_min.to_owned() as i64,
                                                                 official: imovies.official.to_owned(),
-                                                            },
-                                                        ).unwrap(),
-                                                    );
-    }
+                                                            }).unwrap());        
+            }
 
+            let _ = match direct_gateway(fees).await{
+
+                Ok(_) =>{
+
+                    return HttpResponse::Ok().body(hbr.render("tv", &MovieRecomend {
+                        title: imovies.name.to_owned(),
+                        genre_0: imovies.genre[0].to_owned(),
+                        genre_1: imovies.genre[1].to_owned(),
+                        genre_2: imovies.genre[2].to_owned(),
+                        release: imovies.release.to_owned().to_string(),
+                        content: imovies.adult.to_owned(),
+                        watch_min: imovies.watch_min.to_owned() as i64,
+                        official: imovies.official.to_owned(),
+                    }).unwrap());
+                },
+                Err(e) => {
+
+                    eprintln!("Error {:?}", e);
+                    return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+            };
+        }
+        
+    }
+       
     println!("Unfortunately Movie Title is not found");
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+    
 }
 
 // 16 search_epic => post
@@ -2081,11 +2238,25 @@ async fn search_emotion(
         if status.to_owned().to_string().eq(&"Payment acccept"){
 
             println!("Payment Accepted ");
-            println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));        
+            println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+            return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());        
         }
 
-        // re-render data on emotion page after deposit service charges.
-        return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
+
+        let _ = match direct_gateway(fees).await{
+
+            Ok(_) => {
+
+                return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
+            },
+            Err(e) => {
+
+                eprintln!("Error {:?}",e);
+                return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+        };
+
     }
 }
 
@@ -2216,48 +2387,61 @@ async fn add_virtual_book(
 
         // active payment gateway for further transactions
         
-        // let client = match gatekeeper::mongodb_client().await {
-        //     Ok(list) => list,
-        //     Err(e) => panic!("{:?}", e),
-        // };
+        let client = match gatekeeper::mongodb_client().await {
+            Ok(list) => list,
+            Err(e) => panic!("{:?}", e),
+        };
 
-        // let db = client.database(music::MUSIC_RECORD);
-        // let fees: u64 = books.on_self() as u64;
+        let db = client.database(music::MUSIC_RECORD);
+        let fees: u64 = books.on_self() as u64;
 
-        // let nodeless = INodeless::new(
-        //     fees,
-        //     "".to_owned().to_string(),
-        //     fees as f64,
-        //     "reader borrow masterpiece and pay for alchemy".to_owned().to_string(),
-        //     books.get_session().await,
-        //     lightnode_net::TransactionStatus::Pending,
-        //     "".to_string(),
-        // );
+        let nodeless = INodeless::new(
+            fees,
+            "".to_owned().to_string(),
+            fees as f64,
+            "reader borrow masterpiece and pay for alchemy".to_owned().to_string(),
+            books.get_session().await,
+            lightnode_net::TransactionStatus::Pending,
+            "".to_string(),
+        );
 
-        // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-        // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
+        let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+        if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
 
-        //     println!("Nodeless Bitcoin Gateway down");
-        //     return HttpResponse::BadRequest()
-        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
-        // }
+            println!("Nodeless Bitcoin Gateway down");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
 
-        // if status.to_owned().to_string().eq(&"Device is not connected with internet "){
+        if status.to_owned().to_string().eq(&"Device is not connected with internet "){
 
-        //      println!("Internet disconnect ");
-        //      return HttpResponse::BadRequest()
-        //             .body(hbr.render("music_error", &RequestError {}).unwrap());
-        // }
+             println!("Internet disconnect ");
+             return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
 
-        // if status.to_owned().to_string().eq(&"Payment acccept"){
+        if status.to_owned().to_string().eq(&"Payment acccept"){
 
-        //     println!("Payment Accepted ");
-        //     println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+            println!("Payment Accepted ");
+            println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
 
-        //     return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());        
-        // }
+            return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());        
+        }
 
-        
+        let _ = match direct_gateway(fees).await{
+            
+            Ok(_) =>{
+
+                return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
+            },
+
+            Err(e) => {
+
+                eprintln!("Error {:?}", e);
+                return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+        };
     }
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
@@ -2359,6 +2543,19 @@ async fn searching(
     hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
 
+        // check whether user login through user credentials.
+    unsafe {
+        let expire = gatekeeper::login_expire(ME.to_owned());
+
+        if expire {
+            
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    
         // initalization & declaration 
         let query = &form.query;
         let mut search_q : Vec::<String> = Vec::<String>::new();
@@ -2432,7 +2629,7 @@ async fn searching(
                 books.set_session(ME.to_owned().to_string());
             }
 
-            let record = match books.find_book_for_me(db.to_owned()).await{
+                let record = match books.find_book_for_me(db.to_owned()).await{
                 Ok(r) => {r},
                 Err(e) =>{
 
@@ -2440,19 +2637,82 @@ async fn searching(
                     return HttpResponse::BadRequest()
                         .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
-            };       
+                };
 
-        HttpResponse::Ok().
-                    body(hbr.render("book", &GetBook {
-                        name : record.book.to_owned().to_string(),
-                        session : record.coonect.session.to_string(),
-                        author : record.author.to_owned().to_string(),
-                        publisher : record.publisher.to_owned().to_string(),
-                        ipfs_link : "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned() + &record.ipfs_link.to_owned().to_string(),
-                        description : record.description.to_owned().to_string(),
-                        page : record.page.to_owned().to_string()
-                    }).
-                    unwrap())
+
+                let client = match gatekeeper::mongodb_client().await {
+                        Ok(list) => list,
+                        Err(e) => panic!("{:?}", e),
+                };
+
+                let db = client.database(music::MUSIC_RECORD);
+                let fees: u64 = books.on_self() as u64;
+
+                let nodeless = INodeless::new(
+                    fees,
+                    "".to_owned().to_string(),
+                    fees as f64,
+                    "reader borrow masterpiece and pay for alchemy".to_owned().to_string(),
+                    books.get_session().await,
+                    lightnode_net::TransactionStatus::Pending,
+                    "".to_string(),
+                );
+
+                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
+
+                    println!("Nodeless Bitcoin Gateway down");
+                    return HttpResponse::BadRequest()
+                                .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Device is not connected with internet "){
+
+                    println!("Internet disconnect ");
+                    return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                if status.to_owned().to_string().eq(&"Payment acccept"){
+
+                    println!("Payment Accepted ");
+                    println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+
+                    return HttpResponse::Ok().
+                        body(hbr.render("book", &GetBook {
+                            name : record.book.to_owned().to_string(),
+                            session : record.coonect.session.to_string(),
+                            author : record.author.to_owned().to_string(),
+                            publisher : record.publisher.to_owned().to_string(),
+                            ipfs_link : "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned() + &record.ipfs_link.to_owned().to_string(),
+                            description : record.description.to_owned().to_string(),
+                            page : record.page.to_owned().to_string()
+                        }).unwrap());
+                }
+                
+                let _ = match direct_gateway(fees).await{
+
+                    Ok(_) => {
+
+                        return HttpResponse::Ok().
+                        body(hbr.render("book", &GetBook {
+                            name : record.book.to_owned().to_string(),
+                            session : record.coonect.session.to_string(),
+                            author : record.author.to_owned().to_string(),
+                            publisher : record.publisher.to_owned().to_string(),
+                            ipfs_link : "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned() + &record.ipfs_link.to_owned().to_string(),
+                            description : record.description.to_owned().to_string(),
+                            page : record.page.to_owned().to_string()
+                        }).unwrap());
+                    }, Err(e) => {
+
+                        eprintln!("Error {:?}", e);
+                        return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                    }
+                };
+
+
     }
     
 
@@ -2588,4 +2848,91 @@ pub async fn payment_gateway(mut nodeless: INodeless, db: Database) -> std::io::
     }
 
     Ok("Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string())
+}
+
+
+#[derive(Debug)]
+enum BitcoinNetworkErrorReport{
+
+    EmptyBitAddress,
+    DuplicateBitAddress,
+    InvalidBitAddress,
+    TxFail,
+    None
+}
+
+async fn direct_gateway(fees : u64) -> Result<(), BitcoinNetworkErrorReport>{
+
+        let addr = MyBitcoinAddr.get().unwrap();
+
+        if addr.to_owned().to_string().eq(&""){
+
+                    println!("Error your don't have bitcoin address");
+                    return Err(BitcoinNetworkErrorReport::EmptyBitAddress);
+        }else{
+
+            let mut bitpay = l2net::bitpayee::Bitenigma::new(addr.to_owned().to_string(), fees);
+            let addr_val = bitpay.address_valid().unwrap();
+
+            match addr_val{
+                        
+                        l2net::bitpayee::BitenigmaError::EmptyBitAddress("This user have not provide bitcoin address") => {
+
+                            println!("Error your don't have bitcoin address");
+                            return Err(BitcoinNetworkErrorReport::EmptyBitAddress);
+                        },
+
+                        l2net::bitpayee::BitenigmaError::DuplicateAddress("This address is not Allowed ") => {
+
+                            println!("Error this address already register by someone");
+                            return Err(BitcoinNetworkErrorReport::DuplicateBitAddress);
+                        },
+
+                        l2net::bitpayee::BitenigmaError::InvalidAddressIssue("This address is invalid adddress") => {
+
+                            println!("Error this address is not valid address");
+                            return Err(BitcoinNetworkErrorReport::InvalidBitAddress);
+                        },
+
+                        l2net::bitpayee::BitenigmaError::None => {
+
+                            let sender = bitpay.pay_handshake().await;
+                            
+                            println!("Sender Inovice {:?}", sender);
+
+                            if bitpay.valid_sender(sender){
+
+                                println!("transaction process complete");
+                            
+                            }else{
+
+
+                                println!("Error transaction failed");
+                                return Err(BitcoinNetworkErrorReport::TxFail);
+                            }
+
+                            let receiver = bitpay.rece_handshake().await;
+
+                            println!("Receiver Inovice {:?}", receiver);
+
+                            if bitpay.valid_receiver(receiver){
+
+                                println!("transaction process complete");
+                            
+                            }else{
+
+
+                                println!("Error transaction failed");
+                                return Err(BitcoinNetworkErrorReport::TxFail);
+                            
+                            }
+                        },
+
+                        _=>{
+
+                            todo!();
+                        }
+                    }   
+                Ok(())
+            }
 }
