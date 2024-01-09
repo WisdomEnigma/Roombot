@@ -1,5 +1,7 @@
 # roombot
 
+        #! Wisdomenigma Inc launched First  Bit-Bazaar (Market) where artists , creators and followers all of them used bitcoin for transaction only. 
+
     Hello Everyone, many people still used old tools that are not follow modern standards. In modern stancard everything upgrade, new experience come in your life. Just imagine your are iPhone user and do you still enjoy music stream without your iPhone. The answer is No.
 
     We are introducing roombot. This is project revolutionize everything around you... From Music streaming to development, Content to Marketing and security to automation.
@@ -46,9 +48,30 @@
     # Run command
                
                Fork the project
+            
+            $ git clone https://github.com/WisdomEnigma/Roombot.git 
+
+               Run the project
+
             $ cargo make roombot
 
+
+     # Project Version History
+
+                v0.0.2
+      
+                        - #4  Language Translate documentation improved
+                        - #13 Search song through by artist or emotions of user
+                        - #17 Publish Book
+                        - #14 Movie search functionality
+                        - #29 Search Peers
+                        - #19 Search book
+                        - Fix payment gateway
+                        - Improve documentation
+                        - Bitcoin direct payment
+
 # Contact 🏛️
+    
     This product designed and owned by wisdomenigma.  Intellectual property, direct payment gateway contact are discussed with clients. These services are available for affluent clients.
 
     You will directly mail us wizdwarfs@gmail.com
