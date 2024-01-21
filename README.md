@@ -70,13 +70,9 @@
                         - Improve documentation
                         - Bitcoin direct payment
 # Demo 
-      
-      1.Music Stream
-              https://youtu.be/ALimUxg9vuA
-      2. Platform 
-              https://youtu.be/OhzrGVEhwWo
-      3. Library
-               https://youtube.com/shorts/edtk_WMpfcg?feature=share
+https://youtu.be/ALimUxg9vuA
+https://youtu.be/OhzrGVEhwWo
+https://youtube.com/shorts/edtk_WMpfcg?feature=share
 
 # Contact 🏛️
     
