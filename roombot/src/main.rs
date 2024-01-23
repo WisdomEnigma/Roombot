@@ -101,26 +101,30 @@ struct Authenicate {
 }
 
 #[derive(Deserialize)]
-struct EditAccount{
+struct EditAccount {
+    name: String,
+    lastname: String,
+    sname: String, // school name
+    degree: String,
+    cname: String, // campany name
+    work: String,
+    city: String,
+    country: String,
+    bitcoin: String,
 
-    name : String,
-    lastname : String,
-    sname : String,     // school name
-    degree : String,
-    cname : String,     // campany name
-    work : String,
-    city : String,
-    country : String,
-    bitcoin : String,
-    
+    address : String,
+    fblink : String,
+    instalink : String,
+    xlink : String,
+    youlink : String,
+    new_digitalverse : String,
+    old_digitalverse : String,
 }
-
 
 #[derive(Deserialize, Debug)]
 
-struct SearchParam{
-
-    query : String,
+struct SearchParam {
+    query: String,
 }
 
 #[derive(Deserialize)]
@@ -134,9 +138,8 @@ struct VirtualBook {
 }
 
 #[derive(Deserialize)]
-struct Booksearch{
-
-    bookname : String,
+struct Booksearch {
+    bookname: String,
 }
 
 // User choices responses return html template for different html page's.
@@ -252,28 +255,25 @@ struct Recorded {
     link: String,
 }
 
-
 #[derive(Serialize, Debug)]
-struct Searched{
-
-    name : Vec::<String>,
-    counter : String,
-    leads : String,
-    follower : String,
-    session : String,
+struct Searched {
+    name: Vec<String>,
+    counter: String,
+    leads: String,
+    follower: String,
+    session: String,
 }
 
-#[derive(Serialize , Debug)]
+#[derive(Serialize, Debug)]
 
-struct GetBook{
-
-    name : String,
-    page : String,
-    description : String,
-    author : String,
-    publisher : String,
-    session : String,
-    ipfs_link : String,
+struct GetBook {
+    name: String,
+    page: String,
+    description: String,
+    author: String,
+    publisher: String,
+    session: String,
+    ipfs_link: String,
 }
 
 // static variables
@@ -289,8 +289,7 @@ static ENV_TOKEN: OnceCell<String> = OnceCell::new();
 static EMAIL: OnceCell<String> = OnceCell::new();
 static SEARCHEPIC: OnceCell<String> = OnceCell::new();
 static SEASONRELEASE: OnceCell<String> = OnceCell::new();
-static MyBitcoinAddr : OnceCell<String> = OnceCell::new();
-
+static MyBitcoinAddr: OnceCell<String> = OnceCell::new();
 
 // routes
 
@@ -318,8 +317,6 @@ async fn image_learning() -> impl Responder {
     NamedFile::open_async("./static/assets/translation.png").await
 }
 
-
-
 // 5. Translation => get
 #[get("/user/translation")]
 async fn translator() -> impl Responder {
@@ -332,8 +329,6 @@ async fn word2word(
     form: web::Form<TranslateFormData>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
-        
-    
     // parse input values
     let input: _ = &form.query;
     let apikey: _ = &form.call;
@@ -372,7 +367,6 @@ async fn word2word(
     let flag_words = responses.to_owned().len().eq(&10);
 
     if flag_words == true {
-        
         let client = match gatekeeper::mongodb_client().await {
             Ok(list) => list,
             Err(e) => panic!("{:?}", e),
@@ -382,7 +376,6 @@ async fn word2word(
         let fees: u64 = 25;
 
         unsafe {
-            
             let nodeless = INodeless::new(
                 fees,
                 "".to_owned().to_string(),
@@ -401,45 +394,50 @@ async fn word2word(
                         .body(hbr.render("music_error", &RequestError {}).unwrap());
             }
 
-            if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
-
+            if status
+                .to_owned()
+                .to_string()
+                .eq(&"Device is not connected with internet ".to_string())
+            {
                 println!("Internet disconnect ");
                 return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
             }
 
-            if status.to_owned().to_string().eq(&"Payment acccept"){
-
+            if status.to_owned().to_string().eq(&"Payment acccept") {
                 println!("Payment Accepted ");
-                println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));        
+                println!(
+                    "Result ready {:?} ",
+                    status.to_owned().to_string().eq(&"Payment acccept")
+                );
             }
-        
         }
 
-        let _gateway = match direct_gateway(fees).await{
-
+        let _gateway = match direct_gateway(fees).await {
             Ok(_) => {
-
                 return HttpResponse::Ok().body(
-                    hbr.render("translate",&ResponseTranslateForm {
-                                                query: input.to_string(),
-                                                response: responses.to_owned().to_string(),
-                                            }).unwrap());
-            },
-            
+                    hbr.render(
+                        "translate",
+                        &ResponseTranslateForm {
+                            query: input.to_string(),
+                            response: responses.to_owned().to_string(),
+                        },
+                    )
+                    .unwrap(),
+                );
+            }
+
             Err(e) => {
+                eprintln!("Error {:?}", e);
 
-                    eprintln!("Error {:?}", e);
-
-                    return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                return HttpResponse::BadRequest()
+                    .body(hbr.render("music_error", &RequestError {}).unwrap());
             }
         };
     }
 
-    HttpResponse::Ok().body(hbr.render("home", &Homepage{}).unwrap())
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
-
 
 // #[get("/user/register")]
 // async fn register_user() -> impl Responder{
@@ -495,9 +493,6 @@ async fn search_movies(
     form: web::Form<SearchMoviesPlaylist>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
-    
-    
-    
     // parse input values
     let query = &form.name;
     let year = &form.year;
@@ -580,18 +575,43 @@ async fn search_movies(
                                 .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
 
-                if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
-
-                        println!("Internet disconnect ");
-                        return HttpResponse::BadRequest()
-                                .body(hbr.render("music_error", &RequestError {}).unwrap());
+                if status
+                    .to_owned()
+                    .to_string()
+                    .eq(&"Device is not connected with internet ".to_string())
+                {
+                    println!("Internet disconnect ");
+                    return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
 
-                if status.to_owned().to_string().eq(&"Payment acccept"){
+                if status.to_owned().to_string().eq(&"Payment acccept") {
+                    println!("Payment Accepted ");
+                    println!(
+                        "Result ready! {:?} ",
+                        status.to_owned().to_string().eq(&"Payment acccept")
+                    );
 
-                        println!("Payment Accepted ");
-                        println!("Result ready! {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+                    return HttpResponse::Ok().body(
+                        hbr.render(
+                            "movies",
+                            &MovieRecomend {
+                                title: imovies.name.to_owned().to_string(),
+                                genre_0: imovies.genre[0].to_owned(),
+                                genre_1: imovies.genre[1].to_owned(),
+                                genre_2: imovies.genre[2].to_owned(),
+                                release: imovies.release.to_owned().to_string(),
+                                content: imovies.adult.to_owned(),
+                                watch_min: imovies.watch_min.to_owned() as i64,
+                                official: imovies.official.to_owned().to_string(),
+                            },
+                        )
+                        .unwrap(),
+                    );
+                }
 
+                let _gateway = match direct_gateway(fees).await {
+                    Ok(_) => {
                         return HttpResponse::Ok().body(
                             hbr.render(
                                 "movies",
@@ -604,37 +624,20 @@ async fn search_movies(
                                     content: imovies.adult.to_owned(),
                                     watch_min: imovies.watch_min.to_owned() as i64,
                                     official: imovies.official.to_owned().to_string(),
-                                }).unwrap());
-                }
+                                },
+                            )
+                            .unwrap(),
+                        );
+                    }
 
-                let _gateway = match direct_gateway(fees).await{
-
-                    Ok(_) => {
-
-                        return HttpResponse::Ok().body(
-                            hbr.render("movies",
-                                    &MovieRecomend {
-                            title: imovies.name.to_owned().to_string(),
-                            genre_0: imovies.genre[0].to_owned(),
-                            genre_1: imovies.genre[1].to_owned(),
-                            genre_2: imovies.genre[2].to_owned(),
-                            release: imovies.release.to_owned().to_string(),
-                            content: imovies.adult.to_owned(),
-                            watch_min: imovies.watch_min.to_owned() as i64,
-                            official: imovies.official.to_owned().to_string(),
-                        }).unwrap());
-                    },
-
-                    Err(e) =>{
-
+                    Err(e) => {
                         eprintln!("Error {:?}", e);
                         return HttpResponse::BadRequest()
-                                .body(hbr.render("music_error", &RequestError {}).unwrap());
+                            .body(hbr.render("music_error", &RequestError {}).unwrap());
                     }
                 };
-            }   
+            }
         }
-                
     }
 
     // if condition false then render homepage.
@@ -655,8 +658,6 @@ async fn collection(
     form: web::Form<SearchPlaylist>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
-    
-    
     // parse input values
     let query = &form.name;
 
@@ -669,7 +670,6 @@ async fn collection(
         let expire = gatekeeper::login_expire(ME);
 
         if expire {
-            
             println!("Make sure you have provide correct information or session expired. ");
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -683,7 +683,6 @@ async fn collection(
     // Query = [Lovely morning ] <=>  Record [Lovely-morning.mp3]
 
     unsafe {
-        
         // there may be possible that song store in mp3 format or anyother format.
         match mp_player.contains(".mp3") {
             true => {
@@ -896,7 +895,6 @@ async fn collection(
                         .unwrap(),
                     );
                 } else {
-                    
                     let list = content.get_playlist_by_song(db.to_owned()).await;
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
@@ -983,7 +981,6 @@ async fn newsong_record(
     let email = &form.email;
 
     if lightnode_add.to_owned().eq(&"") {
-        
         println!("Make sure your account linked with light node address for secure transaction. ");
         return HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
     }
@@ -997,7 +994,6 @@ async fn newsong_record(
         let expire = gatekeeper::login_expire(ME);
 
         if expire {
-            
             println!("Make sure you have provide correct information or session expired. ");
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -1013,11 +1009,8 @@ async fn newsong_record(
     // store coverimage, music file on peer network and create content identifier address ;
     // which is then store back in database against session.
     if let Some(down_dir) = UserDirs::new() {
-        
         if let Some(path) = down_dir.download_dir() {
-            
             if !path.join(PathBuf::from(cover_img.to_owned())).exists() {
-                
                 println!("Make sure uploaded picture in Download Directory . ");
                 return HttpResponse::BadRequest()
                     .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -1046,7 +1039,6 @@ async fn newsong_record(
             }
 
             unsafe {
-                
                 let mut record = music::new_beat(
                     music_file.to_owned().to_string(),
                     art.to_owned(),
@@ -1161,23 +1153,26 @@ async fn newsong_record(
                                     .body(hbr.render("music_error", &RequestError {}).unwrap());
                         }
 
-                        if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
-
+                        if status
+                            .to_owned()
+                            .to_string()
+                            .eq(&"Device is not connected with internet ".to_string())
+                        {
                             println!("Internet disconnect ");
                             return HttpResponse::BadRequest()
-                                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+                                .body(hbr.render("music_error", &RequestError {}).unwrap());
                         }
 
-                        if status.to_owned().to_string().eq(&"Payment acccept"){
-
+                        if status.to_owned().to_string().eq(&"Payment acccept") {
                             println!("Payment Accepted ");
-                            println!("Result ready! {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
-        
+                            println!(
+                                "Result ready! {:?} ",
+                                status.to_owned().to_string().eq(&"Payment acccept")
+                            );
                         }
 
-                        let _ = match direct_gateway(fees as u64).await{
-
-                            Ok(_) =>{
+                        let _ = match direct_gateway(fees as u64).await {
+                            Ok(_) => {
                                 return HttpResponse::Ok().body(
                                     hbr.render(
                                         "artists",
@@ -1187,23 +1182,22 @@ async fn newsong_record(
                                             cid_image: cid_image.to_owned().to_string(),
                                             cid_music: cid_music.to_owned().to_string(),
                                             amount: fees.to_string(),
-                                        }).unwrap());
-                            },
+                                        },
+                                    )
+                                    .unwrap(),
+                                );
+                            }
 
                             Err(e) => {
-
-                                    eprintln!("Error {:?}", e);
-                                    return HttpResponse::BadRequest()
-                                            .body(hbr.render("music_error", &RequestError {}).unwrap());        
+                                eprintln!("Error {:?}", e);
+                                return HttpResponse::BadRequest()
+                                    .body(hbr.render("music_error", &RequestError {}).unwrap());
                             }
                         };
-
                     } else {
                         return HttpResponse::BadRequest()
                             .body(hbr.render("music_error", &RequestError {}).unwrap());
                     }
-
-                    
                 }
             }
         }
@@ -1219,15 +1213,12 @@ async fn commenting(hbr: web::Data<Handlebars<'_>>, form: web::Form<Commenting>)
     let comment = &form.icomment;
 
     if let Ok(client) = gatekeeper::mongodb_client().await {
-        
         let db = client.database(music::MUSIC_RECORD);
 
         unsafe {
-            
             // check whether song already exist in a record ; if so then
 
             if let Some(song) = GLOBAL_SONG.get() {
-                
                 // does song remain exist in a record
                 if song.to_owned().to_string().is_empty() {
                     println!("Make sure you don't submit empty form. ");
@@ -1279,10 +1270,8 @@ async fn likes_on_comment(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
         let db = client.database(music::MUSIC_RECORD);
 
         unsafe {
-            
             // get song from record & also user like to listen & engage trough comments & like on it.
             if let Some(song) = GLOBAL_SONG.get() {
-                
                 // check whether song should be empty then throw error
                 if song.to_owned().to_string().is_empty() {
                     println!("Make sure you don't submit empty form. ");
@@ -1328,7 +1317,6 @@ async fn likes_on_comment(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
 // 10. like => post
 #[post("/me/like")]
 async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
-    
     // check whether app have cloud database access
     let client = match gatekeeper::mongodb_client().await {
         Ok(list) => list,
@@ -1339,10 +1327,8 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
     let fees: u64 = 300;
 
     unsafe {
-        
         // get the song from cloud database...
         if let Some(data) = GLOBAL_SONG.get() {
-            
             // check whether data should not empty
             if data.to_owned().to_string().is_empty() {
                 println!("Make sure you don't submit empty form. ");
@@ -1386,32 +1372,34 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                             .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
 
-                if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
-
-                        println!("Internet disconnect ");
-                        return HttpResponse::BadRequest()
-                            .body(hbr.render("music_error", &RequestError {}).unwrap());
+                if status
+                    .to_owned()
+                    .to_string()
+                    .eq(&"Device is not connected with internet ".to_string())
+                {
+                    println!("Internet disconnect ");
+                    return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
 
-                if status.to_owned().to_string().eq(&"Payment acccept"){
+                if status.to_owned().to_string().eq(&"Payment acccept") {
+                    println!("Payment Accepted ");
+                    println!(
+                        "Result ready {:?} ",
+                        status.to_owned().to_string().eq(&"Payment acccept")
+                    );
 
-                        println!("Payment Accepted ");
-                        println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
-
-                        return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
+                    return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
                 }
 
-                let _gateway = match direct_gateway(fees).await{
-
+                let _gateway = match direct_gateway(fees).await {
                     Ok(_) => {
-
                         return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
-                    },
+                    }
 
                     Err(e) => {
-
-                            eprintln!("Error {:?}", e);
-                            return HttpResponse::BadRequest()
+                        eprintln!("Error {:?}", e);
+                        return HttpResponse::BadRequest()
                             .body(hbr.render("music_error", &RequestError {}).unwrap());
                     }
                 };
@@ -1431,7 +1419,6 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
 
                 print!("Content update {:?}", updater);
             } else {
-                
                 // no record should be update..
                 content.like_count = LIKES;
                 content.play_count = PLAY;
@@ -1458,8 +1445,6 @@ async fn sociallink() -> impl Responder {
 
 #[post("/user/sociallink/profile")]
 async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
-    
-    
     // parse input values
     let username = &form.username;
     let email = &form.email;
@@ -1488,37 +1473,42 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
         let db = client.database(music::MUSIC_RECORD);
         let _ = auth.create_record(db).await;
 
-        let mut user = auth::accounts::Info::new("".to_owned().to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string());
-        
+        let mut user = auth::accounts::Info::new(
+            "".to_owned().to_string(),
+            "".to_string(),
+            "".to_string(),
+            "".to_string(),
+            "".to_string(),
+            "".to_string(),
+            "".to_string(),
+            "".to_string(),
+            "".to_string(),
+        );
+
         let minit = user.mongo_init().await;
         let access = user.access_credentials(minit);
-       
-       unsafe{
-        
-            user.set_session(ME.to_owned().to_string());
 
+        unsafe {
+            user.set_session(ME.to_owned().to_string());
         }
 
         let tx_status = user.transaction_status(access.to_owned()).await.unwrap();
-           
-        if tx_status.to_owned().to_string().eq(&"No record"){
 
+        if tx_status.to_owned().to_string().eq(&"No record") {
             eprintln!("Error [No User]");
-        }else if tx_status.to_owned().to_string().eq(&"No bitcoin address provided"){
-
+        } else if tx_status
+            .to_owned()
+            .to_string()
+            .eq(&"No bitcoin address provided")
+        {
             eprintln!("Error [You don't have secure wallet address, Ouuch! You're missing MARVELOUS Experience]");
-        }else{
-
+        } else {
             let _ = MyBitcoinAddr.set(tx_status.to_owned());
         }
-        
     };
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
-
-
-
 
 // 12. poetry => get
 
@@ -1541,7 +1531,6 @@ async fn poetry(
     let action = openai::validator(input.to_string());
 
     if let Ok(take_action) = action {
-        
         if take_action {
             println!("Check your text there may be something which is not acceptable");
             HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
@@ -1551,7 +1540,6 @@ async fn poetry(
     // connect with openai call and complete the process
 
     if input.contains("poetry") {
-        
         let mut opencall: _ = openai::new(
             input.to_string(),
             "".to_string(),
@@ -1570,7 +1558,6 @@ async fn poetry(
         let mut flag_words = responses.to_owned().len().le(&1000);
 
         if flag_lines == true || flag_words == true {
-            
             let client = match gatekeeper::mongodb_client().await {
                 Ok(list) => list,
                 Err(e) => panic!("{:?}", e),
@@ -1580,7 +1567,6 @@ async fn poetry(
             let fees: u64 = 100;
 
             unsafe {
-                
                 let nodeless = INodeless::new(
                     fees,
                     "".to_owned().to_string(),
@@ -1599,44 +1585,54 @@ async fn poetry(
                             .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
 
-                if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
-
+                if status
+                    .to_owned()
+                    .to_string()
+                    .eq(&"Device is not connected with internet ".to_string())
+                {
                     println!("Internet disconnect ");
                     return HttpResponse::BadRequest()
                         .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
 
-                if status.to_owned().to_string().eq(&"Payment acccept"){
-
+                if status.to_owned().to_string().eq(&"Payment acccept") {
                     println!("Payment Accepted ");
-                    println!("Result ready! {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
-                    
-                    return HttpResponse::Ok().body
-                     (hbr.render("translate",&ResponseTranslateForm {
-                                          query: input.to_owned().to_string(),
-                                          response: responses,
-                                      },
-                                  ).unwrap());    
+                    println!(
+                        "Result ready! {:?} ",
+                        status.to_owned().to_string().eq(&"Payment acccept")
+                    );
+
+                    return HttpResponse::Ok().body(
+                        hbr.render(
+                            "translate",
+                            &ResponseTranslateForm {
+                                query: input.to_owned().to_string(),
+                                response: responses,
+                            },
+                        )
+                        .unwrap(),
+                    );
                 }
 
-                let _ = match direct_gateway(fees).await{
-
+                let _ = match direct_gateway(fees).await {
                     Ok(_) => {
-
-                        return HttpResponse::Ok().body
-                        (hbr.render("translate",&ResponseTranslateForm {
-                                          query: input.to_owned().to_string(),
-                                          response: responses,
-                                      },
-                                  ).unwrap());    
-                    }, Err(e) => {
-
+                        return HttpResponse::Ok().body(
+                            hbr.render(
+                                "translate",
+                                &ResponseTranslateForm {
+                                    query: input.to_owned().to_string(),
+                                    response: responses,
+                                },
+                            )
+                            .unwrap(),
+                        );
+                    }
+                    Err(e) => {
                         eprintln!("Error {:?}", e);
                         return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                            .body(hbr.render("music_error", &RequestError {}).unwrap());
                     }
                 };
-
             }
         }
 
@@ -1644,7 +1640,6 @@ async fn poetry(
         flag_words = responses.to_owned().len().ge(&1000);
 
         if flag_words == true {
-            
             let client = match gatekeeper::mongodb_client().await {
                 Ok(list) => list,
                 Err(e) => panic!("{:?}", e),
@@ -1654,7 +1649,6 @@ async fn poetry(
             let fees: u64 = 500;
 
             unsafe {
-                
                 let nodeless = INodeless::new(
                     fees,
                     "".to_owned().to_string(),
@@ -1673,49 +1667,61 @@ async fn poetry(
                                 .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
 
-                if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
-
-                        println!("Internet disconnect ");
-                        return HttpResponse::BadRequest()
-                                .body(hbr.render("music_error", &RequestError {}).unwrap());
+                if status
+                    .to_owned()
+                    .to_string()
+                    .eq(&"Device is not connected with internet ".to_string())
+                {
+                    println!("Internet disconnect ");
+                    return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
 
-                if status.to_owned().to_string().eq(&"Payment acccept".to_string()){
-
-                        println!("Payment Accepted ");
-                        println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
-                        return HttpResponse::Ok().body
-                        (hbr.render("translate",&ResponseTranslateForm {
-                                          query: input.to_owned().to_string(),
-                                          response: responses,
-                                      },
-                                  ).unwrap());        
+                if status
+                    .to_owned()
+                    .to_string()
+                    .eq(&"Payment acccept".to_string())
+                {
+                    println!("Payment Accepted ");
+                    println!(
+                        "Result ready {:?} ",
+                        status.to_owned().to_string().eq(&"Payment acccept")
+                    );
+                    return HttpResponse::Ok().body(
+                        hbr.render(
+                            "translate",
+                            &ResponseTranslateForm {
+                                query: input.to_owned().to_string(),
+                                response: responses,
+                            },
+                        )
+                        .unwrap(),
+                    );
                 }
 
-                let _ = match direct_gateway(fees).await{
-
+                let _ = match direct_gateway(fees).await {
                     Ok(_) => {
-
-                        return HttpResponse::Ok().body
-                        (hbr.render("translate",&ResponseTranslateForm {
-                                          query: input.to_owned().to_string(),
-                                          response: responses,
-                                      },
-                                  ).unwrap());    
-                    }, Err(e) => {
-
+                        return HttpResponse::Ok().body(
+                            hbr.render(
+                                "translate",
+                                &ResponseTranslateForm {
+                                    query: input.to_owned().to_string(),
+                                    response: responses,
+                                },
+                            )
+                            .unwrap(),
+                        );
+                    }
+                    Err(e) => {
                         eprintln!("Error {:?}", e);
                         return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                            .body(hbr.render("music_error", &RequestError {}).unwrap());
                     }
-                };        
+                };
             }
-
-                
         }
-
     }
-        
+
     // there may be possible that gpt access is not working properly or bad formatting then throw error
     println!("Check your text there may be something which is not acceptable");
     HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap())
@@ -1741,8 +1747,6 @@ async fn search_shows(
     form: web::Form<SearchMoviesPlaylist>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
-    
-    
     // parse input values
     let query = &form.name;
     let year = &form.year;
@@ -1752,7 +1756,6 @@ async fn search_shows(
         let expire = gatekeeper::login_expire(ME);
 
         if expire {
-            
             println!("Make sure you have provide correct information or session expired. ");
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -1796,7 +1799,6 @@ async fn search_shows(
         let fees: u64 = 100;
 
         unsafe {
-            
             let nodeless = INodeless::new(
                 fees,
                 "".to_owned().to_string(),
@@ -1815,59 +1817,71 @@ async fn search_shows(
                         .body(hbr.render("music_error", &RequestError {}).unwrap());
             }
 
-            if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
-
+            if status
+                .to_owned()
+                .to_string()
+                .eq(&"Device is not connected with internet ".to_string())
+            {
                 println!("Internet disconnect ");
                 return HttpResponse::BadRequest()
                     .body(hbr.render("music_error", &RequestError {}).unwrap());
             }
 
-            if status.to_owned().to_string().eq(&"Payment acccept"){
-
+            if status.to_owned().to_string().eq(&"Payment acccept") {
                 println!("Payment Accepted ");
-                println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
-                
-                return HttpResponse::Ok().body(hbr.render("tv", &MovieRecomend {
-                                                                title: imovies.name.to_owned(),
-                                                                genre_0: imovies.genre[0].to_owned(),
-                                                                genre_1: imovies.genre[1].to_owned(),
-                                                                genre_2: imovies.genre[2].to_owned(),
-                                                                release: imovies.release.to_owned().to_string(),
-                                                                content: imovies.adult.to_owned(),
-                                                                watch_min: imovies.watch_min.to_owned() as i64,
-                                                                official: imovies.official.to_owned(),
-                                                            }).unwrap());        
+                println!(
+                    "Result ready {:?} ",
+                    status.to_owned().to_string().eq(&"Payment acccept")
+                );
+
+                return HttpResponse::Ok().body(
+                    hbr.render(
+                        "tv",
+                        &MovieRecomend {
+                            title: imovies.name.to_owned(),
+                            genre_0: imovies.genre[0].to_owned(),
+                            genre_1: imovies.genre[1].to_owned(),
+                            genre_2: imovies.genre[2].to_owned(),
+                            release: imovies.release.to_owned().to_string(),
+                            content: imovies.adult.to_owned(),
+                            watch_min: imovies.watch_min.to_owned() as i64,
+                            official: imovies.official.to_owned(),
+                        },
+                    )
+                    .unwrap(),
+                );
             }
 
-            let _ = match direct_gateway(fees).await{
-
-                Ok(_) =>{
-
-                    return HttpResponse::Ok().body(hbr.render("tv", &MovieRecomend {
-                        title: imovies.name.to_owned(),
-                        genre_0: imovies.genre[0].to_owned(),
-                        genre_1: imovies.genre[1].to_owned(),
-                        genre_2: imovies.genre[2].to_owned(),
-                        release: imovies.release.to_owned().to_string(),
-                        content: imovies.adult.to_owned(),
-                        watch_min: imovies.watch_min.to_owned() as i64,
-                        official: imovies.official.to_owned(),
-                    }).unwrap());
-                },
+            let _ = match direct_gateway(fees).await {
+                Ok(_) => {
+                    return HttpResponse::Ok().body(
+                        hbr.render(
+                            "tv",
+                            &MovieRecomend {
+                                title: imovies.name.to_owned(),
+                                genre_0: imovies.genre[0].to_owned(),
+                                genre_1: imovies.genre[1].to_owned(),
+                                genre_2: imovies.genre[2].to_owned(),
+                                release: imovies.release.to_owned().to_string(),
+                                content: imovies.adult.to_owned(),
+                                watch_min: imovies.watch_min.to_owned() as i64,
+                                official: imovies.official.to_owned(),
+                            },
+                        )
+                        .unwrap(),
+                    );
+                }
                 Err(e) => {
-
                     eprintln!("Error {:?}", e);
                     return HttpResponse::BadRequest()
-                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
             };
         }
-        
     }
-       
+
     println!("Unfortunately Movie Title is not found");
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
-    
 }
 
 // 16 search_epic => post
@@ -1877,9 +1891,6 @@ async fn search_epic(
     form: web::Form<EpisodeSearch>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
-
-
-
     // which episode of a season you like to watch this weekend? such as ["Run"].
     let qsearch = &form.name;
 
@@ -1891,7 +1902,6 @@ async fn search_epic(
 
     // get season title like "Designated Surivor"
     if let Some(query) = SEARCHEPIC.get() {
-        
         // get season release
         if let Some(year) = SEASONRELEASE.get() {
             // convert rellease year into numeric format
@@ -1967,8 +1977,6 @@ async fn search_artist(
     form: web::Form<SearchArtist>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
- 
- 
     // search for artist ["Akon"]
     let asearch = &form.name;
 
@@ -2102,8 +2110,6 @@ async fn search_emotion(
     form: web::Form<SearchEmotion>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
-    
-    
     let emo = &form.name;
 
     // warning : search emotion functionality allow you to listen base on your emotion. There maybe possible user are depressed then no song will be played;
@@ -2147,7 +2153,6 @@ async fn search_emotion(
 
         // if record return 0 then it throw error because no record will return against query...
         if records.len().eq(&0) {
-            
             println!(" This emotion has no such playlist , hopefully next time .. ");
             return HttpResponse::Ok().body(hbr.render("collection", &Homepage {}).unwrap());
         }
@@ -2171,7 +2176,6 @@ async fn search_emotion(
 
         // data filter process initate
         for data in it.by_ref() {
-            
             let song = data.song.clone();
             let session = data.session.clone();
             let cid_icontent = data.cid_icontent.clone();
@@ -2228,35 +2232,35 @@ async fn search_emotion(
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
 
-        if status.to_owned().to_string().eq(&"Device is not connected with internet ".to_string()){
-
-             println!("Internet disconnect ");
-             return HttpResponse::BadRequest()
-                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+        if status
+            .to_owned()
+            .to_string()
+            .eq(&"Device is not connected with internet ".to_string())
+        {
+            println!("Internet disconnect ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
 
-        if status.to_owned().to_string().eq(&"Payment acccept"){
-
+        if status.to_owned().to_string().eq(&"Payment acccept") {
             println!("Payment Accepted ");
-            println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
-            return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());        
+            println!(
+                "Result ready {:?} ",
+                status.to_owned().to_string().eq(&"Payment acccept")
+            );
+            return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
         }
 
-
-        let _ = match direct_gateway(fees).await{
-
+        let _ = match direct_gateway(fees).await {
             Ok(_) => {
-
                 return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
-            },
+            }
             Err(e) => {
-
-                eprintln!("Error {:?}",e);
+                eprintln!("Error {:?}", e);
                 return HttpResponse::BadRequest()
                     .body(hbr.render("music_error", &RequestError {}).unwrap());
             }
         };
-
     }
 }
 
@@ -2273,8 +2277,6 @@ async fn add_virtual_book(
     form: web::Form<VirtualBook>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
-    
-    
     // input parse
 
     let title = &form.name;
@@ -2285,12 +2287,10 @@ async fn add_virtual_book(
     let publisher = &form.publisher;
 
     unsafe {
-        
         // validate user session
         let expire = gatekeeper::login_expire(ME);
 
         if expire {
-            
             println!(" User session expire {:?}", expire);
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -2300,7 +2300,6 @@ async fn add_virtual_book(
     // check whether title return empty or not . if condition is true (empty) then throw error.
 
     if title.to_owned().to_string().eq(&"") {
-        
         println!("Tile should not be empty ");
         return HttpResponse::Ok().body(hbr.render("collection", &Homepage {}).unwrap());
     }
@@ -2308,14 +2307,12 @@ async fn add_virtual_book(
     // check whether author return empty or not . if condition is true (empty) then throw error.
 
     if author.to_owned().to_string().eq(&"") {
-        
         println!("Author should not be empty ");
         return HttpResponse::Ok().body(hbr.render("collection", &Homepage {}).unwrap());
     }
 
     // check whether isbn return empty or not . if condition is true (empty) then throw error.
     if isbn.to_owned().to_string().eq(&"") {
-        
         println!("ISBN should not be empty ");
         return HttpResponse::Ok().body(hbr.render("collection", &Homepage {}).unwrap());
     }
@@ -2323,21 +2320,18 @@ async fn add_virtual_book(
     // check whether description return empty or not . if condition is true (empty) then throw error.
 
     if description.to_owned().to_string().eq(&"") {
-        
         println!("Description should not be empty ");
         return HttpResponse::Ok().body(hbr.render("collection", &Homepage {}).unwrap());
     }
 
     // check whether publisher return empty or not . if condition is true (empty) then throw error.
     if publisher.to_owned().to_string().eq(&"") {
-        
         println!("Publisher should not be empty ");
         return HttpResponse::Ok().body(hbr.render("collection", &Homepage {}).unwrap());
     }
 
     // check whether pages return 0 or negative value . if condition is true (empty) then throw error.
     if pages.to_owned().eq(&0) && pages.to_owned().is_negative() {
-        
         println!("Pages should not be 0 or negative ");
         return HttpResponse::Ok().body(hbr.render("collection", &Homepage {}).unwrap());
     }
@@ -2345,48 +2339,50 @@ async fn add_virtual_book(
     let mut instance = ipfs_net::IpfsBucket::new(title.to_owned().to_string());
     let path = instance.get_file_path();
 
-    if path.to_owned().to_string().eq(&""){
-
+    if path.to_owned().to_string().eq(&"") {
         // error report no such file exist in your machine download directory
-        println!("Book is not exist in download directory {:?} ", path.to_owned().to_string().eq(&""));
+        println!(
+            "Book is not exist in download directory {:?} ",
+            path.to_owned().to_string().eq(&"")
+        );
         return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
     }
 
-    
     let client = instance.pinta_client();
     let publish_hash = instance.publish_book(client, path.to_owned()).await;
-    
+
     let mongoclient = pinata_ipfs::ipfs_net::Books::mongo_init().await;
 
     let hash = publish_hash.unwrap();
 
-    let mut books = pinata_ipfs::ipfs_net::Books::new(title.to_string(), author.to_string(), publisher.to_string(), *pages as u16, description.to_string(), hash.ipfs_hash.to_string());
+    let mut books = pinata_ipfs::ipfs_net::Books::new(
+        title.to_string(),
+        author.to_string(),
+        publisher.to_string(),
+        *pages as u16,
+        description.to_string(),
+        hash.ipfs_hash.to_string(),
+    );
 
     let db = books.access_credentials(mongoclient.to_owned());
 
-    unsafe{
-        
-       books.set_session(ME.to_owned().to_string());
+    unsafe {
+        books.set_session(ME.to_owned().to_string());
     }
 
-    let book_status = match books.create_book_doc(db).await{
-
-        Ok(status ) => {
-            status
-        },
+    let book_status = match books.create_book_doc(db).await {
+        Ok(status) => status,
         Err(e) => {
-
             println!("Error {:?} ", e);
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
     };
 
-    if book_status.to_owned().to_string().eq(&""){
-
+    if book_status.to_owned().to_string().eq(&"") {
         // active payment gateway for further transactions
-        
+
         let client = match gatekeeper::mongodb_client().await {
             Ok(list) => list,
             Err(e) => panic!("{:?}", e),
@@ -2399,7 +2395,9 @@ async fn add_virtual_book(
             fees,
             "".to_owned().to_string(),
             fees as f64,
-            "reader borrow masterpiece and pay for alchemy".to_owned().to_string(),
+            "reader borrow masterpiece and pay for alchemy"
+                .to_owned()
+                .to_string(),
             books.get_session().await,
             lightnode_net::TransactionStatus::Pending,
             "".to_string(),
@@ -2413,30 +2411,32 @@ async fn add_virtual_book(
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
 
-        if status.to_owned().to_string().eq(&"Device is not connected with internet "){
-
-             println!("Internet disconnect ");
-             return HttpResponse::BadRequest()
-                    .body(hbr.render("music_error", &RequestError {}).unwrap());
+        if status
+            .to_owned()
+            .to_string()
+            .eq(&"Device is not connected with internet ")
+        {
+            println!("Internet disconnect ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
 
-        if status.to_owned().to_string().eq(&"Payment acccept"){
-
+        if status.to_owned().to_string().eq(&"Payment acccept") {
             println!("Payment Accepted ");
-            println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
+            println!(
+                "Result ready {:?} ",
+                status.to_owned().to_string().eq(&"Payment acccept")
+            );
 
-            return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());        
+            return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
         }
 
-        let _ = match direct_gateway(fees).await{
-            
-            Ok(_) =>{
-
+        let _ = match direct_gateway(fees).await {
+            Ok(_) => {
                 return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
-            },
+            }
 
             Err(e) => {
-
                 eprintln!("Error {:?}", e);
                 return HttpResponse::BadRequest()
                     .body(hbr.render("music_error", &RequestError {}).unwrap());
@@ -2447,18 +2447,14 @@ async fn add_virtual_book(
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
-
 #[get("/user/sociallink/profile/edit")]
-async fn edit() -> impl Responder{
-
+async fn edit() -> impl Responder {
     NamedFile::open_async("./static/profile.html").await
 }
 
 #[post("/user/sociallink/profile/edit/{your}")]
-async fn details(
-    form: web::Form<EditAccount>, 
-    hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
-
+async fn details(form: web::Form<EditAccount>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
     let name = &form.name;
     let lastname = &form.lastname;
     let city = &form.city;
@@ -2467,7 +2463,15 @@ async fn details(
     let baddress = &form.bitcoin;
     let work = &form.work;
     let company = &form.cname;
-    let university = &form.sname;  
+    let university = &form.sname;
+
+    let address = &form.address;
+    let fblink = &form.fblink;
+    let instalink = &form.instalink;
+    let xlink = &form.xlink;
+    let youlink = &form.youlink;
+
+    let change_avatar = &form.old_digitalverse;
 
 
     // check whether user login through user credentials.
@@ -2475,251 +2479,289 @@ async fn details(
         let expire = gatekeeper::login_expire(ME.to_owned());
 
         if expire {
-            
             println!("Make sure your account exist in our database ");
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
     }
 
-    if name.to_owned().to_string().eq(&""){
-
+    if name.to_owned().to_string().eq(&"") {
         println!("Make sure your first name should not be empty ");
-            return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
     }
 
-
-    if lastname.to_owned().to_string().eq(&""){
-
+    if lastname.to_owned().to_string().eq(&"") {
         println!("Make sure your last name should not be empty ");
-            return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
     }
 
-    if baddress.to_owned().to_string().eq(&""){
-
+    if baddress.to_owned().to_string().eq(&"") {
         println!("Make sure your bitcoin address should not be empty ");
-            return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
     }
 
+    let mut my_info = auth::accounts::Info::new(
+        name.to_owned().to_string(),
+        lastname.to_owned().to_string(),
+        university.to_owned().to_string(),
+        degree.to_owned().to_string(),
+        company.to_owned().to_string(),
+        work.to_owned().to_string(),
+        city.to_owned().to_string(),
+        country.to_owned().to_string(),
+        baddress.to_owned().to_string(),
+    );
 
-    let mut my_info = auth::accounts::Info::new(name.to_owned().to_string(), lastname.to_owned().to_string(), university.to_owned().to_string(), degree.to_owned().to_string(), company.to_owned().to_string(), work.to_owned().to_string(),  city.to_owned().to_string(), country.to_owned().to_string(), baddress.to_owned().to_string());
-
-    unsafe{
-        
+    unsafe {
         my_info.set_session(ME.to_owned().to_string());
     }
 
     let mongo = my_info.mongo_init().await;
     let cred = my_info.access_credentials(mongo);
-    let _record = match my_info.create_record_doc(cred).await{
-
-        Ok(r) => {
-            r
-        },
+    let _record = match my_info.create_record_doc(cred.to_owned()).await {
+        Ok(r) => r,
         Err(e) => {
-
             println!("Error {:?} ", e);
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
     };
 
-    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+    if address.to_owned().to_string().ne(&"") || fblink.to_owned().to_string().ne(&"") || instalink.to_owned().to_string().ne(&"") || xlink.to_owned().to_string().ne(&"") || youlink.to_owned().to_string().ne(&"")  || change_avatar.to_owned().to_string().ne(&"") {
 
+        my_info.address = address.to_owned();
+        my_info.fblink = fblink.to_owned();
+        my_info.instalink = instalink.to_owned();
+        my_info.xlink = xlink.to_owned();
+        my_info.youlink = youlink.to_owned();
+        my_info.new_digital = change_avatar.to_owned();
+
+        let _ = match my_info.update_personal_details(cred.to_owned()).await{
+
+            Ok(_) => {println!(" your information update");},
+            Err(_) => {
+
+                return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+        };        
+    }
+
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
 #[get("/user/sociallink/profile/search")]
-async fn search() -> impl Responder{
-
+async fn search() -> impl Responder {
     NamedFile::open_async("./static/search_person.html").await
 }
 
 #[post("/user/sociallink/profile/search/{your}/{friend}")]
-async fn searching(
-    form: web::Form<SearchParam>, 
-    hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
-
-
-        // check whether user login through user credentials.
+async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    // check whether user login through user credentials.
     unsafe {
         let expire = gatekeeper::login_expire(ME.to_owned());
 
         if expire {
-            
             println!("Make sure your account exist in our database ");
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
     }
 
-    
-        // initalization & declaration 
-        let query = &form.query;
-        let mut search_q : Vec::<String> = Vec::<String>::new();
-        let mut search_resp : Searched = Searched { name: search_q.to_owned(), counter: 0.to_string(), leads: 0.to_string(), follower: 0.to_string(), session: "".to_string()};
-        let mut tofind = auth::accounts::Info::new(query.to_owned().to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string(),"".to_string());
-        
-        let minit = tofind.mongo_init().await;
-        let access = tofind.access_credentials(minit);
-       
-       unsafe{
-        
-            tofind.set_session(ME.to_owned().to_string());
+    // initalization & declaration
+    let query = &form.query;
+    let mut search_q: Vec<String> = Vec::<String>::new();
+    let mut search_resp: Searched = Searched {
+        name: search_q.to_owned(),
+        counter: 0.to_string(),
+        leads: 0.to_string(),
+        follower: 0.to_string(),
+        session: "".to_string(),
+    };
+    let mut tofind = auth::accounts::Info::new(
+        query.to_owned().to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+    );
 
+    let minit = tofind.mongo_init().await;
+    let access = tofind.access_credentials(minit);
+
+    unsafe {
+        tofind.set_session(ME.to_owned().to_string());
+    }
+
+    let resp = tofind
+        .find_people_with_name(access.to_owned())
+        .await
+        .unwrap();
+
+    let count = tofind.count_people(access.to_owned()).await.unwrap();
+
+    if resp.is_empty() {
+        println!("No record exist in our database.. try different keyword ");
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
+
+    if resp.len().to_owned().ge(&1) {
+        let mut iterate = resp.into_iter();
+
+        for entity in iterate.by_ref() {
+            search_q.push(entity.firstname + &entity.lastname);
+            search_resp.session = entity.session.clone();
         }
+    }
 
-        let resp = tofind.find_people_with_name(access.to_owned()).await.unwrap();
+    search_resp.name = search_q.to_owned();
+    search_resp.counter = count.to_owned().to_string();
+    search_resp.leads = 0.to_owned().to_string();
+    search_resp.follower = 0.to_owned().to_string();
 
-        let count = tofind.count_people(access.to_owned()).await.unwrap();
-        
+    HttpResponse::Ok().body(hbr.render("person", &search_resp).unwrap())
+}
 
-        if resp.is_empty(){
+#[post("/user/library/books/{find}/{book}/{record}/{accept}")]
 
-            println!("No record exist in our database.. try different keyword ");
+async fn search_book(form: web::Form<Booksearch>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    let search_book = &form.bookname;
+
+    if search_book.to_owned().to_string().eq(&"") {
+        println!(
+            "Empty keyword {:?} ",
+            search_book.to_owned().to_string().eq(&"")
+        );
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
+
+    let mut books = pinata_ipfs::ipfs_net::Books::new(
+        search_book.to_owned().to_string(),
+        "".to_string(),
+        "".to_string(),
+        0 as u16,
+        "".to_string(),
+        "".to_string(),
+    );
+    let mongoclient = pinata_ipfs::ipfs_net::Books::mongo_init().await;
+
+    let db = books.access_credentials(mongoclient.to_owned());
+
+    unsafe {
+        books.set_session(ME.to_owned().to_string());
+    }
+
+    let record = match books.find_book_for_me(db.to_owned()).await {
+        Ok(r) => r,
+        Err(e) => {
+            println!("Error {:?}", e);
             return HttpResponse::BadRequest()
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
+    };
 
-        if resp.len().to_owned().ge(&1){
+    let client = match gatekeeper::mongodb_client().await {
+        Ok(list) => list,
+        Err(e) => panic!("{:?}", e),
+    };
 
-            let mut iterate = resp.into_iter();
+    let db = client.database(music::MUSIC_RECORD);
+    let fees: u64 = books.on_self() as u64;
 
-            for entity in iterate.by_ref(){
+    let nodeless = INodeless::new(
+        fees,
+        "".to_owned().to_string(),
+        fees as f64,
+        "reader borrow masterpiece and pay for alchemy"
+            .to_owned()
+            .to_string(),
+        books.get_session().await,
+        lightnode_net::TransactionStatus::Pending,
+        "".to_string(),
+    );
 
-                search_q.push(entity.firstname + &entity.lastname);
-                search_resp.session = entity.session.clone();
-            }
-            
-        }
-        
-        search_resp.name = search_q.to_owned();
-        search_resp.counter = count.to_owned().to_string();
-        search_resp.leads = 0.to_owned().to_string();
-        search_resp.follower = 0.to_owned().to_string();
-        
-
-        HttpResponse::Ok()
-                .body(hbr.render("person", &search_resp).unwrap())
-    }
-
-    #[post("/user/library/books/{find}/{book}/{record}/{accept}")]
-    
-    async fn search_book(form: web::Form<Booksearch>, 
-            hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
-
-            let search_book = &form.bookname;
-
-            if search_book.to_owned().to_string().eq(&""){
-
-                println!("Empty keyword {:?} ",  search_book.to_owned().to_string().eq(&""));
-                return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-            }
-
-            let mut books = pinata_ipfs::ipfs_net::Books::new(search_book.to_owned().to_string(), "".to_string(), "".to_string(), 0 as u16, "".to_string(), "".to_string());
-            let mongoclient = pinata_ipfs::ipfs_net::Books::mongo_init().await;
-
-            let db = books.access_credentials(mongoclient.to_owned());
-
-            unsafe{
-        
-                books.set_session(ME.to_owned().to_string());
-            }
-
-                let record = match books.find_book_for_me(db.to_owned()).await{
-                Ok(r) => {r},
-                Err(e) =>{
-
-                    println!("Error {:?}", e);
-                    return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
-                };
-
-
-                let client = match gatekeeper::mongodb_client().await {
-                        Ok(list) => list,
-                        Err(e) => panic!("{:?}", e),
-                };
-
-                let db = client.database(music::MUSIC_RECORD);
-                let fees: u64 = books.on_self() as u64;
-
-                let nodeless = INodeless::new(
-                    fees,
-                    "".to_owned().to_string(),
-                    fees as f64,
-                    "reader borrow masterpiece and pay for alchemy".to_owned().to_string(),
-                    books.get_session().await,
-                    lightnode_net::TransactionStatus::Pending,
-                    "".to_string(),
-                );
-
-                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
+    let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+    if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
 
                     println!("Nodeless Bitcoin Gateway down");
                     return HttpResponse::BadRequest()
                                 .body(hbr.render("music_error", &RequestError {}).unwrap());
                 }
 
-                if status.to_owned().to_string().eq(&"Device is not connected with internet "){
-
-                    println!("Internet disconnect ");
-                    return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
-
-                if status.to_owned().to_string().eq(&"Payment acccept"){
-
-                    println!("Payment Accepted ");
-                    println!("Result ready {:?} ", status.to_owned().to_string().eq(&"Payment acccept"));
-
-                    return HttpResponse::Ok().
-                        body(hbr.render("book", &GetBook {
-                            name : record.book.to_owned().to_string(),
-                            session : record.coonect.session.to_string(),
-                            author : record.author.to_owned().to_string(),
-                            publisher : record.publisher.to_owned().to_string(),
-                            ipfs_link : "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned() + &record.ipfs_link.to_owned().to_string(),
-                            description : record.description.to_owned().to_string(),
-                            page : record.page.to_owned().to_string()
-                        }).unwrap());
-                }
-                
-                let _ = match direct_gateway(fees).await{
-
-                    Ok(_) => {
-
-                        return HttpResponse::Ok().
-                        body(hbr.render("book", &GetBook {
-                            name : record.book.to_owned().to_string(),
-                            session : record.coonect.session.to_string(),
-                            author : record.author.to_owned().to_string(),
-                            publisher : record.publisher.to_owned().to_string(),
-                            ipfs_link : "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned() + &record.ipfs_link.to_owned().to_string(),
-                            description : record.description.to_owned().to_string(),
-                            page : record.page.to_owned().to_string()
-                        }).unwrap());
-                    }, Err(e) => {
-
-                        eprintln!("Error {:?}", e);
-                        return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-                    }
-                };
-
-
+    if status
+        .to_owned()
+        .to_string()
+        .eq(&"Device is not connected with internet ")
+    {
+        println!("Internet disconnect ");
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
     }
-    
+
+    if status.to_owned().to_string().eq(&"Payment acccept") {
+        println!("Payment Accepted ");
+        println!(
+            "Result ready {:?} ",
+            status.to_owned().to_string().eq(&"Payment acccept")
+        );
+
+        return HttpResponse::Ok().body(
+            hbr.render(
+                "book",
+                &GetBook {
+                    name: record.book.to_owned().to_string(),
+                    session: record.coonect.session.to_string(),
+                    author: record.author.to_owned().to_string(),
+                    publisher: record.publisher.to_owned().to_string(),
+                    ipfs_link: "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned()
+                        + &record.ipfs_link.to_owned().to_string(),
+                    description: record.description.to_owned().to_string(),
+                    page: record.page.to_owned().to_string(),
+                },
+            )
+            .unwrap(),
+        );
+    }
+
+    let _ = match direct_gateway(fees).await {
+        Ok(_) => {
+            return HttpResponse::Ok().body(
+                hbr.render(
+                    "book",
+                    &GetBook {
+                        name: record.book.to_owned().to_string(),
+                        session: record.coonect.session.to_string(),
+                        author: record.author.to_owned().to_string(),
+                        publisher: record.publisher.to_owned().to_string(),
+                        ipfs_link: "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/"
+                            .to_owned()
+                            + &record.ipfs_link.to_owned().to_string(),
+                        description: record.description.to_owned().to_string(),
+                        page: record.page.to_owned().to_string(),
+                    },
+                )
+                .unwrap(),
+            );
+        }
+        Err(e) => {
+            eprintln!("Error {:?}", e);
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    };
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    
-    
     // These lines allow to read secrets that is require to complete the process.
     dotenv().ok();
     let _token = ENV_TOKEN.set(
@@ -2788,18 +2830,14 @@ async fn main() -> std::io::Result<()> {
 /// User will deposit requested satoshi's and automatically proceed the process.
 
 pub async fn payment_gateway(mut nodeless: INodeless, db: Database) -> std::io::Result<String> {
-    
     let accept: bool = false;
 
     let node = nodeless.create_nodeless_client().await;
 
     let status = node.to_owned().get_server_status().await;
 
-
     if let Ok(digital_store) = nodeless.connect_with_store(&node.to_owned()).await {
-        
         if digital_store.name.is_empty() {
-            
             println!("Make sure you connect with internet {:?} ", status);
             return Ok("Device is not connected with internet ".to_string());
         }
@@ -2807,7 +2845,6 @@ pub async fn payment_gateway(mut nodeless: INodeless, db: Database) -> std::io::
         let _ledger = nodeless.from_txs(db.to_owned()).await;
 
         if let Ok(block) = nodeless.lightnode_store_inovice(&node.to_owned()).await {
-            
             let data = block.id.unwrap();
             nodeless.lid = data.to_owned();
 
@@ -2818,13 +2855,11 @@ pub async fn payment_gateway(mut nodeless: INodeless, db: Database) -> std::io::
             let _ = nodeless.update_tnx(db.to_owned()).await;
 
             if let Ok(store_status) = nodeless.store_status(&node).await {
-                
                 println!("Inovice generate {:?}", store_status);
 
                 let tx = nodeless.get_store_tnx(&node).await;
 
                 if !tx.is_empty() && !accept {
-                    
                     println!("Transaction status {:?}", tx[0].status);
 
                     nodeless.status = lightnode_net::TransactionStatus::Deposit;
@@ -2839,9 +2874,15 @@ pub async fn payment_gateway(mut nodeless: INodeless, db: Database) -> std::io::
 
                     let _ = nodeless.update_tnx(db.to_owned()).await;
 
-                    println!("Sorry Gateway has closed and kindly retry this operation {:?}",tx[0]);
+                    println!(
+                        "Sorry Gateway has closed and kindly retry this operation {:?}",
+                        tx[0]
+                    );
                     println!("visit https://nodeless.io/app/stores/dashboard/e1be7458-9364-4f40-8de0-22a3d5af8db5/ for further information");
-                    panic!("Payment gateway has closed retry this operation {:?}",nodeless.status);
+                    panic!(
+                        "Payment gateway has closed retry this operation {:?}",
+                        nodeless.status
+                    );
                 }
             }
         }
@@ -2850,89 +2891,73 @@ pub async fn payment_gateway(mut nodeless: INodeless, db: Database) -> std::io::
     Ok("Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string())
 }
 
-
 #[derive(Debug)]
-enum BitcoinNetworkErrorReport{
-
+enum BitcoinNetworkErrorReport {
     EmptyBitAddress,
     DuplicateBitAddress,
     InvalidBitAddress,
     TxFail,
-    None
+    None,
 }
 
-async fn direct_gateway(fees : u64) -> Result<(), BitcoinNetworkErrorReport>{
+async fn direct_gateway(fees: u64) -> Result<(), BitcoinNetworkErrorReport> {
+    let addr = MyBitcoinAddr.get().unwrap();
 
-        let addr = MyBitcoinAddr.get().unwrap();
+    if addr.to_owned().to_string().eq(&"") {
+        println!("Error your don't have bitcoin address");
+        return Err(BitcoinNetworkErrorReport::EmptyBitAddress);
+    } else {
+        let mut bitpay = l2net::bitpayee::Bitenigma::new(addr.to_owned().to_string(), fees);
+        let addr_val = bitpay.address_valid().unwrap();
 
-        if addr.to_owned().to_string().eq(&""){
-
-                    println!("Error your don't have bitcoin address");
-                    return Err(BitcoinNetworkErrorReport::EmptyBitAddress);
-        }else{
-
-            let mut bitpay = l2net::bitpayee::Bitenigma::new(addr.to_owned().to_string(), fees);
-            let addr_val = bitpay.address_valid().unwrap();
-
-            match addr_val{
-                        
-                        l2net::bitpayee::BitenigmaError::EmptyBitAddress("This user have not provide bitcoin address") => {
-
-                            println!("Error your don't have bitcoin address");
-                            return Err(BitcoinNetworkErrorReport::EmptyBitAddress);
-                        },
-
-                        l2net::bitpayee::BitenigmaError::DuplicateAddress("This address is not Allowed ") => {
-
-                            println!("Error this address already register by someone");
-                            return Err(BitcoinNetworkErrorReport::DuplicateBitAddress);
-                        },
-
-                        l2net::bitpayee::BitenigmaError::InvalidAddressIssue("This address is invalid adddress") => {
-
-                            println!("Error this address is not valid address");
-                            return Err(BitcoinNetworkErrorReport::InvalidBitAddress);
-                        },
-
-                        l2net::bitpayee::BitenigmaError::None => {
-
-                            let sender = bitpay.pay_handshake().await;
-                            
-                            println!("Sender Inovice {:?}", sender);
-
-                            if bitpay.valid_sender(sender){
-
-                                println!("transaction process complete");
-                            
-                            }else{
-
-
-                                println!("Error transaction failed");
-                                return Err(BitcoinNetworkErrorReport::TxFail);
-                            }
-
-                            let receiver = bitpay.rece_handshake().await;
-
-                            println!("Receiver Inovice {:?}", receiver);
-
-                            if bitpay.valid_receiver(receiver){
-
-                                println!("transaction process complete");
-                            
-                            }else{
-
-
-                                println!("Error transaction failed");
-                                return Err(BitcoinNetworkErrorReport::TxFail);
-                            
-                            }
-                        },
-
-                        _=>{
-
-                            todo!();
-                        }
-                    }   
-                Ok(())
+        match addr_val {
+            l2net::bitpayee::BitenigmaError::EmptyBitAddress(
+                "This user have not provide bitcoin address",
+            ) => {
+                println!("Error your don't have bitcoin address");
+                return Err(BitcoinNetworkErrorReport::EmptyBitAddress);
             }
+
+            l2net::bitpayee::BitenigmaError::DuplicateAddress("This address is not Allowed ") => {
+                println!("Error this address already register by someone");
+                return Err(BitcoinNetworkErrorReport::DuplicateBitAddress);
+            }
+
+            l2net::bitpayee::BitenigmaError::InvalidAddressIssue(
+                "This address is invalid adddress",
+            ) => {
+                println!("Error this address is not valid address");
+                return Err(BitcoinNetworkErrorReport::InvalidBitAddress);
+            }
+
+            l2net::bitpayee::BitenigmaError::None => {
+                let sender = bitpay.pay_handshake().await;
+
+                println!("Sender Inovice {:?}", sender);
+
+                if bitpay.valid_sender(sender) {
+                    println!("transaction process complete");
+                } else {
+                    println!("Error transaction failed");
+                    return Err(BitcoinNetworkErrorReport::TxFail);
+                }
+
+                let receiver = bitpay.rece_handshake().await;
+
+                println!("Receiver Inovice {:?}", receiver);
+
+                if bitpay.valid_receiver(receiver) {
+                    println!("transaction process complete");
+                } else {
+                    println!("Error transaction failed");
+                    return Err(BitcoinNetworkErrorReport::TxFail);
+                }
+            }
+
+            _ => {
+                todo!();
+            }
+        }
+        Ok(())
+    }
 }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>Roombot</title>
@@ -30,30 +30,175 @@
             <li><a href="/user/sociallink/profile/search"><span class="uk-margin-small-right" uk-icon="icon: search"></span> Search <span class="uk-badge"> new </span> </a> </li>
         </ul>
     </div>
-</div>
+ </div>
 
-    <div class="uk-container">
+ <div class="uk-container">
         <form method="post" action="/user/sociallink/profile/edit/{your}">
-            
             <input class="uk-input" type="text"  placeholder="Name ...." name="name"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 9pc;left: 32pc;">
-            <input class="uk-input" type="text"  placeholder="Last Name ...." name="lastname"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 9pc;left: 35pc;">
-            <input class="uk-input" type="text"  placeholder="School/University name ...." name="sname"  style="width: 21pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 14pc;left: 8pc;">
+            <input class="uk-input" type="text"  placeholder="Last Name ...." name="lastname"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 9pc;left: 41pc;">
+            <input class="uk-input" type="text"  placeholder="School/University name ...." name="sname"  style="width: 21pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 14.2pc;left: 8pc;">
             <input class="uk-input" type="text"  placeholder="Associate Highest Degree ...." name="degree"  style="width: 21pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 18pc;left: -13pc;">
             <input class="uk-input" type="text"  placeholder="Company Name ...." name="cname"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 20pc;left: 33pc;">
             <input class="uk-input" type="text"  placeholder="Career ...." name="work"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 20pc;left: 42pc;">
             <input class="uk-input" type="text"  placeholder="City ...." name="city"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 12pc;left: 29pc;">
-            <input class="uk-input" type="text"  placeholder="Country ...." name="country"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 16pc;left: 17pc;">
+            <input class="uk-input" type="text"  placeholder="Country ...." name="country"  style="width: 12pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 15.8pc;left: 17pc;">
             <input class="uk-input" type="password"  placeholder="Bitcoin Address ...." name="bitcoin"  style="width: 15pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 24pc;left: -7pc;">
-            
-            <p class="uk-text-right" style="position: relative;top: 7pc;">
+            <div class="uk-inline">
+                <button type="button" style="position: relative; top: 24pc;left: -28pc; border: none; background: transparent; color : darkslategrey;">
+                    <span class="uk-button uk-button-dark" uk-icon="icon:plus-circle"></span>
+                </button>
+                <div uk-dropdown="mode: click" style="border-radius: 2pc;">
+                    <button type="button" id="home" title="home address" style="position: relative; border: none; background: transparent; color : darkslategrey;">
+                        <span class="uk-button uk-button-dark" uk-icon="icon:home"></span>
+                    </button>
+                    <button type="button" title="sociallink" style="position: relative; border: none; background: transparent; color : darkslategrey;">
+                        <span class="uk-button uk-button-dark" uk-icon="icon:link"></span>
+                    </button>
+                    <div uk-dropdown="mode: click" style="border-radius: 2pc;width: 22pc;">
+                        <button type="button" id="fb" style="position: absolute;border: none;background: transparent;color : darkslategrey;left: -14px;top : 2px;">
+                            <span class="uk-button uk-button-dark" uk-icon="icon:facebook"></span>
+                        </button>
+                        <button type="button" id="insta" style="position: absolute;border: none;background: transparent;color : darkslategrey;left: 51px;top : 2px;">
+                            <span class="uk-button uk-button-dark" uk-icon="icon:instagram"></span>
+                        </button>
+                        <button type="button" id="x" style="position: absolute;border: none;background: transparent;color : darkslategrey;left: 144px;top : 2px;">
+                            <span class="uk-button uk-button-dark" uk-icon="icon:twitter"></span>
+                        </button>
+                        <button type="button" id="you" style="position: absolute;border: none;background: transparent;color : darkslategrey;left: 260px;top : 2px;">
+                            <span class="uk-button uk-button-dark" uk-icon="icon:youtube"></span>
+                        </button>
+                    </div>
+                    <button type="button" title="avatar" style="position: relative; border: none; background: transparent; color : darkslategrey;">
+                        <span class="uk-button uk-button-dark" uk-icon="icon:server"></span>
+                    </button>
+                    <div uk-dropdown="mode: click" style="border-radius: 2pc;width: 10pc;">
+                        <button type="button" id="digitalverse" title="default" style="position: absolute;border: none;background: transparent;color : darkslategrey;left: -14px;top : 2px;">
+                            <span class="uk-button uk-button-dark" uk-icon="icon:video-camera"></span>
+                        </button>
+                        <button type="button" id="change_digitalverse" title="change digitalverse" style="position: absolute;border: none;background: transparent;color : darkslategrey;left: 51px;top : 2px;">
+                            <span class="uk-button uk-button-dark" uk-icon="icon:future"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <input class="uk-input" type="text" id="address"  placeholder="My Address ...." name="address"  style="width: 15pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 26pc;left: 33pc; visibility: hidden;">
+            <input class="uk-input" type="url" id="fblink"  placeholder="fblink" name="fblink"  style="width: 15pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 26pc;left: 40pc; visibility: hidden;">
+            <input class="uk-input" type="url" id="instalink"  placeholder="instalink" name="instalink"  style="width: 15pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 29pc;left: 25pc; visibility: hidden;">
+            <input class="uk-input" type="url" id="xlink"  placeholder="Xlink" name="xlink"  style="width: 15pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 32pc;left: -12.5pc;visibility: hidden;">
+            <input class="uk-input" type="url" id="youlink"  placeholder="youlink" name="youlink"  style="width: 15pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 27pc;left: 33pc;visibility: hidden;">
+            <input class="uk-input" type="url" id="digital"  value="https://models.readyplayer.me/65af2c0cb78add78d0bb1074.glb" name="new_digitalverse"  style="width: 15pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 30pc;left: 40.5pc;visibility: hidden;">
+            <input class="uk-input" type="url" id="change"  placeholder="change ready player avatar glb object link" name="old_digitalverse"  style="width: 15pc;height: 2pc;border-radius: 1pc;border: 1px silver dashed;position: relative;top: 33pc;left: 3pc;visibility: hidden;">
+            <p class="uk-text-right" style="position: relative;top: 0pc;">
                 <button class="uk-button uk-button-dark" type="submit" style="position: relative; top: -5pc; border-radius: 2pc;">
                     <i class="fa fa-send" aria-hidden="true"></i>
                 </button>
             </p>
-
-            <!-- <span class="uk-badge" title="peers" style="position: relative;top: 18pc;left: 29pc;">0</span>
-            <span class="uk-badge" title="associates" style="position: relative;top: 18pc;left: 34pc;">0</span> -->
         </form>
     </div>
+
+    <div class="uk-container" style="position: relative; top: -2pc; width: 20pc; height: 100pc; left: -20pc;">
+        <iframe id="frame" class="frame" allow="camera *; microphone *; clipboard-write" style="width: 387px;height: 920px;margin: 0;font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans,Droid Sans, Helvetica Neue, sans-serif;padding: 20px;font-size: 14px;border: none;position: relative;top: -8pc;left: -4pc;" hidden></iframe>
+        <p id="avatarUrl" style="position: relative;top: -9pc;">Avatar URL:</p>
+        <button class="uk-button uk-button-dark" id="check" type="button" style="border: none;background: transparent;color: darkslategrey;position: relative;top: -12.4pc;left: 8pc;">
+            <span uk-icon="icon:video-camera"></span>
+        </button>
+    </div>
+    <script>
+
+        document.getElementById('fb').addEventListener('click', (e) => {
+
+            document.getElementById('fblink').style.visibility = 'visible';
+        });
+
+        document.getElementById('insta').addEventListener('click', (e) => {
+
+            document.getElementById('instalink').style.visibility = 'visible';
+        });
+
+        document.getElementById('x').addEventListener('click', (e) => {
+
+            document.getElementById('xlink').style.visibility = 'visible';
+        });
+
+        document.getElementById('you').addEventListener('click', (e) => {
+
+            
+            document.getElementById('youlink').style.visibility = 'visible';
+        });
+
+        document.getElementById('home').addEventListener('click', (e) => {
+
+                document.getElementById('address').style.visibility = 'visible';
+        });
+
+        document.getElementById('digitalverse').addEventListener('click', (e) => {
+
+                document.getElementById('digital').style.visibility = 'visible';
+        });
+
+        document.getElementById('change_digitalverse').addEventListener('click', (e) => {
+
+                document.getElementById('change').style.visibility = 'visible';
+        });
+
+
+        document.getElementById('check').addEventListener('click', (e) => {
+            
+            document.getElementById('frame').hidden = false;
+        });
+
+        const subdomain = 'roombot';
+        
+        const frame = document.getElementById('frame');
+
+        frame.src = `https://${subdomain}.readyplayer.me?frameApi`;
+        window.addEventListener('message', subcribe);
+        document.addEventListener('message', subcribe);
+
+        function subcribe(event){
+
+            const json = parse(event);
+
+            if(json?.source !== 'readyplayerme') return;
+
+            if (json.eventName !== 'v1.frame.ready'){
+
+                frame.contentWindow.postMessage(JSON.stringify({
+                    target : 'readyplayerme',
+                    type: 'subscribe',
+                    eventName: 'v1.**'
+                }),
+                '*'
+                );
+            }
+
+            if (json.eventName === 'v1.avatar.exported') {
+                
+                console.log(`Avatar URL: ${json.data.url}`);
+                document.getElementById('avatarUrl').innerHTML = `Avatar URL: ${json.data.url}`;
+                document.getElementById('frame').hidden = true;
+            }
+
+            
+            if (json.eventName === 'v1.user.set') {
+                console.log(`User with id ${json.data.id} set: ${JSON.stringify(json)}`);
+            }
+
+
+        
+        }
+
+        function parse(event){
+
+            try {
+                
+                return JSON.parse(event.data);
+            } catch (error) {
+                
+                return null;
+            }
+        }
+
+    </script>
 </body>
 </html>

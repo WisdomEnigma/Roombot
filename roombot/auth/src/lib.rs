@@ -221,7 +221,7 @@ pub mod accounts{
 
 
     use futures_util::{future::ok, TryStreamExt};
-    use mongodb::{Client, options::{ClientOptions, FindOptions, CountOptions}, Database, bson::doc};
+    use mongodb::{Client, options::{ClientOptions, FindOptions, CountOptions, FindOneAndUpdateOptions}, Database, bson::doc};
     use serde::{Deserialize,Serialize}; 
     
     #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -239,6 +239,12 @@ pub mod accounts{
         pub bitcoinaddr : String,
         work : String,
         pub session : String,
+        pub address : String,
+        pub fblink : String,
+        pub instalink : String,
+        pub xlink : String,
+        pub youlink : String,
+        pub new_digital : String,
     }
 
     impl Info{
@@ -258,7 +264,9 @@ pub mod accounts{
         workplace : String, work : String,
         city : String, country : String, bitcoinaddr : String) -> Info{
             
-            Self { firstname, 
+            Self { 
+                
+                firstname, 
                 lastname, 
                 institute, 
                 degree, 
@@ -266,7 +274,16 @@ pub mod accounts{
                 city, 
                 country, 
                 work,
-                bitcoinaddr, session : "".to_string() }
+                bitcoinaddr, 
+                session : "".to_string(),
+                address : "".to_string(),
+                fblink : "".to_string(),
+                instalink : "".to_string(),
+                xlink : "".to_string(),
+                youlink : "".to_string(),
+                new_digital : "".to_string(),
+             
+             }
 
         }
 
@@ -317,7 +334,7 @@ pub mod accounts{
         /// ```
         pub async fn create_record_doc(&mut self, db : Database) -> Result<String, String>{
 
-                let mut info : Info;
+                let info : Info;
 
                 let col = db.collection::<Info>("accounts");
 
@@ -338,6 +355,12 @@ pub mod accounts{
                             work: self.work.to_owned(),
                             institute : self.institute.to_owned(),
                             degree : self.degree.to_owned(),
+                            address : self.address.to_owned(),
+                            fblink : self.fblink.to_owned(),
+                            instalink : self.instalink.to_owned(),
+                            xlink : self.xlink.to_owned(),
+                            youlink : self.youlink.to_owned(),
+                            new_digital : self.new_digital.clone(),
                         };
 
                         let _ = col.insert_one(info, None).await;
@@ -372,6 +395,12 @@ pub mod accounts{
                             work: self.work.to_owned(),
                             institute : self.institute.to_owned(),
                             degree : self.degree.to_owned(),
+                            address : self.address.to_owned(),
+                            fblink : self.fblink.to_owned(),
+                            instalink : self.instalink.to_owned(),
+                            xlink : self.xlink.to_owned(),
+                            youlink : self.youlink.to_owned(),
+                            new_digital : self.new_digital.clone(),
                         };
 
                         let _ = col.insert_one(info, None).await;
@@ -506,6 +535,44 @@ pub mod accounts{
             }
 
             return Ok(myaddress)
+         }
+
+         pub async fn update_personal_details(&mut self, db : Database) -> Result<(), ()> {
+
+            let col = db.collection::<Info>("accounts");
+
+            let filter = doc! {"session" : self.session.to_owned()};
+
+            let mut avatar = Vec::<String>::new();
+
+            avatar.push(self.new_digital.clone());
+
+            let update_doc = doc! {
+
+                "$set" : {
+
+                    "address" : self.address.to_owned(),
+                    "fblink" : self.fblink.to_owned(),
+                    "instalink" : self.instalink.to_owned(),
+                    "xlink" : self.xlink.to_owned(),
+                    "youlink" : self.youlink.to_owned(),
+                    "new_digital" : avatar,
+                },
+            }; 
+
+            let update_opts = FindOneAndUpdateOptions::builder().return_document(mongodb::options::ReturnDocument::After).build();
+            if let Ok(result ) =  col.find_one_and_update(filter, update_doc, update_opts).await{
+
+                if let Some(data) = result {
+                    
+                    if data.new_digital.eq(&""){
+
+                        return Err(())
+                    }
+                }
+            }
+
+            return Ok(())
          }
 
     }
