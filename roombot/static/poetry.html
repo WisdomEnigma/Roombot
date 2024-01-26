@@ -36,13 +36,102 @@
 
     <div class="f01" style="color: darkslategray;position: relative;left: 17pc;top: 7pc;">
         <form action="/user/poetry/topics/{output}" method="post">
-            <input type="text" placeholder="write poem about burnimng fire inside my heart" name="query" style="position: relative;top: 2pc;left: 10pc;height: 7pc;border: none;width: 50pc;color: darkslategray;"/>
+            <input type="text" placeholder="write poem about burnimng fire inside my heart" name="query" id="poetry" style="position: relative;top: 2pc;left: 10pc;height: 7pc;border: none;width: 50pc;color: darkslategray;"/>
             <input type="password" placeholder="Openai key ....." name="call" style="position: absolute;top: 12pc;left: 11pc;height: 3pc;border: none;width: 18pc;color: darkslategray;"/>
             <button class="uk-button uk-button-default" type="submit" style="position: absolute;top: 12.5pc;left: 25pc;border:none;">
                 <span class="uk-margin-small-right" uk-icon="icon: check"></span>
             </button>
+            <button class="uk-button uk-button-dark" type="button" title="say poetry" id="microphone" style="position: relative;top: 10pc;left: -22pc;border: none;background: transparent;">
+                <span class="uk-margin-small-right" uk-icon="icon : microphone"></span>
+            </button>
         </form>
     </div>
+    <div class="uk-container" id="audio"></div>
+    <script>
 
+        function get_microphone_credentials(){
+
+                navigator.mediaDevices.getUserMedia({audio : true, video : false,}).then((stream)=>{
+                    window.localStream = stream;
+                }).catch((error)=>{
+
+                    console.log("Error :",error);
+                });
+        }
+
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+        const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
+
+        const commands = [
+            "poetry",
+        ];
+
+
+        const grammar = `#JSGF V1.0; grammar commands; public<command> = ${commands.join(" | ", )};`;
+
+        const recognition = new SpeechRecognition();
+        const speechGrammarList = new SpeechGrammarList();
+
+
+
+    document.getElementById('microphone').addEventListener('click', (e) => {
+
+        get_microphone_credentials();
+        speechrecognition(document.getElementById('poetry'));
+    });
+
+    function speechrecognition(input_text){
+
+        speechGrammarList.addFromString(grammar, 1);
+        speechGrammarList.continous = false;
+        speechGrammarList.lang = "en-US";
+        speechGrammarList.interimResults = false;
+        speechGrammarList.maxAlternatives = 1;
+
+        recognition.start();
+        console.log("Recognition started ! Speak Following commands ", `${commands}`);
+        console.log("Recognition status : Start");
+
+        recognition.onresult = (event) =>{
+
+        const command_transrcipt = event.results[0][0].transcript;
+        document.getElementById('audio').innerHTML = `Command receive ${command_transrcipt}`;
+        console.log("Confidence Level :", `${event.results[0][0].confidence}`);
+
+        console.log("status ", `${event.results[0][0].transcript}`);
+
+        if (`${event.results[0][0].transcript}`.startsWith("poetry ")){
+
+                input_text.value = `${event.results[0][0].transcript}`.replace("poetry ", " ");
+
+        }else{
+
+                input_text.value = "This command does not register";
+
+        }
+
+    };
+
+    recognition.onspeechend = (event) => {
+
+        console.log("Recognition status : Stop");
+        document.getElementById('audio').style.visibility = 'hidden';
+        recognition.stop();
+    };
+
+    recognition.onnomatch = (event) => {
+
+        document.getElementById('audio').innerHTML = `This command ${event.results[0][0].transcript} have any context with confidence ${event.results[0][0].confidence}`;
+
+    };
+
+    recognition.onerror = (event) => {
+
+        document.getElementById('audio').innerHTML = `Error occurred in recognition: ${event.error}`;
+    };}
+    
+    </script>
 </body>
 </html>

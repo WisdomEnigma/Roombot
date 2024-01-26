@@ -89,12 +89,12 @@
 
 <div class="uk-container" style="position: relative;top: 9pc;left: 3pc;width: 33pc;height: 11pc;">
     <form method="post" action="/user/itvshows/{search}" style="position: relative;width: 20pc;height: 8pc;left: 0pc;">
-        <input type="text" placeholder=" Find best tv seasons for weekend! ... " id="movies" name="name" class="uk-form-success" style="position: relative;left: 10pc;width: 30pc;height: 2pc;border-radius: 9px;border: 1px;">
+        <input type="text" placeholder=" Find best tv seasons for weekend! ... " id="episode" name="name" class="uk-form-success" style="position: relative;left: 10pc;width: 30pc;height: 2pc;border-radius: 9px;border: 1px;">
         <input type="text" placeholder=" Release Year ..." name="year" id="year" class="uk-form-success" style="position: relative;left: 14pc;width: 20pc;height: 2pc;border-radius: 9px;border: 1px;color: darkslategray;top: 7px;">
         <button class="uk-button-dark" type="submit" style="position: relative;top: -4.2pc;left: 38pc;border: none;background: transparent;">
             <span class="uk-margin-small-right" uk-icon="icon: search"></span>
         </button>
-        <button class="uk-button uk-button-dark" type="button" id="microphone" style="position: relative;border: none;background: transparent;left: 29pc;top: -4.2pc;">
+        <button class="uk-button uk-button-dark" type="button" id="microphone" title="say episode" style="position: relative;border: none;background: transparent;left: 29pc;top: -4.2pc;">
           <span class="uk-margin-small-right" uk-icon="icon : microphone"></span>
         </button>
         <div class="progress-bar" style="visibility: hidden;">
@@ -130,7 +130,7 @@
     const SpeechRecognitionEvent = window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
 
     const commands = [
-      "movie",
+      "episode",
     ];
 
 
@@ -144,7 +144,7 @@
     document.getElementById('microphone').addEventListener('click', (e) => {
 
         get_microphone_credentials();
-        speechrecognition(document.getElementById('movies'));
+        speechrecognition(document.getElementById('episode'));
     });
 
     function speechrecognition(input_text){
@@ -167,14 +167,10 @@
 
         console.log("status ", `${event.results[0][0].transcript}`);
 
-        if (`${event.results[0][0].transcript}`.startsWith("movie ")){
+        if (`${event.results[0][0].transcript}`.startsWith("episode ")){
 
-            input_text.value = `${event.results[0][0].transcript}`.replace("movie ", " ");
+            input_text.value = `${event.results[0][0].transcript}`.replace("episode ", " ");
         
-        }else if (`${event.results[0][0].transcript}`.startsWith("movie&year ")){
-
-            input_text.value = `${event.results[0][0].transcript}`.replace("movie&year ", " ");
-
         }else{
 
             input_text.value = "This command does not register";
