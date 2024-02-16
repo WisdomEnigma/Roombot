@@ -11,12 +11,14 @@
 #[warn(non_camel_case_types)]
 #[warn(unused_imports)]
 #[warn(unused_assignments)]
+
 // import libraries
 use actix_files::NamedFile;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use auth::gatekeeper;
 use gpt_text::openai;
 use serde::{Deserialize, Serialize};
+
 // use img2vec::vec_middleware;
 use core::panic;
 use directories::UserDirs;
@@ -140,6 +142,12 @@ struct VirtualBook {
 #[derive(Deserialize)]
 struct Booksearch {
     bookname: String,
+}
+
+#[derive(Deserialize)]
+struct Discover{
+
+    discover : String,
 }
 
 // User choices responses return html template for different html page's.
@@ -2515,6 +2523,17 @@ async fn details(form: web::Form<EditAccount>, hbr: web::Data<Handlebars<'_>>) -
         baddress.to_owned().to_string(),
     );
 
+    let mut avatar = Vec::<String>::new();
+    avatar.push(change_avatar.to_owned());
+
+    my_info.address = address.to_owned();
+    my_info.fblink = fblink.to_owned();
+    my_info.instalink = instalink.to_owned();
+    my_info.xlink = xlink.to_owned();
+    my_info.youlink = youlink.to_owned();
+    my_info.new_digital = avatar;
+
+
     unsafe {
         my_info.set_session(ME.to_owned().to_string());
     }
@@ -2529,26 +2548,6 @@ async fn details(form: web::Form<EditAccount>, hbr: web::Data<Handlebars<'_>>) -
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
     };
-
-    if address.to_owned().to_string().ne(&"") || fblink.to_owned().to_string().ne(&"") || instalink.to_owned().to_string().ne(&"") || xlink.to_owned().to_string().ne(&"") || youlink.to_owned().to_string().ne(&"")  || change_avatar.to_owned().to_string().ne(&"") {
-
-        my_info.address = address.to_owned();
-        my_info.fblink = fblink.to_owned();
-        my_info.instalink = instalink.to_owned();
-        my_info.xlink = xlink.to_owned();
-        my_info.youlink = youlink.to_owned();
-        my_info.new_digital = change_avatar.to_owned();
-
-        let _ = match my_info.update_personal_details(cred.to_owned()).await{
-
-            Ok(_) => {println!(" your information update");},
-            Err(_) => {
-
-                return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
-            }
-        };        
-    }
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
@@ -2760,6 +2759,57 @@ async fn search_book(form: web::Form<Booksearch>, hbr: web::Data<Handlebars<'_>>
     };
 }
 
+
+#[get("/user/sociallink/profile/discover")]
+async fn discover() -> impl Responder{
+
+    NamedFile::open_async("./static/v_profile.html").await
+
+}
+
+#[post("/user/sociallink/profile/discover/{name}")]
+async fn discover_proximity(form: web::Form<Discover>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    let people = &form.discover;
+
+    // check whether user login through user credentials.
+    unsafe {
+        let expire = gatekeeper::login_expire(ME.to_owned());
+
+        if expire {
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    let mut tofind = auth::accounts::Info::new(
+        people.to_owned().to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+    );
+
+    let minit = tofind.mongo_init().await;
+    let access = tofind.access_credentials(minit);
+
+    unsafe {
+        tofind.set_session(ME.to_owned().to_string());
+    }
+
+    let findperson = tofind.find_people_with_name(access.to_owned()).await.unwrap();
+
+    println!("Response {:?} == ", findperson);
+
+    return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
+}
+
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // These lines allow to read secrets that is require to complete the process.
@@ -2815,6 +2865,8 @@ async fn main() -> std::io::Result<()> {
             .service(virtual_book)
             .service(add_virtual_book)
             .service(search_book)
+            .service(discover)
+            .service(discover_proximity)
         // .service(register_user)
         // .service(register_face)
         // .service(login)

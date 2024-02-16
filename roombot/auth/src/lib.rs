@@ -221,7 +221,7 @@ pub mod accounts{
 
 
     use futures_util::{future::ok, TryStreamExt};
-    use mongodb::{Client, options::{ClientOptions, FindOptions, CountOptions, FindOneAndUpdateOptions}, Database, bson::doc};
+    use mongodb::{Client, options::{ClientOptions, FindOptions, CountOptions}, Database, bson::doc};
     use serde::{Deserialize,Serialize}; 
     
     #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -244,7 +244,7 @@ pub mod accounts{
         pub instalink : String,
         pub xlink : String,
         pub youlink : String,
-        pub new_digital : String,
+        pub new_digital : Vec<String>,
     }
 
     impl Info{
@@ -281,7 +281,7 @@ pub mod accounts{
                 instalink : "".to_string(),
                 xlink : "".to_string(),
                 youlink : "".to_string(),
-                new_digital : "".to_string(),
+                new_digital : Vec::<String>::new(),
              
              }
 
@@ -375,34 +375,47 @@ pub mod accounts{
 
                             for entity in findperson.into_iter().by_ref(){
 
-                                if entity.lastname.to_owned().eq(&self.lastname) && entity.bitcoinaddr.to_owned().eq(&self.bitcoinaddr){
+                                if entity.lastname.to_owned().eq(&self.lastname) && entity.bitcoinaddr.to_owned().eq(&self.bitcoinaddr) && entity.address.to_owned().eq(&self.address){
 
-                                    return Err("your info already present in our database".to_string());
+                                    continue;
                                 }
+
+                                if entity.address.eq(&"") || entity.fblink.to_owned().eq(&"") || entity.instalink.to_owned().eq(&"") || 
+                                    entity.xlink.to_owned().eq(&"") || entity.youlink.to_owned().eq(&"") || 
+                                    entity.new_digital.len().ge(&0){
+
+                                        let _ = col.find_one_and_delete(doc! {"firstname" : self.firstname.to_owned() }, None).await.unwrap();
+                                        
+                                } 
                             }
                         }
-                        
 
+                        let mut avatar = Vec::<String>::new();
+
+                        avatar.push(self.new_digital[0].clone());
+                        
                         info = Info{
 
-                            firstname : self.firstname.to_owned(),
-                            lastname : self.lastname.to_owned(),
-                            session : self.get_session().await,
-                            city : self.city.to_owned(),
-                            country : self.country.to_owned(),
-                            bitcoinaddr : self.bitcoinaddr.to_owned(),
-                            workplace : self.workplace.to_owned(),
-                            work: self.work.to_owned(),
-                            institute : self.institute.to_owned(),
-                            degree : self.degree.to_owned(),
-                            address : self.address.to_owned(),
-                            fblink : self.fblink.to_owned(),
-                            instalink : self.instalink.to_owned(),
-                            xlink : self.xlink.to_owned(),
-                            youlink : self.youlink.to_owned(),
-                            new_digital : self.new_digital.clone(),
+                                firstname : self.firstname.to_owned(),
+                                lastname : self.lastname.to_owned(),
+                                session : self.get_session().await,
+                                city : self.city.to_owned(),
+                                country : self.country.to_owned(),
+                                bitcoinaddr : self.bitcoinaddr.to_owned(),
+                                workplace : self.workplace.to_owned(),
+                                work: self.work.to_owned(),
+                                institute : self.institute.to_owned(),
+                                degree : self.degree.to_owned(),
+                                address : self.address.to_owned(),
+                                fblink : self.fblink.to_owned(),
+                                instalink : self.instalink.to_owned(),
+                                xlink : self.xlink.to_owned(),
+                                youlink : self.youlink.to_owned(),
+                                new_digital : avatar,
                         };
 
+                        
+                        
                         let _ = col.insert_one(info, None).await;
                         break;
                     }
@@ -535,44 +548,6 @@ pub mod accounts{
             }
 
             return Ok(myaddress)
-         }
-
-         pub async fn update_personal_details(&mut self, db : Database) -> Result<(), ()> {
-
-            let col = db.collection::<Info>("accounts");
-
-            let filter = doc! {"session" : self.session.to_owned()};
-
-            let mut avatar = Vec::<String>::new();
-
-            avatar.push(self.new_digital.clone());
-
-            let update_doc = doc! {
-
-                "$set" : {
-
-                    "address" : self.address.to_owned(),
-                    "fblink" : self.fblink.to_owned(),
-                    "instalink" : self.instalink.to_owned(),
-                    "xlink" : self.xlink.to_owned(),
-                    "youlink" : self.youlink.to_owned(),
-                    "new_digital" : avatar,
-                },
-            }; 
-
-            let update_opts = FindOneAndUpdateOptions::builder().return_document(mongodb::options::ReturnDocument::After).build();
-            if let Ok(result ) =  col.find_one_and_update(filter, update_doc, update_opts).await{
-
-                if let Some(data) = result {
-                    
-                    if data.new_digital.eq(&""){
-
-                        return Err(())
-                    }
-                }
-            }
-
-            return Ok(())
          }
 
     }

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Roombot</title>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.16.22/dist/js/uikit-icons.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.js"
+            integrity="sha512-aPhrlLlp7Mr8g+MVw6/wMD8PjqqzRNhSM8pHDyyJPmUTJMzKxMmxrjauzQforOaAegN3CIKUTKXJyLwFD57RtA=="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+    <a href="/" style="position: relative;left: 40pc;top: 3.9pc;color: black;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
+    <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #offcanvas-nav-primary" style="position: relative;top: 4pc;left: 48pc;border: none;">
+        <i class="fa fa-bars" aria-hidden="true"></i>
+    </button>
+
+<div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
+    <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+
+        <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
+            <li class="uk-active"><a href="#"> Connection promixity web </a></li>
+            <li class="uk-nav-header">Header</li>
+            <li class="uk-nav-divider"></li>
+            <li><a href="/user/sociallink"><span class="uk-margin-small-right" uk-icon="icon: user"></span> Profile </a> </li>
+            <li><a href="/user/sociallink/profile/search"><span class="uk-margin-small-right" uk-icon="icon: search"></span> Search </a> </li>
+            <li><a href="#"></a> <span class="uk-margin-small-right" uk-icon="icon: crosshairs"></span> Exclusiveness <span class="uk-badge"> new </span> </li>
+        </ul>
+    </div>
+ </div>
+  <div class="uk-container" style="position: relative; top : 8pc; left: 5pc;">
+        <form action="/user/sociallink/profile/discover/{name}" method="post">
+            <input type="text" placeholder="name of your friend or family" name="discover" style="position: relative; border: 1px dotted; border-radius: 2pc; width : 20pc; height : 2pc; left : 27pc"/>
+            <button type="submit" style="background: transparent; border: none; position: relative; left : 24pc ">
+                <span class="uk-margin-small-right" uk-icon="search"></span>
+            </button>
+        </form>
+  </div>
+
+ <div style="position: relative; top : 20pc; left : 20pc">
+    <iframe id="frame" class="frame" allow="camera *; microphone *; clipboard-write" style="width: 340px;height: 350px;margin: 0; border-radius: 100pc; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans,Droid Sans, Helvetica Neue, sans-serif;padding: 20px;font-size: 14px;border: none;position: relative;top: -8pc;left: -4pc;" hidden></iframe>
+        <p id="avatarUrl" style="position: relative;top: -9pc; color: white;">Avatar URL:</p>
+    </iframe>
+ </div>
+
+ <div style="position: relative; top: -15pc; left: 50pc ; width : 20pc">
+    <canvas id="myChart"></canvas>
+  </div>
+
+  <script>
+
+    new Chart(document.getElementById('myChart'),{
+        type: 'doughnut',
+        data: {
+            labels : [ "Family", "School", "Workplace", "Career", "Country", "City", "Achievement", "Other"],
+            datasets: [{
+    
+                label: 'My choices proximity',
+                data: [10, 10, 10, 10, 10, 10, 10],
+                fill: true,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgb(54, 162, 235)',
+                pointBackgroundColor: 'rgb(54, 162, 235)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(54, 162, 235)'
+            
+            }],
+        
+        options: {
+                elements: {
+                        line: {
+                            borderWidth: 4
+                        }
+                }
+            }
+        },        
+    });
+
+    const subdomain = 'roombot';
+
+    const frame = document.getElementById('frame');
+
+        frame.src = `https://${subdomain}.readyplayer.me?frameApi`;
+        window.addEventListener('message', subcribe);
+        document.addEventListener('message', subcribe);
+
+        document.getElementById('frame').hidden = false;
+
+        function subcribe(event){
+
+            const json = parse(event);
+
+            if(json?.source !== 'readyplayerme') return;
+
+            if (json.eventName !== 'v1.frame.ready'){
+
+                frame.contentWindow.postMessage(JSON.stringify({
+                    target : 'readyplayerme',
+                    type: 'subscribe',
+                    eventName: 'v1.**'
+                }),
+                '*'
+                );
+            }
+
+            if (json.eventName === 'v1.avatar.exported') {
+                
+                console.log(`Avatar URL: ${json.data.url}`);
+                document.getElementById('avatarUrl').innerHTML = `Avatar URL: ${json.data.url}`;
+                document.getElementById('frame').hidden = true;
+            }
+
+            
+            if (json.eventName === 'v1.user.set') {
+                console.log(`User with id ${json.data.id} set: ${JSON.stringify(json)}`);
+            }
+
+
+        
+        }
+
+        function parse(event){
+
+            try {
+                
+                return JSON.parse(event.data);
+            } catch (error) {
+                
+                return null;
+            }
+        }
+  </script>
