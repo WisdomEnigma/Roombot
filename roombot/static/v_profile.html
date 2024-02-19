@@ -41,13 +41,13 @@
         </form>
   </div>
 
- <div style="position: relative; top : 20pc; left : 20pc">
+ <div style="position: relative; top : 18pc; left : 20pc">
     <iframe id="frame" class="frame" allow="camera *; microphone *; clipboard-write" style="width: 340px;height: 350px;margin: 0; border-radius: 100pc; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans,Droid Sans, Helvetica Neue, sans-serif;padding: 20px;font-size: 14px;border: none;position: relative;top: -8pc;left: -4pc;" hidden></iframe>
         <p id="avatarUrl" style="position: relative;top: -9pc; color: white;">Avatar URL:</p>
     </iframe>
  </div>
 
- <div style="position: relative; top: -15pc; left: 50pc ; width : 20pc">
+ <div style="position: relative; top: -17pc; left: 50pc ; width : 20pc">
     <canvas id="myChart"></canvas>
   </div>
 
@@ -56,11 +56,13 @@
     new Chart(document.getElementById('myChart'),{
         type: 'doughnut',
         data: {
-            labels : [ "Family", "School", "Workplace", "Career", "Country", "City", "Achievement", "Other"],
+            labels : [ "Family", "School", "Workplace", "Career", "Country", "City", "Achievement", 
+            "Bitcoinaddress","Address", "FBLINK", "INSTALINK", "XLINK", "YOULINK", "3DAVATAR",
+            "Name", "Lastname"],
             datasets: [{
     
                 label: 'My choices proximity',
-                data: [10, 10, 10, 10, 10, 10, 10],
+                data: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
                 fill: true,
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgb(54, 162, 235)',

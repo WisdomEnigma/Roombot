@@ -487,21 +487,44 @@ pub mod accounts{
         /// ```
         pub async fn find_people_with_name(&mut self, db : Database) -> Result<Vec<Info>, Vec<Info>>{
 
+            
             let mut v : Vec::<Info> = Vec::<_>::new();
 
-            let col = db.collection::<Info>("accounts");
+           let col = db.collection::<Info>("accounts");
 
-            let mut iterate = col.find(doc!{"firstname" : self.firstname.to_owned()}, None).await.unwrap();
- 
-            while let Ok(Some(record)) = iterate.try_next().await{
+            let mut find_doc = col.find(doc! {"$and" : vec![
+                doc!{
+                
+                    "firstname" : self.firstname.to_owned(),
+                
+                },
+                doc!{
 
-                if record.firstname.to_owned().to_string().is_empty(){
+                    "session" : self.session.to_owned(),
+                }
+            ]}, None).await.unwrap();
 
-                    return Err(v);
+            while let Ok(Some(record)) = find_doc.try_next().await  {
+
+
+                println!("record  == {:?}", record.firstname);
+
+                if record.firstname.to_owned().eq(&""){
+
+                        println!("No record exist in our database.. try different keyword ");
+                        return Err(v);
                 }
                 
-                v.push(record);
+                if record.firstname.to_owned().eq(&self.firstname){
+
+                    v.push(record);
+                }else{
+
+                    println!("record either not exist or try different name");
+                    return Err(v);
+                }
             }
+            
 
             Ok(v)
          }

@@ -314,7 +314,7 @@ pub mod ipfs_net{
         pub async fn create_book_doc(&mut self, db : Database) -> Result<String, String>{
 
           let col = db.collection::<Books>("enigmahouse");
-          let mut book : Books;
+          let book : Books;
 
           while let Ok(list) = db.list_collection_names(doc! {"name" : "enigmahouse"}).await{
 

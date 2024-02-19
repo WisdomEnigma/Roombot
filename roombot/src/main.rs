@@ -9,7 +9,6 @@
 
 // development marco's
 #[warn(non_camel_case_types)]
-#[warn(unused_imports)]
 #[warn(unused_assignments)]
 
 // import libraries
@@ -297,7 +296,7 @@ static ENV_TOKEN: OnceCell<String> = OnceCell::new();
 static EMAIL: OnceCell<String> = OnceCell::new();
 static SEARCHEPIC: OnceCell<String> = OnceCell::new();
 static SEASONRELEASE: OnceCell<String> = OnceCell::new();
-static MyBitcoinAddr: OnceCell<String> = OnceCell::new();
+static MY_BITCOIN_ADDR: OnceCell<String> = OnceCell::new();
 
 // routes
 
@@ -1511,7 +1510,7 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
         {
             eprintln!("Error [You don't have secure wallet address, Ouuch! You're missing MARVELOUS Experience]");
         } else {
-            let _ = MyBitcoinAddr.set(tx_status.to_owned());
+            let _ = MY_BITCOIN_ADDR.set(tx_status.to_owned());
         }
     };
 
@@ -2604,20 +2603,25 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
         .await
         .unwrap();
 
+
     let count = tofind.count_people(access.to_owned()).await.unwrap();
 
+
     if resp.is_empty() {
-        println!("No record exist in our database.. try different keyword ");
+        
         return HttpResponse::BadRequest()
             .body(hbr.render("music_error", &RequestError {}).unwrap());
     }
 
     if resp.len().to_owned().ge(&1) {
+
         let mut iterate = resp.into_iter();
 
         for entity in iterate.by_ref() {
+            
             search_q.push(entity.firstname + &entity.lastname);
             search_resp.session = entity.session.clone();
+
         }
     }
 
@@ -2804,7 +2808,7 @@ async fn discover_proximity(form: web::Form<Discover>, hbr: web::Data<Handlebars
 
     let findperson = tofind.find_people_with_name(access.to_owned()).await.unwrap();
 
-    println!("Response {:?} == ", findperson);
+    println!("Response == {:?} ", findperson);
 
     return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
 }
@@ -2953,7 +2957,7 @@ enum BitcoinNetworkErrorReport {
 }
 
 async fn direct_gateway(fees: u64) -> Result<(), BitcoinNetworkErrorReport> {
-    let addr = MyBitcoinAddr.get().unwrap();
+    let addr = MY_BITCOIN_ADDR.get().unwrap();
 
     if addr.to_owned().to_string().eq(&"") {
         println!("Error your don't have bitcoin address");
