@@ -283,6 +283,29 @@ struct GetBook {
     ipfs_link: String,
 }
 
+#[derive(Serialize, Debug)]
+
+struct DiscoverPersonality{
+
+    firstname : String,
+    lastname : String,
+    address : Vec::<String>,
+    city : String,
+    country : String,
+    bitcoinwallet : Vec::<String>,
+    workplace : Vec::<String>,
+    degree : Vec::<String>,
+    insitute : Vec::<String>,
+    fblink : String,
+    instalink : String,
+    youlink : String,
+    xlink : String,
+    avatar : Vec::<String>, 
+    career : String,
+    session : String,
+    new_digital : Vec::<String>,
+}
+
 // static variables
 
 static mut ME: u64 = 0;
@@ -2525,7 +2548,10 @@ async fn details(form: web::Form<EditAccount>, hbr: web::Data<Handlebars<'_>>) -
     let mut avatar = Vec::<String>::new();
     avatar.push(change_avatar.to_owned());
 
-    my_info.address = address.to_owned();
+    let mut home = Vec::<>::new();
+    home.push(address.to_owned());
+
+    my_info.address = home;
     my_info.fblink = fblink.to_owned();
     my_info.instalink = instalink.to_owned();
     my_info.xlink = xlink.to_owned();
@@ -2806,11 +2832,27 @@ async fn discover_proximity(form: web::Form<Discover>, hbr: web::Data<Handlebars
         tofind.set_session(ME.to_owned().to_string());
     }
 
-    let findperson = tofind.find_people_with_name(access.to_owned()).await.unwrap();
+    let findperson = tofind.getaccount(access.to_owned()).await.unwrap();
 
-    println!("Response == {:?} ", findperson);
-
-    return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
+    return HttpResponse::Ok().body(hbr.render("v_profile", &DiscoverPersonality {
+        firstname : findperson.firstname.to_owned(),
+        lastname : findperson.lastname.to_owned(),
+        session : findperson.session.to_owned(),
+        degree : findperson.degree.to_owned(),
+        insitute : findperson.institute.to_owned(),
+        address : findperson.address.to_owned(),
+        workplace : findperson.workplace.to_owned(),
+        career : findperson.work.to_owned(),
+        bitcoinwallet : findperson.bitcoinaddr.to_owned(),
+        fblink : findperson.fblink.to_owned(),
+        xlink : findperson.xlink.to_owned(),
+        youlink : findperson.youlink.to_owned(),
+        instalink : findperson.instalink.to_owned(),
+        new_digital : findperson.new_digital.to_owned(),
+        city : findperson.city.to_owned(),
+        country : findperson.country.to_owned(),
+        avatar : findperson.new_digital.to_owned(),
+    }).unwrap());
 }
 
 

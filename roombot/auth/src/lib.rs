@@ -220,7 +220,7 @@ pub mod gatekeeper{
 pub mod accounts{
 
 
-    use futures_util::{future::ok, TryStreamExt};
+    use futures_util::{future::ok, TryStreamExt };
     use mongodb::{Client, options::{ClientOptions, FindOptions, CountOptions}, Database, bson::doc};
     use serde::{Deserialize,Serialize}; 
     
@@ -231,15 +231,15 @@ pub mod accounts{
 
         pub firstname : String,
         pub lastname : String,
-        institute : String,
-        degree : String,
-        workplace : String,
-        city : String,
-        country : String,
-        pub bitcoinaddr : String,
-        work : String,
+        pub institute : Vec::<String>,
+        pub degree : Vec::<String>,
+        pub workplace : Vec::<String>,
+        pub city : String,
+        pub country : String,
+        pub bitcoinaddr : Vec::<String>,
+        pub work : String,
         pub session : String,
-        pub address : String,
+        pub address : Vec::<String>,
         pub fblink : String,
         pub instalink : String,
         pub xlink : String,
@@ -264,19 +264,34 @@ pub mod accounts{
         workplace : String, work : String,
         city : String, country : String, bitcoinaddr : String) -> Info{
             
+            let mut academica = Vec::<String>::new();
+            academica.push(institute);
+
+            let mut achieve = Vec::<>::new();
+            achieve.push(degree);
+
+            let mut  place = Vec::<>::new();
+            place.push(workplace);
+
+            let mut home_address = Vec::<>::new();
+            home_address.push("".to_string());
+
+            let mut btc_wallet = Vec::<>::new();
+            btc_wallet.push(bitcoinaddr);
+
             Self { 
                 
                 firstname, 
                 lastname, 
-                institute, 
-                degree, 
-                workplace, 
+                institute : academica, 
+                degree : achieve, 
+                workplace : place, 
                 city, 
                 country, 
                 work,
-                bitcoinaddr, 
+                bitcoinaddr : btc_wallet, 
                 session : "".to_string(),
-                address : "".to_string(),
+                address : home_address,
                 fblink : "".to_string(),
                 instalink : "".to_string(),
                 xlink : "".to_string(),
@@ -334,91 +349,33 @@ pub mod accounts{
         /// ```
         pub async fn create_record_doc(&mut self, db : Database) -> Result<String, String>{
 
-                let info : Info;
-
                 let col = db.collection::<Info>("accounts");
 
-                while let Ok(record) = db.list_collection_names(doc!{"name" : "accounts"
-                }).await {
-                    
-                    if record.is_empty(){
-                        
-                        info = Info{
+                let data = self.getaccount(db.to_owned()).await.unwrap();
 
-                            firstname : self.firstname.to_owned(),
-                            lastname : self.lastname.to_owned(),
-                            session : self.get_session().await,
-                            city : self.city.to_owned(),
-                            country : self.country.to_owned(),
-                            bitcoinaddr : self.bitcoinaddr.to_owned(),
-                            workplace : self.workplace.to_owned(),
-                            work: self.work.to_owned(),
-                            institute : self.institute.to_owned(),
-                            degree : self.degree.to_owned(),
-                            address : self.address.to_owned(),
-                            fblink : self.fblink.to_owned(),
-                            instalink : self.instalink.to_owned(),
-                            xlink : self.xlink.to_owned(),
-                            youlink : self.youlink.to_owned(),
-                            new_digital : self.new_digital.clone(),
-                        };
+                if data.firstname.to_owned().eq(&"") && data.lastname.to_owned().eq(&"") && data.bitcoinaddr.len().eq(&0){
 
-                        let _ = col.insert_one(info, None).await;
-                        break;
-                    }
+                    let info = Info{ 
+                        firstname: self.firstname.to_owned(), 
+                        lastname: self.lastname.to_owned(),
+                        institute: self.institute.to_owned(),
+                        degree: self.degree.to_owned(),
+                        workplace: self.workplace.to_owned(),
+                        city: self.city.to_owned(),
+                        country: self.country.to_owned(),
+                        bitcoinaddr: self.bitcoinaddr.to_owned(),
+                        work: self.work.to_owned(), 
+                        session: self.city.to_owned(),
+                        address: self.address.to_owned(), 
+                        fblink: self.fblink.to_owned(), 
+                        instalink: self.instalink.to_owned(), 
+                        xlink: self.xlink.to_owned(), 
+                        youlink: self.youlink.to_owned(), 
+                        new_digital: self.new_digital.to_owned() 
+                    };
 
-                    if record.len().ge(&1){
-                        
-                        let findperson = self.find_people_with_name(db.to_owned()).await.unwrap();
+                    let _ = col.insert_one(info, None).await;
 
-                        if findperson.len().eq(&1){
-
-                            for entity in findperson.into_iter().by_ref(){
-
-                                if entity.lastname.to_owned().eq(&self.lastname) && entity.bitcoinaddr.to_owned().eq(&self.bitcoinaddr) && entity.address.to_owned().eq(&self.address){
-
-                                    continue;
-                                }
-
-                                if entity.address.eq(&"") || entity.fblink.to_owned().eq(&"") || entity.instalink.to_owned().eq(&"") || 
-                                    entity.xlink.to_owned().eq(&"") || entity.youlink.to_owned().eq(&"") || 
-                                    entity.new_digital.len().ge(&0){
-
-                                        let _ = col.find_one_and_delete(doc! {"firstname" : self.firstname.to_owned() }, None).await.unwrap();
-                                        
-                                } 
-                            }
-                        }
-
-                        let mut avatar = Vec::<String>::new();
-
-                        avatar.push(self.new_digital[0].clone());
-                        
-                        info = Info{
-
-                                firstname : self.firstname.to_owned(),
-                                lastname : self.lastname.to_owned(),
-                                session : self.get_session().await,
-                                city : self.city.to_owned(),
-                                country : self.country.to_owned(),
-                                bitcoinaddr : self.bitcoinaddr.to_owned(),
-                                workplace : self.workplace.to_owned(),
-                                work: self.work.to_owned(),
-                                institute : self.institute.to_owned(),
-                                degree : self.degree.to_owned(),
-                                address : self.address.to_owned(),
-                                fblink : self.fblink.to_owned(),
-                                instalink : self.instalink.to_owned(),
-                                xlink : self.xlink.to_owned(),
-                                youlink : self.youlink.to_owned(),
-                                new_digital : avatar,
-                        };
-
-                        
-                        
-                        let _ = col.insert_one(info, None).await;
-                        break;
-                    }
                 }
 
                 return Ok("".to_string()) 
@@ -506,9 +463,6 @@ pub mod accounts{
 
             while let Ok(Some(record)) = find_doc.try_next().await  {
 
-
-                println!("record  == {:?}", record.firstname);
-
                 if record.firstname.to_owned().eq(&""){
 
                         println!("No record exist in our database.. try different keyword ");
@@ -518,6 +472,7 @@ pub mod accounts{
                 if record.firstname.to_owned().eq(&self.firstname){
 
                     v.push(record);
+                    break;
                 }else{
 
                     println!("record either not exist or try different name");
@@ -561,17 +516,35 @@ pub mod accounts{
                     return Err("No record".to_string());
                 }
 
-                if record.bitcoinaddr.to_owned().to_string().is_empty(){
+                if record.bitcoinaddr[0].to_owned().to_string().is_empty(){
 
                     return Err("No bitcoin address provided".to_string());
                 }
 
-                myaddress = record.bitcoinaddr.to_owned();
+                myaddress = record.bitcoinaddr[0].to_owned();
                 break;
             }
 
             return Ok(myaddress)
          }
+
+        pub async fn getaccount(&mut self, db : Database) -> Result<Info, Info>{
+
+            let mut info = Info{ firstname: "".to_string(), lastname: "".to_string(), institute: Vec::<>::new(), degree: Vec::<>::new(), workplace: Vec::<>::new(), city: "".to_string(), country: "".to_string(), bitcoinaddr: Vec::<>::new(), work: "".to_string(), session: "".to_string(), address: Vec::<>::new(), fblink: "".to_string(), instalink: "".to_string(), xlink: "".to_string(), youlink: "".to_string(), new_digital: Vec::<String>::new() };
+
+            let collection = db.collection::<Info>("accounts");
+
+            let opts = FindOptions::builder().sort(doc!{ "firstname" : 1}).build();
+
+            let mut query = collection.find(doc!{"firstname" : self.firstname.to_owned()}, opts).await.unwrap();
+
+            while let Ok(Some(account_info_col)) = query.try_next().await{
+
+                info = account_info_col.to_owned();
+            }
+
+            Ok(info)
+        }
 
     }
 }
