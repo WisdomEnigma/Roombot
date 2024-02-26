@@ -245,6 +245,106 @@ pub mod accounts{
         pub xlink : String,
         pub youlink : String,
         pub new_digital : Vec<String>,
+        pub network : Vec::<ProfileNetwork>,
+        pub cfollowers : i64,
+        pub cfavouite : i64,
+        pub open : bool,
+        pub taste : Taste,
+        pub hobby : Hobby,
+        pub phonenum : String,
+    }
+
+
+
+    /// profile network help you to maintain network . followers & favourite are open fields 
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct ProfileNetwork{
+
+        pub followers : bool,
+        pub favourite : bool,
+    }
+
+    /// Some people are highly networth choose Affluent & rest are public
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub enum Taste {
+
+        Affluent,
+        Public,
+        None,
+    }
+
+    /// Some user's have unique taste such golf, cricket etc
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub enum Hobby {
+        
+        Game(String),
+        None,
+    }
+
+
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    /// Interest are [technology, science, fashion & beauty, law, real estate, banking & finance ] etc
+    pub enum Interest{
+
+        Interest(String),
+        None,
+    }
+
+    /// followers trait should implement , because it's an provide open ended questions.  
+
+    pub trait Followers{
+        
+        fn follower(&mut self, index : usize);
+
+        fn unfollow(&mut self, index : usize);
+
+        fn total_followers(&mut self);
+    }
+
+    /// likwise followers , favourite is also trait & you should implement before interact with info.
+    pub trait Favourite{
+
+        fn favourite(&self);
+        
+        fn undo(&self);
+
+        fn total_favourite(&self);
+    }
+
+    /// open network allow user to control his or her information while build network. 
+
+    pub trait OpenNetwork {
+        
+        fn open (&mut self);
+
+        fn private(&mut self);
+
+        fn selected(&mut self) -> Vec::<String>;
+
+    }
+
+
+    pub trait Chacter{
+
+        fn traits(&self, traits : Vec::<String>);
+    }
+
+    impl  Followers for Info {
+        
+        fn follower(&mut self, index : usize){
+
+            self.network[index].followers = true;  
+        }
+
+        fn unfollow(&mut self, index : usize){
+
+            self.network[index].followers = true;
+        }
+
+        fn total_followers(&mut self){
+
+            self.cfollowers+= 1;
+        }
     }
 
     impl Info{
@@ -297,7 +397,13 @@ pub mod accounts{
                 xlink : "".to_string(),
                 youlink : "".to_string(),
                 new_digital : Vec::<String>::new(),
-             
+                network : Vec::<ProfileNetwork>::new(),
+                cfavouite : 0,
+                cfollowers : 0,
+                open : false,
+                taste: Taste::None,
+                hobby : Hobby::None,
+                phonenum : "".to_string(),
              }
 
         }
@@ -371,7 +477,15 @@ pub mod accounts{
                         instalink: self.instalink.to_owned(), 
                         xlink: self.xlink.to_owned(), 
                         youlink: self.youlink.to_owned(), 
-                        new_digital: self.new_digital.to_owned() 
+                        new_digital: self.new_digital.to_owned(),
+                        network : self.network.to_owned(),
+                        cfavouite : self.cfavouite,
+                        cfollowers : self.cfollowers, 
+                        open : self.open.to_owned(),
+                        taste : self.taste.to_owned(),
+                        hobby : self.hobby.to_owned(),
+                        phonenum : self.phonenum.to_owned(),
+
                     };
 
                     let _ = col.insert_one(info, None).await;
@@ -445,48 +559,31 @@ pub mod accounts{
         pub async fn find_people_with_name(&mut self, db : Database) -> Result<Vec<Info>, Vec<Info>>{
 
             
-            let mut v : Vec::<Info> = Vec::<_>::new();
+           let mut info : Vec::<Info> = Vec::<_>::new();
 
            let col = db.collection::<Info>("accounts");
 
-            let mut find_doc = col.find(doc! {"$and" : vec![
-                doc!{
-                
-                    "firstname" : self.firstname.to_owned(),
-                
-                },
-                doc!{
-
-                    "session" : self.session.to_owned(),
-                }
-            ]}, None).await.unwrap();
+            let mut find_doc = col.find(doc! {"firstname" : self.firstname.to_owned()}, FindOptions::builder().sort(doc!{ "firstname" : 1}).build()).await.unwrap();
 
             while let Ok(Some(record)) = find_doc.try_next().await  {
 
-                if record.firstname.to_owned().eq(&""){
-
-                        println!("No record exist in our database.. try different keyword ");
-                        return Err(v);
-                }
+                if record.firstname.to_owned().eq(&"") { return Err(info);}
                 
-                if record.firstname.to_owned().eq(&self.firstname){
+                if record.firstname.to_owned().eq(&self.firstname){ info.push(record.to_owned());}
 
-                    v.push(record);
-                    break;
-                }else{
+                if record.firstname.to_owned().ne(&self.firstname){ continue; }
 
-                    println!("record either not exist or try different name");
-                    return Err(v);
-                }
+                break;
             }
             
 
-            Ok(v)
+            Ok(info)
          }
 
-        ///   transaction status is a powerful function which authorize user & user have access to secure digital wallet for transaction purpose
+        /// transaction status is a powerful function which authorize user & user have access to secure digital wallet for transaction purpose
         /// 
-        /// use auth::accounts::Info;
+        /// ```
+        ///     use auth::accounts::Info;
         ///
         ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), 
         ///             "".to_string(), "".to_string(),"".to_string(),"".to_string(), 
@@ -500,7 +597,7 @@ pub mod accounts{
         ///     let cred = my_info.access_credentials(mongo);
         ///     
         ///     assert_eq!(info.transaction_status(cred), Ok("b...........1j".to_string()));
-        /// ```text 
+        /// ```
          pub async fn transaction_status(&mut self, db : Database) -> Result<String, String>{
 
             let mut myaddress = "".to_string(); 
@@ -528,9 +625,52 @@ pub mod accounts{
             return Ok(myaddress)
          }
 
+         /// this feature allow us to retrieve information about user, if user information should be exist  
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), 
+        ///             "".to_string(), "".to_string(),"".to_string(),"".to_string(), 
+        ///             "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     
+        ///     assert_eq!(info.get_account(cred), Ok([Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}]));
+        /// ```
+
         pub async fn getaccount(&mut self, db : Database) -> Result<Info, Info>{
 
-            let mut info = Info{ firstname: "".to_string(), lastname: "".to_string(), institute: Vec::<>::new(), degree: Vec::<>::new(), workplace: Vec::<>::new(), city: "".to_string(), country: "".to_string(), bitcoinaddr: Vec::<>::new(), work: "".to_string(), session: "".to_string(), address: Vec::<>::new(), fblink: "".to_string(), instalink: "".to_string(), xlink: "".to_string(), youlink: "".to_string(), new_digital: Vec::<String>::new() };
+            let mut info = Info{ firstname: "".to_string(), 
+            lastname: "".to_string(), 
+            institute: Vec::<>::new(), 
+            degree: Vec::<>::new(), 
+            workplace: Vec::<>::new(), 
+            city: "".to_string(), 
+            country: "".to_string(), 
+            bitcoinaddr: Vec::<>::new(), 
+            work: "".to_string(), 
+            session: "".to_string(), 
+            address: Vec::<>::new(), 
+            fblink: "".to_string(), 
+            instalink: "".to_string(),
+            xlink: "".to_string(), 
+            youlink: "".to_string(), 
+            new_digital: Vec::<String>::new(), 
+            network : self.network.to_owned(),
+            cfavouite : self.cfavouite,
+            cfollowers : self.cfollowers, 
+            open : self.open.to_owned(),
+            taste : self.taste.to_owned(),
+            hobby : self.hobby.to_owned(),
+            phonenum : self.phonenum.to_owned(), };
 
             let collection = db.collection::<Info>("accounts");
 
