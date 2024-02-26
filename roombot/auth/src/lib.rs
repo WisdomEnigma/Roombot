@@ -362,7 +362,7 @@ pub mod accounts{
         pub fn new(firstname : String, lastname : String, 
         institute : String, degree : String, 
         workplace : String, work : String,
-        city : String, country : String, bitcoinaddr : String) -> Info{
+        city : String, country : String, bitcoinaddr : String, phonenum : String) -> Info{
             
             let mut academica = Vec::<String>::new();
             academica.push(institute);
@@ -403,7 +403,7 @@ pub mod accounts{
                 open : false,
                 taste: Taste::None,
                 hobby : Hobby::None,
-                phonenum : "".to_string(),
+                phonenum : phonenum,
              }
 
         }

@@ -120,6 +120,7 @@ struct EditAccount {
     youlink : String,
     new_digitalverse : String,
     old_digitalverse : String,
+    phone : String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -304,6 +305,7 @@ struct DiscoverPersonality{
     career : String,
     session : String,
     new_digital : Vec::<String>,
+    phone : String,
 }
 
 // static variables
@@ -1513,6 +1515,7 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
             "".to_string(),
             "".to_string(),
             "".to_string(),
+            "".to_string(),
         );
 
         let minit = user.mongo_init().await;
@@ -2500,6 +2503,7 @@ async fn details(form: web::Form<EditAccount>, hbr: web::Data<Handlebars<'_>>) -
     let instalink = &form.instalink;
     let xlink = &form.xlink;
     let youlink = &form.youlink;
+    let phonenum = &form.phone;
 
     let change_avatar = &form.old_digitalverse;
 
@@ -2543,6 +2547,7 @@ async fn details(form: web::Form<EditAccount>, hbr: web::Data<Handlebars<'_>>) -
         city.to_owned().to_string(),
         country.to_owned().to_string(),
         baddress.to_owned().to_string(),
+        phonenum.to_owned().to_string(),
     );
 
     let mut avatar = Vec::<String>::new();
@@ -2607,6 +2612,7 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
     };
     let mut tofind = auth::accounts::Info::new(
         query.to_owned().to_string(),
+        "".to_string(),
         "".to_string(),
         "".to_string(),
         "".to_string(),
@@ -2823,6 +2829,7 @@ async fn discover_proximity(form: web::Form<Discover>, hbr: web::Data<Handlebars
         "".to_string(),
         "".to_string(),
         "".to_string(),
+        "".to_string(),
     );
 
     let minit = tofind.mongo_init().await;
@@ -2852,6 +2859,7 @@ async fn discover_proximity(form: web::Form<Discover>, hbr: web::Data<Handlebars
         city : findperson.city.to_owned(),
         country : findperson.country.to_owned(),
         avatar : findperson.new_digital.to_owned(),
+        phone : findperson.phonenum.to_owned(),
     }).unwrap());
 }
 
