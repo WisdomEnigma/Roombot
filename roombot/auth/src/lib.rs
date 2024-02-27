@@ -249,10 +249,52 @@ pub mod accounts{
         pub cfollowers : i64,
         pub cfavouite : i64,
         pub open : bool,
-        pub taste : Taste,
-        pub hobby : Hobby,
+        taste : Taste,
+        pub hobby : Vec::<Hobby>,
         pub phonenum : String,
+        personality : Vec::<String>, 
     }
+
+    /// User might choose one or many hobbies ...
+
+    /// golf game
+    pub const GOLF  : &'static str = "Golf";
+    
+    /// cricket 
+    pub const CRICKET : &'static str = "Cricket";
+    
+    /// tennis 
+    pub const TENNIS : &'static str = "Tennis";
+    
+    /// car racing 
+    pub const CARRACING : &'static str = "Car_Racing";
+    
+    /// swim 
+    pub const SWIMMING  : &'static str = "Swim";
+    
+    /// bike racing
+    pub const BIKERACING : &'static str = "Bike_Racing";
+    
+    /// hunt
+    pub const HUNTING  : &'static str = "Hunting";
+    
+    /// travel
+    pub const TRAVEL : &'static str = "Travel";
+      
+    /// chess
+    pub const CHESS : &'static str = "Chess";
+    
+    /// monopoly
+    pub const MONOPOLY : &'static str = "Monopoly";
+    
+    /// cook
+    pub const COOKING : &'static str = "Cooking";
+    
+    /// welfare
+    pub const SOCAILWELFARE : &'static str = "SocialWelfare";
+
+
+
 
 
 
@@ -402,8 +444,9 @@ pub mod accounts{
                 cfollowers : 0,
                 open : false,
                 taste: Taste::None,
-                hobby : Hobby::None,
+                hobby : Vec::<Hobby>::new(),
                 phonenum : phonenum,
+                personality : Vec::<String>::new(),
              }
 
         }
@@ -485,7 +528,7 @@ pub mod accounts{
                         taste : self.taste.to_owned(),
                         hobby : self.hobby.to_owned(),
                         phonenum : self.phonenum.to_owned(),
-
+                        personality : self.personality.to_owned(),
                     };
 
                     let _ = col.insert_one(info, None).await;
@@ -670,7 +713,9 @@ pub mod accounts{
             open : self.open.to_owned(),
             taste : self.taste.to_owned(),
             hobby : self.hobby.to_owned(),
-            phonenum : self.phonenum.to_owned(), };
+            phonenum : self.phonenum.to_owned(),
+            personality : self.personality.to_owned(),
+         };
 
             let collection = db.collection::<Info>("accounts");
 
@@ -685,6 +730,29 @@ pub mod accounts{
 
             Ok(info)
         }
+
+        /// set taste definition of enum taste which two options provided [ affluent, public]
+        pub fn setTaste(&mut self, myclass : Taste){
+
+            match myclass {
+                
+                Taste::Affluent =>  {self.taste = myclass;},
+                Taste::Public => {self.taste = myclass},
+                Taste::None => {
+
+                    eprintln!(" taste should not be provided :");
+                }
+            }
+        }
+
+        pub fn taste(&mut self) -> Taste{
+
+            return self.taste.clone();
+        }
+
+
+        
+
 
     }
 }
