@@ -293,17 +293,53 @@ pub mod accounts{
     /// welfare
     pub const SOCAILWELFARE : &'static str = "SocialWelfare";
 
-
-
-
-
-
     /// profile network help you to maintain network . followers & favourite are open fields 
     #[derive(Debug, Serialize, Deserialize, Clone)]
     pub struct ProfileNetwork{
 
         pub followers : bool,
         pub favourite : bool,
+    }
+
+
+    /// Favourite Books store data about your favourite books  
+
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct FavBooks{
+
+        books : Vec<String>,
+        recomemded : Vec<String>,
+        authors : Vec<String>,
+
+    }
+
+    /// Favourite Movies store data about your favourite movies 
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct FavMovies{
+
+        movies : Vec<String>,
+        recomemded : Vec<String>,
+        artist : Vec<String>,
+    }
+
+    /// Favourite Place store data about your favourite place 
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct  FavPlace{
+
+        lastvisited : Vec<String>,
+        recomemded : Vec<String>,
+        plantotrip : Vec<String>,
+    }
+
+
+    /// Favourite Brand store data about your favourite brand 
+
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+
+    pub struct FavBrands{
+
+        recommeded : Vec<String>,
+        favourite_b : Vec<String>,
     }
 
     /// Some people are highly networth choose Affluent & rest are public
@@ -751,7 +787,16 @@ pub mod accounts{
         }
 
 
-        
+        /// set user personality 
+        pub fn setPersonality(&mut self, character : String){
+
+            self.personality.push(character);
+        }
+
+        pub fn personality(&mut self) -> Vec::<String>{
+
+            return self.personality.clone();
+        }
 
 
     }
