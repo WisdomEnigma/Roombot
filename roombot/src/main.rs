@@ -14,7 +14,7 @@
 // import libraries
 use actix_files::NamedFile;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use auth::gatekeeper;
+use auth::{accounts::Followers, gatekeeper};
 use gpt_text::openai;
 use serde::{Deserialize, Serialize};
 
@@ -322,6 +322,7 @@ static EMAIL: OnceCell<String> = OnceCell::new();
 static SEARCHEPIC: OnceCell<String> = OnceCell::new();
 static SEASONRELEASE: OnceCell<String> = OnceCell::new();
 static MY_BITCOIN_ADDR: OnceCell<String> = OnceCell::new();
+static SEARCHUSERCREDEN : OnceCell<String> = OnceCell::new();
 
 // routes
 
@@ -2623,6 +2624,8 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
         "".to_string(),
     );
 
+    let _ = SEARCHUSERCREDEN.set(query.to_owned().to_string());
+
     let minit = tofind.mongo_init().await;
     let access = tofind.access_credentials(minit);
 
@@ -2666,7 +2669,7 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
 }
 
 #[post("/user/sociallink/profile/search/{your}/{friend}/{follow}")]
-async fn new_follower(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+async fn myfollowers(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
     // check whether user login through user credentials.
     unsafe {
@@ -2678,6 +2681,60 @@ async fn new_follower(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
                 .body(hbr.render("music_error", &RequestError {}).unwrap());
         }
     }
+
+    let user = SEARCHUSERCREDEN.get().unwrap();
+
+    let mut tofind = auth::accounts::Info::new(
+        user.to_owned().to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+    );
+
+    let minit = tofind.mongo_init().await;
+    let access = tofind.access_credentials(minit);
+
+    unsafe {
+        
+        tofind.set_session(ME.to_owned().to_string());
+
+        let mut dbresp = tofind.getaccount(access.to_owned()).await.unwrap();
+
+        if dbresp.session.to_owned().eq(&ME.to_owned().to_string()){
+
+
+            println!(" You're not allowed to follow yourself ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+
+
+        if dbresp.session.to_owned().ne(&ME.to_owned().to_string()){
+
+            if dbresp.cfollowers.ge(&0){
+
+               dbresp.total_followers(); 
+               dbresp.follower(dbresp.cfollowers as usize);
+
+               println!("followers : {:?} ", dbresp);
+                
+            }
+
+            if dbresp.cfollowers.ge(&1){
+
+
+            }
+        }
+
+    }
+
+    
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
@@ -2940,6 +2997,7 @@ async fn main() -> std::io::Result<()> {
             .service(search_book)
             .service(discover)
             .service(discover_proximity)
+            .service(myfollowers)
         // .service(register_user)
         // .service(register_face)
         // .service(login)

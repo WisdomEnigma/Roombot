@@ -377,6 +377,8 @@ pub mod accounts{
         fn unfollow(&mut self, index : usize);
 
         fn total_followers(&mut self);
+
+        fn reduce_followers(&mut self);
     }
 
     /// likwise followers , favourite is also trait & you should implement before interact with info.
@@ -387,6 +389,7 @@ pub mod accounts{
         fn undo(&self);
 
         fn total_favourite(&self);
+
     }
 
     /// open network allow user to control his or her information while build network. 
@@ -407,7 +410,7 @@ pub mod accounts{
         fn traits(&self, traits : Vec::<String>);
     }
 
-    impl  Followers for Info {
+    impl Followers for Info {
         
         fn follower(&mut self, index : usize){
 
@@ -416,13 +419,20 @@ pub mod accounts{
 
         fn unfollow(&mut self, index : usize){
 
-            self.network[index].followers = true;
+            self.network[index].followers = false;
         }
 
         fn total_followers(&mut self){
 
             self.cfollowers+= 1;
         }
+
+
+        fn reduce_followers(&mut self) {
+            
+            self.cfollowers -=1;
+        }
+                
     }
 
     impl Info{
@@ -456,6 +466,7 @@ pub mod accounts{
 
             let mut btc_wallet = Vec::<>::new();
             btc_wallet.push(bitcoinaddr);
+
 
             Self { 
                 
@@ -550,7 +561,7 @@ pub mod accounts{
                         country: self.country.to_owned(),
                         bitcoinaddr: self.bitcoinaddr.to_owned(),
                         work: self.work.to_owned(), 
-                        session: self.city.to_owned(),
+                        session: self.session.to_owned(),
                         address: self.address.to_owned(), 
                         fblink: self.fblink.to_owned(), 
                         instalink: self.instalink.to_owned(), 
@@ -762,6 +773,50 @@ pub mod accounts{
             while let Ok(Some(account_info_col)) = query.try_next().await{
 
                 info = account_info_col.to_owned();
+                break;
+            }
+
+            Ok(info)
+        }
+
+        pub async fn get_account_with_user_session(&mut self, db : Database) -> Result<Info, Info>{
+
+            let mut info = Info{ firstname: "".to_string(), 
+            lastname: "".to_string(), 
+            institute: Vec::<>::new(), 
+            degree: Vec::<>::new(), 
+            workplace: Vec::<>::new(), 
+            city: "".to_string(), 
+            country: "".to_string(), 
+            bitcoinaddr: Vec::<>::new(), 
+            work: "".to_string(), 
+            session: "".to_string(), 
+            address: Vec::<>::new(), 
+            fblink: "".to_string(), 
+            instalink: "".to_string(),
+            xlink: "".to_string(), 
+            youlink: "".to_string(), 
+            new_digital: Vec::<String>::new(), 
+            network : self.network.to_owned(),
+            cfavouite : self.cfavouite,
+            cfollowers : self.cfollowers, 
+            open : self.open.to_owned(),
+            taste : self.taste.to_owned(),
+            hobby : self.hobby.to_owned(),
+            phonenum : self.phonenum.to_owned(),
+            personality : self.personality.to_owned(),
+         };
+
+            let collection = db.collection::<Info>("accounts");
+
+            let opts = FindOptions::builder().sort(doc!{ "session" : 1}).build();
+
+            let mut query = collection.find(doc!{"session" : self.session.to_owned()}, opts).await.unwrap();
+
+            while let Ok(Some(account_info_col)) = query.try_next().await{
+
+                info = account_info_col.to_owned();
+                break;
             }
 
             Ok(info)
