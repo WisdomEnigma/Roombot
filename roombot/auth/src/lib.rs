@@ -768,7 +768,7 @@ pub mod accounts{
         }
 
         /// set taste definition of enum taste which two options provided [ affluent, public]
-        pub fn setTaste(&mut self, myclass : Taste){
+        pub fn set_taste(&mut self, myclass : Taste){
 
             match myclass {
                 
@@ -788,7 +788,7 @@ pub mod accounts{
 
 
         /// set user personality 
-        pub fn setPersonality(&mut self, character : String){
+        pub fn set_personality(&mut self, character : String){
 
             self.personality.push(character);
         }

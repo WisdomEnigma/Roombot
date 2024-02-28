@@ -2665,6 +2665,23 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
     HttpResponse::Ok().body(hbr.render("person", &search_resp).unwrap())
 }
 
+#[post("/user/sociallink/profile/search/{your}/{friend}/{follow}")]
+async fn new_follower(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    // check whether user login through user credentials.
+    unsafe {
+        let expire = gatekeeper::login_expire(ME.to_owned());
+
+        if expire {
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
+
 #[post("/user/library/books/{find}/{book}/{record}/{accept}")]
 
 async fn search_book(form: web::Form<Booksearch>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
@@ -2862,6 +2879,8 @@ async fn discover_proximity(form: web::Form<Discover>, hbr: web::Data<Handlebars
         phone : findperson.phonenum.to_owned(),
     }).unwrap());
 }
+
+
 
 
 #[actix_web::main]
