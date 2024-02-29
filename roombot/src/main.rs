@@ -2720,7 +2720,7 @@ async fn myfollowers(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
             if dbresp.cfollowers.ge(&0){
 
                dbresp.total_followers(); 
-               dbresp.follower(dbresp.cfollowers as usize);
+               dbresp.follower((dbresp.cfollowers -1) as usize);
 
                println!("followers : {:?} ", dbresp);
                 
@@ -2728,6 +2728,10 @@ async fn myfollowers(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
             if dbresp.cfollowers.ge(&1){
 
+                dbresp.reduce_followers(); 
+                dbresp.unfollow((dbresp.cfollowers -1) as usize);
+
+               println!("un followers : {:?} ", dbresp);
 
             }
         }

@@ -372,7 +372,7 @@ pub mod accounts{
 
     pub trait Followers{
         
-        fn follower(&mut self, index : usize);
+        fn follower(&mut self, index : usize);  
 
         fn unfollow(&mut self, index : usize);
 
@@ -410,16 +410,39 @@ pub mod accounts{
         fn traits(&self, traits : Vec::<String>);
     }
 
+
+    /// followers have following operations ( follower, unfollower, total_followers, reduce_followers)
+    /// folllow make friend 
+    /// unfollow remove friend 
+    /// total_followers how many friend i have
+    /// reduce_followers selected group  
+
     impl Followers for Info {
         
         fn follower(&mut self, index : usize){
 
-            self.network[index].followers = true;  
+            let mut network : ProfileNetwork = ProfileNetwork{followers : false, favourite : false}; 
+
+            if self.network.len().ge(&0) && index.le(&self.network.len()) && index.ge(&0) {
+
+                network.followers = true;
+
+                self.network.push(network);
+            }
+            
+            
         }
 
         fn unfollow(&mut self, index : usize){
 
-            self.network[index].followers = false;
+            let mut network : ProfileNetwork = ProfileNetwork{followers : false, favourite : false}; 
+
+            if self.network.len().ge(&0) && index.ge(&0) {
+
+                network.followers = false;
+
+                self.network.push(network);
+            }
         }
 
         fn total_followers(&mut self){
