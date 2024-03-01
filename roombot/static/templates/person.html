@@ -60,28 +60,15 @@
                         <button type="submit" style="border : none; background : transparent; position: relative; left: -2pc;top : -1.4pc">
                             <span class="uk-button uk-button-dark" uk-icon="icon:star" title="lead"></span>
                         </button> 
-                        <div class="uk-badge" style="position: relative;top : -0.5pc; left : -4.5pc">0</div>
+                        <div class="uk-badge" style="position: relative;top : -0.5pc; left : -4.5pc"> {{leads}} </div>
                     </form>
                     <form action="" method="post">
                         <button type="submit" style="border : none; background : transparent; position: relative; left: 2pc; top : -1.5pc">
                             <span class="uk-button uk-button-default" uk-icon="icon:heart" title="follower" style="position: relative;top: -2.3pc;left: 5pc;border: none;"></span>
                         </button>
-                        <div class="uk-badge" style="position: relative;top : -3pc; left : 4.5pc">0</div>
+                        <div class="uk-badge" style="position: relative;top : -3pc; left : 4.5pc"> {{follower}} </div>
                     </form>      
                 </div>
-
-                {{#with name}}
-                <span class="_s1">{{ 1}}</span>
-                {{/with}}
-                
-                <button type="button" id="reset1" style="border: none;background:  transparent;position: relative;left: 3pc; visibility: hidden;">
-                    <span class="uk-button uk-button-dark" uk-icon="icon:trash"></span>
-                </button>
-                <div class="uk-container" id="_a1" style="position: relative;top: 2pc;width: 12pc; visibility: hidden;">
-                    <span class="uk-button uk-button-dark" uk-icon="icon:star" title="lead"> <div class="uk-badge">0</div> </span>
-                    <span class="uk-button uk-button-default" uk-icon="icon:heart" title="follower" style="position: relative;top: -2.3pc;left: 5pc;border: none;"> <div class="uk-badge">0</div></span>      
-                </div>
-                <span id="warns" style="visibility: hidden;"> Results are removed; for time being </span>
             </div>
         </div>
     </div>

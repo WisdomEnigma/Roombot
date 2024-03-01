@@ -221,7 +221,7 @@ pub mod accounts{
 
 
     use futures_util::{future::ok, TryStreamExt };
-    use mongodb::{Client, options::{ClientOptions, FindOptions, CountOptions}, Database, bson::doc};
+    use mongodb::{Client, options::{ClientOptions, FindOptions, CountOptions, FindOneAndUpdateOptions}, Database, bson, bson::doc};
     use serde::{Deserialize,Serialize}; 
     
     #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -610,7 +610,7 @@ pub mod accounts{
 
 
         /// count people is a special method which return how many user's exist in our bookkeeping record. E.g "Ali" => 5.   
-         ///
+        ///
         /// # Examples
         ///
         /// ```
@@ -802,33 +802,53 @@ pub mod accounts{
             Ok(info)
         }
 
-        pub async fn get_account_with_user_session(&mut self, db : Database) -> Result<Info, Info>{
 
-            let mut info = Info{ firstname: "".to_string(), 
-            lastname: "".to_string(), 
-            institute: Vec::<>::new(), 
-            degree: Vec::<>::new(), 
-            workplace: Vec::<>::new(), 
-            city: "".to_string(), 
-            country: "".to_string(), 
-            bitcoinaddr: Vec::<>::new(), 
-            work: "".to_string(), 
-            session: "".to_string(), 
-            address: Vec::<>::new(), 
-            fblink: "".to_string(), 
-            instalink: "".to_string(),
-            xlink: "".to_string(), 
-            youlink: "".to_string(), 
-            new_digital: Vec::<String>::new(), 
-            network : self.network.to_owned(),
-            cfavouite : self.cfavouite,
-            cfollowers : self.cfollowers, 
-            open : self.open.to_owned(),
-            taste : self.taste.to_owned(),
-            hobby : self.hobby.to_owned(),
-            phonenum : self.phonenum.to_owned(),
-            personality : self.personality.to_owned(),
-         };
+        /// get account with user session return user information if user session is known , this function require admistrative right.
+        /// 
+        /// # Examples
+        ///
+        /// ```
+        ///     use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     assert_eq!(info.get_account_with_user_session(cred).await, Ok(Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()...}));
+        /// ```
+
+        async fn get_account_with_user_session(&mut self, db : Database) -> Result<Info, Info>{
+
+            let mut info = Info{ 
+                    firstname: "".to_string(), 
+                    lastname: "".to_string(), 
+                    institute: Vec::<>::new(), 
+                    degree: Vec::<>::new(), 
+                    workplace: Vec::<>::new(), 
+                    city: "".to_string(), 
+                    country: "".to_string(), 
+                    bitcoinaddr: Vec::<>::new(), 
+                    work: "".to_string(), 
+                    session: "".to_string(), 
+                    address: Vec::<>::new(), 
+                    fblink: "".to_string(), 
+                    instalink: "".to_string(),
+                    xlink: "".to_string(), 
+                    youlink: "".to_string(), 
+                    new_digital: Vec::<String>::new(), 
+                    network : self.network.to_owned(),
+                    cfavouite : self.cfavouite,
+                    cfollowers : self.cfollowers, 
+                    open : self.open.to_owned(),
+                    taste : self.taste.to_owned(),
+                    hobby : self.hobby.to_owned(),
+                    phonenum : self.phonenum.to_owned(),
+                    personality : self.personality.to_owned(),
+            };
 
             let collection = db.collection::<Info>("accounts");
 
@@ -874,6 +894,38 @@ pub mod accounts{
         pub fn personality(&mut self) -> Vec::<String>{
 
             return self.personality.clone();
+        }
+
+
+        pub async fn update_follower(&mut self, db : Database) -> Result<(), ()>{
+
+            let collect = db.collection::<Info>("accounts");
+
+            let update_doc = doc! {
+                "$set" : {
+                    "cfollowers" : self.cfollowers,
+                    "network" : bson::to_bson(&self.network).unwrap(),
+                },
+            };
+
+            let update_opts = FindOneAndUpdateOptions::builder().return_document(mongodb::options::ReturnDocument::After).build();
+            while let Some(data) =  collect.find_one_and_update(doc!{ "firstname" : self.firstname.to_owned()}, update_doc.to_owned(), update_opts.to_owned()).await.unwrap(){
+
+                if data.firstname.to_owned().eq(&""){
+
+                    eprintln!("sorry error occurred while updating data ");
+                    return Err(());
+                }
+
+                if data.firstname.to_owned().eq(&self.firstname){
+
+                    println!("your data will be update now");
+                    break;
+                }
+            }
+
+            Ok(())
+
         }
 
 

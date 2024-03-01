@@ -2654,16 +2654,18 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
 
         for entity in iterate.by_ref() {
             
-            search_q.push(entity.firstname + &entity.lastname);
-            search_resp.session = entity.session.clone();
+            search_q.push(entity.to_owned().firstname + &entity.to_owned().lastname);
+            search_resp.session = entity.to_owned().session.clone();
+
+            search_resp.leads = entity.to_owned().cfavouite.to_string();
+            search_resp.follower = entity.to_owned().cfollowers.to_string();
 
         }
     }
 
     search_resp.name = search_q.to_owned();
     search_resp.counter = count.to_owned().to_string();
-    search_resp.leads = 0.to_owned().to_string();
-    search_resp.follower = 0.to_owned().to_string();
+    
 
     HttpResponse::Ok().body(hbr.render("person", &search_resp).unwrap())
 }
@@ -2721,18 +2723,8 @@ async fn myfollowers(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
                dbresp.total_followers(); 
                dbresp.follower((dbresp.cfollowers -1) as usize);
-
-               println!("followers : {:?} ", dbresp);
-                
-            }
-
-            if dbresp.cfollowers.ge(&1){
-
-                dbresp.reduce_followers(); 
-                dbresp.unfollow((dbresp.cfollowers -1) as usize);
-
-               println!("un followers : {:?} ", dbresp);
-
+               
+               let _ = dbresp.update_follower(access.to_owned()).await.unwrap(); 
             }
         }
 
