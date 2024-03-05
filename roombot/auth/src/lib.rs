@@ -130,8 +130,11 @@ pub mod gatekeeper{
 
         pub username : String,
         session : String,
-        status : bool,
-
+        newsletter : bool,
+        pub email : String,
+        refer_email : String,
+        refer_name : String,
+        invitation : bool,
     }
 
     /// Authenication definition  
@@ -146,11 +149,15 @@ pub mod gatekeeper{
     impl Authenicate{
 
         /// new definition return authenication instance. This function require key and value to operate in.
-        pub fn new(values : String, k : String) -> Self{
+        pub fn new(session : String, username : String, email : String) -> Self{
             Self{
-                username : k,
-                session : values,
-                status : true,  
+                username,
+                session,
+                newsletter : false,
+                email,
+                refer_email : "".to_string(),
+                refer_name : "".to_string(),
+                invitation : false,  
             }
         }
 
@@ -166,21 +173,25 @@ pub mod gatekeeper{
 
            let mut terminal = term::stdout().unwrap();
 
-                terminal.fg(term::color::GREEN).unwrap();
+            terminal.fg(term::color::GREEN).unwrap();
 
-                write!(terminal, "Looking for information.... \n  ").unwrap();
+            write!(terminal, "Looking for information.... \n  ").unwrap();
            
-           let find_doc = self.find_with_session(self.session.to_string(), db.to_owned()).await;
+           let find_doc = self.find_with_session(self.session.to_string(), db.to_owned()).await.unwrap();
            
-           if !verified(find_doc.to_owned(), self.session.to_owned()){
+           if !verified(find_doc.session.to_owned(), self.session.to_owned()) &&  find_doc.email.to_owned().ne(&self.email){
 
                     let doc = vec![
 
                         Authenicate{
 
-                            username : self.username.to_string(),
-                            session : self.session.to_string(),
-                            status : self.status,
+                            username : self.username.to_owned().to_string(),
+                            session : self.session.to_owned().to_string(),
+                            newsletter : false,
+                            email : self.email.to_owned(),
+                            refer_email : self.refer_email.to_owned(),
+                            refer_name : self.refer_name.to_owned(),
+                            invitation : self.invitation.to_owned(),
                         },
                     ];
 
@@ -237,10 +248,19 @@ pub mod gatekeeper{
         }
 
         /// When user login his or her account. Session will be created... 
-        async fn find_with_session(&mut self, value : String, database : Database) -> String {
+        async fn find_with_session(&mut self, value : String, database : Database) -> Result<Authenicate,Authenicate> {
             
 
-            let mut temp_session : String = "".to_string(); 
+            let mut credentials = Authenicate{
+                username : "".to_string(), 
+                session : "".to_string(), 
+                email : "".to_string(), 
+                newsletter : false, 
+                refer_email : "".to_string(),
+                refer_name : "".to_string(),
+                invitation : false
+            };
+
              
             let collection = database.collection::<Authenicate>(DOC_NAME);
 
@@ -275,14 +295,15 @@ pub mod gatekeeper{
                     panic!("No Data found ");
                 }
 
-                temp_session = profile.session; 
+                credentials = profile;
+                break;
             }
 
             terminal.fg(term::color::GREEN).unwrap();
 
             write!(terminal, "[result] well done , this is the result of your task... \n ").unwrap();
 
-            temp_session
+            Ok(credentials) 
         }
 
     }

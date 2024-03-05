@@ -1495,7 +1495,7 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
 
     let _ = EMAIL.set(email.to_owned());
 
-    let mut auth = gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string());
+    let mut auth = gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string(), email.to_owned());
 
     unsafe {
         ME = auth_code;
@@ -1503,6 +1503,7 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
 
     // check whether user have profile or new user.
     if let Ok(client) = gatekeeper::mongodb_client().await {
+        
         let db = client.database(music::MUSIC_RECORD);
         let _ = auth.create_record(db).await;
 
