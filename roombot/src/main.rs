@@ -14,7 +14,7 @@
 // import libraries
 use actix_files::NamedFile;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use auth::{accounts::Followers, gatekeeper};
+use auth::{accounts::{Favourite, Followers}, gatekeeper};
 use gpt_text::openai;
 use serde::{Deserialize, Serialize};
 
@@ -2735,6 +2735,72 @@ async fn myfollowers(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+#[post("/user/sociallink/profile/search/{your}/{friend}/{mark}/{favourite}")]
+async fn likes(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    // check whether user login through user credentials.
+    unsafe {
+        let expire = gatekeeper::login_expire(ME.to_owned());
+
+        if expire {
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    let user = SEARCHUSERCREDEN.get().unwrap();
+
+    let mut tofind = auth::accounts::Info::new(
+        user.to_owned().to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+    );
+
+    let minit = tofind.mongo_init().await;
+    let access = tofind.access_credentials(minit);
+
+    unsafe {
+        
+        tofind.set_session(ME.to_owned().to_string());
+
+        let mut dbresp = tofind.getaccount(access.to_owned()).await.unwrap();
+
+        if dbresp.session.to_owned().eq(&ME.to_owned().to_string()){
+
+
+            println!(" You're not allowed to follow yourself ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+
+
+        if dbresp.session.to_owned().ne(&ME.to_owned().to_string()){
+
+            if dbresp.cfavouite.ge(&0){
+
+               dbresp.total(); 
+               dbresp.connection((dbresp.cfavouite -1) as usize);
+               
+               let _ = dbresp.update_close(access.to_owned()).await.unwrap(); 
+
+            }
+        }
+
+    }
+
+    
+
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
+
 #[post("/user/library/books/{find}/{book}/{record}/{accept}")]
 
 async fn search_book(form: web::Form<Booksearch>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
@@ -2994,6 +3060,7 @@ async fn main() -> std::io::Result<()> {
             .service(discover)
             .service(discover_proximity)
             .service(myfollowers)
+            .service(likes)
         // .service(register_user)
         // .service(register_face)
         // .service(login)

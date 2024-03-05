@@ -47,7 +47,15 @@ pub mod gatekeeper{
     pub fn active_hash<T : Hash>(t : &T) -> u64{
 
         let mut sip = SipHasher::new();
+        let mut terminal = term::stdout().unwrap();
+
         t.hash(&mut sip);
+
+
+        terminal.fg(term::color::GREEN).unwrap();
+
+        write!(terminal, "[login] Authorize your identity .. \n").unwrap();
+        
         sip.finish()
     }
 
@@ -55,9 +63,19 @@ pub mod gatekeeper{
     // As the name reference verified is a private definition which verify the authenication inside the black box.  
     fn verified(old : String, new : String) -> bool{
 
+        let mut terminal = term::stdout().unwrap();
+
         if old.to_owned().eq(&new){
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "[verify] Welcome buddy ... \n ").unwrap();
             return true;
         }
+
+        terminal.fg(term::color::BLUE).unwrap();
+
+        write!(terminal, "[new user ] Welcome to our community .... \n  ").unwrap();
     
         false
     }
@@ -80,13 +98,24 @@ pub mod gatekeeper{
     /// login expire validate whether session is active or not 
     pub fn login_expire(me : u64) -> bool {
         
-        
-            if me.to_owned().eq(&0) {
+        let mut terminal = term::stdout().unwrap();
+
+        if me.to_owned().eq(&0) {
+                
+
+                terminal.fg(term::color::RED).unwrap();
+
+                write!(terminal, "[session] your session expire , re login ... \n  ").unwrap();            
                 return true;
-            }
-    
-            false
         }
+
+        terminal.fg(term::color::GREEN).unwrap();
+
+        write!(terminal, "[session] plenty of time ... \n  ").unwrap();
+        
+        false
+        
+    }
 
     /// Authenicate is another boss which have a permission to allocate agents on his behave. More information read Authenication definition.
     /// This instance derive from for traits 'debug', 'clone', 'serialize', 'deserialize'
@@ -134,6 +163,12 @@ pub mod gatekeeper{
         pub async fn create_record(&mut self , db : Database) -> std::io::Result<()> {
 
            let collect = db.collection::<Authenicate>(DOC_NAME);
+
+           let mut terminal = term::stdout().unwrap();
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "Looking for information.... \n  ").unwrap();
            
            let find_doc = self.find_with_session(self.session.to_string(), db.to_owned()).await;
            
@@ -149,6 +184,10 @@ pub mod gatekeeper{
                         },
                     ];
 
+                    terminal.fg(term::color::GREEN).unwrap();
+
+                    write!(terminal, "[cred] SIGNUP PROCESS COMPLETE ... \n  ").unwrap();
+
                     let _ = collect.insert_many(doc, None).await;
             }
 
@@ -161,6 +200,12 @@ pub mod gatekeeper{
             
              
             let collection = database.collection::<Authenicate>(DOC_NAME);
+
+            let mut terminal = term::stdout().unwrap();
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "Looking for information ...  \n  ").unwrap();
             
             let filter = doc!{ "username" : value.to_owned()};
 
@@ -170,10 +215,19 @@ pub mod gatekeeper{
             while let Some(profile) = cursor.try_next().await.unwrap(){
 
                 if profile.username.to_owned().eq(&" "){
+
+                    terminal.fg(term::color::BRIGHT_RED).unwrap();
+
+                    write!(terminal, "[result] by chance ! we found empty bit .... \n  ").unwrap();
+
                     panic!("Unforuente query must be empty ");
                 }
 
                 if profile.username != value{
+
+                    terminal.fg(term::color::RED).unwrap();
+
+                    write!(terminal, "[result] MISSING PIECE NOT CONNECTED ... \n ").unwrap();
 
                     panic!("No Data found ");
                 } 
@@ -189,6 +243,12 @@ pub mod gatekeeper{
             let mut temp_session : String = "".to_string(); 
              
             let collection = database.collection::<Authenicate>(DOC_NAME);
+
+            let mut terminal = term::stdout().unwrap();
+
+            terminal.fg(term::color::GREEN).unwrap();
+
+            write!(terminal, "Looking for information ... \n ").unwrap();
             
             let filter = doc!{ "session" : value.to_owned()};
 
@@ -198,16 +258,29 @@ pub mod gatekeeper{
             while let Some(profile) = cursor.try_next().await.unwrap(){
 
                 if profile.username.to_owned().eq(&" "){
+
+                    terminal.fg(term::color::BRIGHT_RED).unwrap();
+
+                    write!(terminal, "[empty] ohh! we caught empty bit :(... \n  ").unwrap();
                     panic!("Unforuente query must be empty ");
                 }
 
                 if profile.session != value{
 
+
+                    terminal.fg(term::color::RED).unwrap();
+
+                    write!(terminal, "[result] missing piece not found ... \n  ").unwrap();
+                    
                     panic!("No Data found ");
                 }
 
                 temp_session = profile.session; 
             }
+
+            terminal.fg(term::color::GREEN).unwrap();
+
+            write!(terminal, "[result] well done , this is the result of your task... \n ").unwrap();
 
             temp_session
         }
@@ -253,6 +326,10 @@ pub mod accounts{
         pub hobby : Vec::<Hobby>,
         pub phonenum : String,
         personality : Vec::<String>, 
+        collection_books : Vec<FavBooks>, 
+        collection_movies : Vec<FavMovies>,
+        collection_brand : Vec<FavBrands>,
+        collection_place : Vec<FavPlace>
     }
 
     /// User might choose one or many hobbies ...
@@ -307,28 +384,30 @@ pub mod accounts{
     #[derive(Debug, Serialize, Deserialize, Clone)]
     pub struct FavBooks{
 
-        books : Vec<String>,
-        recomemded : Vec<String>,
-        authors : Vec<String>,
-
+        books : String,
+        recomemded : bool,
+        authors : String,
+        watch : bool,
     }
 
     /// Favourite Movies store data about your favourite movies 
     #[derive(Debug, Serialize, Deserialize, Clone)]
     pub struct FavMovies{
 
-        movies : Vec<String>,
-        recomemded : Vec<String>,
-        artist : Vec<String>,
+        movies : String,
+        recomemded : bool,
+        artist : String,
+        watch : bool,
     }
 
     /// Favourite Place store data about your favourite place 
     #[derive(Debug, Serialize, Deserialize, Clone)]
     pub struct  FavPlace{
 
-        lastvisited : Vec<String>,
-        recomemded : Vec<String>,
-        plantotrip : Vec<String>,
+        lastvisited : String,
+        recomemded : bool,
+        plantotrip : String,
+        watch : bool,
     }
 
 
@@ -338,8 +417,9 @@ pub mod accounts{
 
     pub struct FavBrands{
 
-        recommeded : Vec<String>,
-        favourite_b : Vec<String>,
+        recommeded : bool,
+        favourite_b : String,
+        watch : bool,
     }
 
     /// Some people are highly networth choose Affluent & rest are public
@@ -384,11 +464,13 @@ pub mod accounts{
     /// likwise followers , favourite is also trait & you should implement before interact with info.
     pub trait Favourite{
 
-        fn favourite(&self);
+        fn connection(&mut self, index : usize);
         
-        fn undo(&self);
+        fn undo(&mut self, index : usize);
 
-        fn total_favourite(&self);
+        fn total(&mut self);
+
+        fn reduce(&mut self);
 
     }
 
@@ -400,14 +482,53 @@ pub mod accounts{
 
         fn private(&mut self);
 
-        fn selected(&mut self) -> Vec::<String>;
-
     }
 
 
+    /// character is your reptuation either you are worth or reckless 
     pub trait Chacter{
 
-        fn traits(&self, traits : Vec::<String>);
+        fn worth(&mut self, atributes : Vec::<String>);
+        fn reckless(&mut self, atributes : Vec::<String>);
+        fn endorse(&mut self, attribute : String) -> bool;
+    }
+
+
+    impl Chacter for Info{
+
+        fn endorse(&mut self, atribute : String) -> bool{
+            
+            if self.personality.is_empty() {return false;}
+            
+            for entity in self.personality.to_owned(){
+
+                if entity.contains(&atribute){ return true;}
+            }
+
+            return false;
+        }
+
+        fn reckless(&mut self, atributes : Vec::<String>) {
+            
+            for mut entity in self.personality.to_owned(){
+
+                for a in atributes.to_owned(){
+
+                    if entity.contains(&a){
+
+                        entity.pop();
+                        continue;
+                    }        
+                    
+                }
+            }
+        }
+
+        fn worth(&mut self, atributes : Vec::<String>) {
+            
+            self.personality = atributes;
+
+        }
     }
 
 
@@ -456,6 +577,59 @@ pub mod accounts{
             self.cfollowers -=1;
         }
                 
+    }
+
+    impl Favourite for Info{
+
+        fn connection(&mut self, index : usize) {
+            
+            let mut network : ProfileNetwork = ProfileNetwork{followers : false, favourite : false}; 
+
+            if self.network.len().ge(&0) && index.le(&self.network.len()) && index.ge(&0) {
+
+                network.favourite = true;
+
+                self.network.push(network);
+            }
+        }
+
+        fn reduce(&mut self) {
+            
+            self.cfavouite -=1;
+        }
+
+        fn total(&mut self) {
+            
+            self.cfavouite +=1;
+        }
+
+        fn undo(&mut self, index : usize) {
+            
+            let mut network : ProfileNetwork = ProfileNetwork{followers : false, favourite : false}; 
+
+            if self.network.len().ge(&0) && index.ge(&0) {
+
+                network.favourite = false;
+
+                self.network.push(network);
+            }
+        }
+    }
+
+
+    /// open network provide following definition (open means social connection network . in short friend of friend is my friend)..
+    /// while private 180 degree opposite meaning (only few people are might be our friend).  
+    impl OpenNetwork for Info{
+
+        fn open (&mut self) {
+            
+            self.open = true;
+        }
+
+        fn private(&mut self) {
+            
+            self.open = false;
+        }
     }
 
     impl Info{
@@ -517,6 +691,10 @@ pub mod accounts{
                 hobby : Vec::<Hobby>::new(),
                 phonenum : phonenum,
                 personality : Vec::<String>::new(),
+                collection_books : Vec::<FavBooks>::new(),
+                collection_brand : Vec::<FavBrands>::new(),
+                collection_movies : Vec::<FavMovies>::new(),
+                collection_place : Vec::<FavPlace>::new(),
              }
 
         }
@@ -570,6 +748,12 @@ pub mod accounts{
 
                 let col = db.collection::<Info>("accounts");
 
+                let mut terminal = term::stdout().unwrap();
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "Looking for information ... \n ").unwrap();
+
                 let data = self.getaccount(db.to_owned()).await.unwrap();
 
                 if data.firstname.to_owned().eq(&"") && data.lastname.to_owned().eq(&"") && data.bitcoinaddr.len().eq(&0){
@@ -599,10 +783,17 @@ pub mod accounts{
                         hobby : self.hobby.to_owned(),
                         phonenum : self.phonenum.to_owned(),
                         personality : self.personality.to_owned(),
+                        collection_books : self.collection_books.to_owned(),
+                        collection_brand : self.collection_brand.to_owned(),
+                        collection_movies : self.collection_movies.to_owned(),
+                        collection_place : self.collection_place.to_owned(),
                     };
 
                     let _ = col.insert_one(info, None).await;
-
+                    
+                    terminal.fg(term::color::GREEN).unwrap();
+                
+                    write!(terminal, "[create ] Successfully Create operation complete .... \n   ").unwrap();
                 }
 
                 return Ok("".to_string()) 
@@ -632,9 +823,19 @@ pub mod accounts{
 
                 let col = db.collection::<Info>("accounts");
 
+                let mut terminal = term::stdout().unwrap();
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "Looking for information ... \n ").unwrap();
+
                 while let Ok(record) = col.count_documents(doc! {"firstname" : doc! {"$exists" : true}}, None).await{
 
                         if record.to_owned().eq(&0){
+
+                            terminal.fg(term::color::RED).unwrap();
+
+                            write!(terminal, "[result] Human's are so much confused , barr ... missing piece is not located .... \n  ").unwrap();
                             return Err(record)
                         }
 
@@ -646,6 +847,11 @@ pub mod accounts{
                         }
 
                 }
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "[result] Oh yeah missing piece found ... \n  ").unwrap();
+
                 Ok(counter)  
          }
 
@@ -676,11 +882,23 @@ pub mod accounts{
 
            let col = db.collection::<Info>("accounts");
 
+           let mut terminal = term::stdout().unwrap();
+
+            terminal.fg(term::color::GREEN).unwrap();
+
+            write!(terminal, "Looking for information ... \n ").unwrap();
+
             let mut find_doc = col.find(doc! {"firstname" : self.firstname.to_owned()}, FindOptions::builder().sort(doc!{ "firstname" : 1}).build()).await.unwrap();
 
             while let Ok(Some(record)) = find_doc.try_next().await  {
 
-                if record.firstname.to_owned().eq(&"") { return Err(info);}
+                if record.firstname.to_owned().eq(&"") { 
+
+                    terminal.fg(term::color::RED).unwrap();
+    
+                    write!(terminal, "[empty] Human's information is so much scatter connect dot by dot like move mountain ... \n  ").unwrap(); 
+                    return Err(info);
+                }
                 
                 if record.firstname.to_owned().eq(&self.firstname){ info.push(record.to_owned());}
 
@@ -688,8 +906,11 @@ pub mod accounts{
 
                 break;
             }
-            
 
+            terminal.fg(term::color::GREEN).unwrap();
+
+            write!(terminal, "[result] oh yeah ! missing piece found ... \n  ").unwrap();
+            
             Ok(info)
          }
 
@@ -717,16 +938,31 @@ pub mod accounts{
             
             let col = db.collection::<Info>("accounts");
 
+            let mut terminal = term::stdout().unwrap();
+
+            terminal.fg(term::color::GREEN).unwrap();
+
+            write!(terminal, "Looking for information ... \n ").unwrap();
+
             let mut iterate = col.find(doc!{"session" : self.session.to_owned()}, None).await.unwrap();
  
             while let Ok(Some(record)) = iterate.try_next().await{
 
                 if record.session.to_owned().to_string().is_empty(){
 
+                    terminal.fg(term::color::RED).unwrap();
+
+                    write!(terminal, "[empty] You humans ! are so much complex ... \n  ").unwrap();
+
                     return Err("No record".to_string());
                 }
 
                 if record.bitcoinaddr[0].to_owned().to_string().is_empty(){
+
+
+                    terminal.fg(term::color::RED).unwrap();
+
+                    write!(terminal, "[result] ahh! so much confused ... \n ").unwrap();
 
                     return Err("No bitcoin address provided".to_string());
                 }
@@ -734,6 +970,10 @@ pub mod accounts{
                 myaddress = record.bitcoinaddr[0].to_owned();
                 break;
             }
+
+            terminal.fg(term::color::GREEN).unwrap();
+
+            write!(terminal, "[result] finally ! dots connect .... \n  ").unwrap();
 
             return Ok(myaddress)
          }
@@ -785,9 +1025,19 @@ pub mod accounts{
             hobby : self.hobby.to_owned(),
             phonenum : self.phonenum.to_owned(),
             personality : self.personality.to_owned(),
+            collection_books : self.collection_books.to_owned(),
+                        collection_brand : self.collection_brand.to_owned(),
+                        collection_movies : self.collection_movies.to_owned(),
+                        collection_place : self.collection_place.to_owned(),
          };
 
             let collection = db.collection::<Info>("accounts");
+
+            let mut terminal = term::stdout().unwrap();
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "Looking for information ...  \n ").unwrap();
 
             let opts = FindOptions::builder().sort(doc!{ "firstname" : 1}).build();
 
@@ -798,6 +1048,10 @@ pub mod accounts{
                 info = account_info_col.to_owned();
                 break;
             }
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "[result] finally ! dots are connected ... ").unwrap();
 
             Ok(info)
         }
@@ -848,13 +1102,28 @@ pub mod accounts{
                     hobby : self.hobby.to_owned(),
                     phonenum : self.phonenum.to_owned(),
                     personality : self.personality.to_owned(),
+                    collection_books : self.collection_books.to_owned(),
+                        collection_brand : self.collection_brand.to_owned(),
+                        collection_movies : self.collection_movies.to_owned(),
+                        collection_place : self.collection_place.to_owned(),
             };
 
             let collection = db.collection::<Info>("accounts");
 
+            let mut terminal = term::stdout().unwrap();
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "Looking for information \n ").unwrap();
+
             let opts = FindOptions::builder().sort(doc!{ "session" : 1}).build();
 
             let mut query = collection.find(doc!{"session" : self.session.to_owned()}, opts).await.unwrap();
+
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "[process] missing piece ! ... \n  ").unwrap();
 
             while let Ok(Some(account_info_col)) = query.try_next().await{
 
@@ -862,18 +1131,44 @@ pub mod accounts{
                 break;
             }
 
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "[result] finally ! uphill task complete .... \n  ").unwrap();
+
             Ok(info)
         }
 
         /// set taste definition of enum taste which two options provided [ affluent, public]
         pub fn set_taste(&mut self, myclass : Taste){
 
+
+            let mut terminal = term::stdout().unwrap();
+
             match myclass {
                 
-                Taste::Affluent =>  {self.taste = myclass;},
-                Taste::Public => {self.taste = myclass},
+                Taste::Affluent =>  {
+
+                    terminal.fg(term::color::BRIGHT_GREEN).unwrap();
+
+                    write!(terminal, "[result] AFFLUENT, I RESPECT THAT .... \t ").unwrap();
+
+                    self.taste = myclass;
+                },
+                Taste::Public => {
+                    
+
+                    terminal.fg(term::color::GREEN).unwrap();
+
+                    write!(terminal, "[result] Ordinay ... \t ").unwrap();
+                    
+                    self.taste = myclass
+                },
                 Taste::None => {
 
+                    terminal.fg(term::color::BRIGHT_RED).unwrap();
+
+                    write!(terminal, "[result] No taste .... \t  ").unwrap();
+                    
                     eprintln!(" taste should not be provided :");
                 }
             }
@@ -897,9 +1192,31 @@ pub mod accounts{
         }
 
 
+        /// update follower method update databse whenever user connection update meaning either he/she make new friend or reject him/her.
+        /// # Examples
+        ///
+        /// ```
+        ///     use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     assert_eq!(info.update_follower(cred).await, Ok());
+        /// ``` 
         pub async fn update_follower(&mut self, db : Database) -> Result<(), ()>{
 
             let collect = db.collection::<Info>("accounts");
+
+            let mut terminal = term::stdout().unwrap();
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "Looking for information ... \n ").unwrap();
 
             let update_doc = doc! {
                 "$set" : {
@@ -913,13 +1230,21 @@ pub mod accounts{
 
                 if data.firstname.to_owned().eq(&""){
 
+                    terminal.fg(term::color::RED).unwrap();
+
+                    write!(terminal, "[result] ohh! empty string ...  \n ").unwrap();
+                    
                     eprintln!("sorry error occurred while updating data ");
                     return Err(());
                 }
 
                 if data.firstname.to_owned().eq(&self.firstname){
 
-                    println!("your data will be update now");
+
+                    terminal.fg(term::color::GREEN).unwrap();
+
+                    write!(terminal, "[result] finally ! update your data ... \n ").unwrap();
+                    println!("congrats operation complete successfuuly");
                     break;
                 }
             }
@@ -929,5 +1254,67 @@ pub mod accounts{
         }
 
 
+        /// update close method update databse whenever user build close relationship such as family or friend's
+        /// # Examples
+        ///
+        /// ```
+        ///     use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     assert_eq!(info.update_close(cred).await, Ok());
+        ///
+        /// ``` 
+
+        pub async fn update_close(&mut self, db : Database) -> Result<(), ()>{
+
+            let collect = db.collection::<Info>("accounts");
+
+            let mut terminal = term::stdout().unwrap();
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "Looking for information .... \n ").unwrap();
+
+            let update_doc = doc! {
+                "$set" : {
+                    "cfavouite" : self.cfavouite,
+                    "network" : bson::to_bson(&self.network).unwrap(),
+                },
+            };
+
+            let update_opts = FindOneAndUpdateOptions::builder().return_document(mongodb::options::ReturnDocument::After).build();
+            while let Some(data) =  collect.find_one_and_update(doc!{ "firstname" : self.firstname.to_owned()}, update_doc.to_owned(), update_opts.to_owned()).await.unwrap(){
+
+                if data.firstname.to_owned().eq(&""){
+
+                    terminal.fg(term::color::RED).unwrap();
+
+                    write!(terminal, "[result] ohh! we found empty bit ... \n  ").unwrap();
+                    
+                    eprintln!("sorry error occurred while updating data ");
+                    return Err(());
+                }
+
+                if data.firstname.to_owned().eq(&self.firstname){
+
+                    terminal.fg(term::color::GREEN).unwrap();
+
+                    write!(terminal, "[result] finally data update .... \n  ").unwrap();
+
+                    println!("congrats operation complete successfuuly");
+                    break;
+                }
+            }
+
+            Ok(())
+
+        }
     }
 }
