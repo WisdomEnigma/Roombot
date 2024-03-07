@@ -29,7 +29,7 @@ use movies::movies_rating::{Content, Emotionfilter, MovieRate};
 use music_stream::{music, pinata_content};
 use once_cell::sync::OnceCell;
 use pinata_ipfs::{ipfs_net, ipinata};
-use std::{env, path::PathBuf};
+use std::{env, path::PathBuf, collections::HashMap};
 
 //  user submit their choices through html forms.
 // These forms have following implementation [Deserialize, Debug].
@@ -270,6 +270,10 @@ struct Searched {
     leads: String,
     follower: String,
     session: String,
+    fblink : String,
+    instalink : String,
+    xlink : String,
+    youlink : String,
 }
 
 #[derive(Serialize, Debug)]
@@ -2611,6 +2615,10 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
         leads: 0.to_string(),
         follower: 0.to_string(),
         session: "".to_string(),
+        fblink : "".to_string(),
+        instalink : "".to_string(),
+        xlink : "".to_string(),
+        youlink : "".to_string(),
     };
     let mut tofind = auth::accounts::Info::new(
         query.to_owned().to_string(),
@@ -2661,11 +2669,17 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
             search_resp.leads = entity.to_owned().cfavouite.to_string();
             search_resp.follower = entity.to_owned().cfollowers.to_string();
 
+            search_resp.fblink = entity.to_owned().fblink.to_string();
+            search_resp.instalink = entity.to_owned().instalink.to_string();
+            search_resp.xlink = entity.to_owned().xlink.to_string();
+            search_resp.youlink = entity.to_owned().youlink.to_string()
+
         }
     }
 
     search_resp.name = search_q.to_owned();
     search_resp.counter = count.to_owned().to_string();
+    
     
 
     HttpResponse::Ok().body(hbr.render("person", &search_resp).unwrap())
@@ -2801,6 +2815,8 @@ async fn likes(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
+
+
 
 #[post("/user/library/books/{find}/{book}/{record}/{accept}")]
 
@@ -3208,3 +3224,4 @@ async fn direct_gateway(fees: u64) -> Result<(), BitcoinNetworkErrorReport> {
         Ok(())
     }
 }
+
