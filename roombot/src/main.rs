@@ -29,7 +29,7 @@ use movies::movies_rating::{Content, Emotionfilter, MovieRate};
 use music_stream::{music, pinata_content};
 use once_cell::sync::OnceCell;
 use pinata_ipfs::{ipfs_net, ipinata};
-use std::{env, path::PathBuf, collections::HashMap};
+use std::{env, path::PathBuf};
 
 //  user submit their choices through html forms.
 // These forms have following implementation [Deserialize, Debug].
@@ -118,7 +118,6 @@ struct EditAccount {
     instalink : String,
     xlink : String,
     youlink : String,
-    new_digitalverse : String,
     old_digitalverse : String,
     phone : String,
 }
@@ -274,6 +273,16 @@ struct Searched {
     instalink : String,
     xlink : String,
     youlink : String,
+    books : i64,
+    brand : i64,
+    place : i64,
+    movies : i64,
+    bio : String,
+    bio_char : i64,
+    discord : String,
+    mastodon : String,
+    threads : String,
+    web : String,
 }
 
 #[derive(Serialize, Debug)]
@@ -2619,6 +2628,16 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
         instalink : "".to_string(),
         xlink : "".to_string(),
         youlink : "".to_string(),
+        bio : "".to_string(),
+        bio_char : 0,
+        web : "".to_string(),
+        books : 0,
+        brand : 0,
+        place : 0,
+        movies : 0,
+        discord : "".to_string(),
+        mastodon : "".to_string(),
+        threads : "".to_string(),
     };
     let mut tofind = auth::accounts::Info::new(
         query.to_owned().to_string(),
@@ -2672,7 +2691,17 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
             search_resp.fblink = entity.to_owned().fblink.to_string();
             search_resp.instalink = entity.to_owned().instalink.to_string();
             search_resp.xlink = entity.to_owned().xlink.to_string();
-            search_resp.youlink = entity.to_owned().youlink.to_string()
+            search_resp.youlink = entity.to_owned().youlink.to_string();
+            search_resp.books = entity.to_owned().collection_books.len() as i64;
+            search_resp.place = entity.to_owned().collection_place.len() as i64;
+            search_resp.movies = entity.to_owned().collection_movies.len() as i64;
+            search_resp.brand = entity.to_owned().collection_brand.len() as i64;
+            search_resp.bio = entity.to_owned().bio.to_string();
+            search_resp.bio_char = entity.bio.len().to_owned() as i64;
+            search_resp.web = entity.weburl.to_owned();
+            search_resp.threads = entity.threads_url.to_owned();
+            search_resp.discord = entity.discord_url.to_owned();
+            search_resp.mastodon = entity.mastodon_url.to_owned();
 
         }
     }

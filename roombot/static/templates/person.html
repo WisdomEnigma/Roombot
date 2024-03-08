@@ -95,17 +95,17 @@
                     </a>
                 </div>
                 <div style="position: relative; top : -9.5pc; left : 11.5pc">
-                    <a href="{{}}" alt="search user thread account">
+                    <a href="{{threads}}" alt="search user thread account">
                         <span class="uk-button uk-button-dark" uk-icon="icon:threads" style="color: darkslategray;"></span>
                     </a>
                 </div>
                 <div style="position: relative; top : -11.8pc; left : 14.5pc">
-                    <a href="{{}}" alt="search user mastodon account">
+                    <a href="{{mastodon}}" alt="search user mastodon account">
                         <span class="uk-button uk-button-dark" uk-icon="icon:mastodon" style="color: darkslategray;"></span>
                     </a>
                 </div>
                 <div style="position: relative; top : -14.3pc; left : 17.5pc">
-                    <a href="{{}}" alt="search user website url">
+                    <a href="{{web}}" alt="search user website url">
                         <span class="uk-button uk-button-dark" uk-icon="icon:world" style="color: darkslategray;"></span>
                     </a>
                 </div>
@@ -115,10 +115,10 @@
             </button>
              <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc; height: 15pc; width : 20pc">
                 <div style="position: relative; top: 12pc;left: 13pc;">
-                    <span style="color: silver;">0/200</span>
+                    <span style="color: silver;">{{bio_char}}/200</span>
                 </div>
                 <div>
-                    <article></article>
+                    <article> {{bio}} </article>
                 </div>
                 <div>
                     <div style="position: relative; top: -2pc;left: 14pc;">
@@ -135,19 +135,16 @@
             <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc; height: 10pc; width : 20pc">
                  <div>
                     <div style="position: relative; top: 0pc;left: 0pc;">
-                        <span class="uk-button uk-button-dark" uk-icon="icon: file-pdf" style="color: darkslategray;"></span> <span class="uk-badge" style="position: relative; top: 3pc; left : -3.2pc; background: green;">0</span>
+                        <span class="uk-button uk-button-dark" uk-icon="icon: file-pdf" style="color: darkslategray;"></span> <span class="uk-badge" style="position: relative; top: 3pc; left : -3.2pc; background: green;">{{books}}</span>
                     </div>
                     <div style="position: relative; top: -2.4pc;left: 3pc;">
-                        <span class="uk-button uk-button-dark" uk-icon="icon: location" style="color: darkslategray;"></span> <span class="uk-badge" style="position: relative; top: 3pc; left : -3.2pc; background: green;">0</span>
+                        <span class="uk-button uk-button-dark" uk-icon="icon: location" style="color: darkslategray;"></span> <span class="uk-badge" style="position: relative; top: 3pc; left : -3.2pc; background: green;">{{place}}</span>
                     </div>
                     <div style="position: relative; top: -4.7pc;left: 6pc;">
-                        <span class="uk-button uk-button-dark" uk-icon="icon: play-circle" style="color: darkslategray;"></span> <span class="uk-badge" style="position: relative; top: 3pc; left : -3.2pc; background: green;">0</span>
+                        <span class="uk-button uk-button-dark" uk-icon="icon: tv" style="color: darkslategray;"></span> <span class="uk-badge" style="position: relative; top: 3pc; left : -3.2pc; background: green;">{{brand}}</span>
                     </div>
                     <div style="position: relative; top: -7pc;left: 9pc;">
-                        <span class="uk-button uk-button-dark" uk-icon="icon: tv" style="color: darkslategray;"></span> <span class="uk-badge" style="position: relative; top: 3pc; left : -3.2pc; background: green;">0</span>
-                    </div>
-                    <div style="position: relative; top: -9.5pc;left: 12pc;">
-                        <span class="uk-button uk-button-dark" uk-icon="icon: cart" style="color: darkslategray;"></span> <span class="uk-badge" style="position: relative; top: 3pc; left : -3.2pc; background: green;">0</span>
+                        <span class="uk-button uk-button-dark" uk-icon="icon: cart" style="color: darkslategray;"></span> <span class="uk-badge" style="position: relative; top: 3pc; left : -3.2pc; background: green;">{{movies}}</span>
                     </div>
                  </div>
             </div>

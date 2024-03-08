@@ -347,10 +347,15 @@ pub mod accounts{
         pub hobby : Vec::<Hobby>,
         pub phonenum : String,
         personality : Vec::<String>, 
-        collection_books : Vec<FavBooks>, 
-        collection_movies : Vec<FavMovies>,
-        collection_brand : Vec<FavBrands>,
-        collection_place : Vec<FavPlace>
+        pub collection_books : Vec<FavBooks>, 
+        pub collection_movies : Vec<FavMovies>,
+        pub collection_brand : Vec<FavBrands>,
+        pub collection_place : Vec<FavPlace>,
+        pub bio : String,
+        pub weburl : String,
+        pub discord_url : String,
+        pub threads_url : String,
+        pub mastodon_url : String,
     }
 
     /// User might choose one or many hobbies ...
@@ -716,6 +721,11 @@ pub mod accounts{
                 collection_brand : Vec::<FavBrands>::new(),
                 collection_movies : Vec::<FavMovies>::new(),
                 collection_place : Vec::<FavPlace>::new(),
+                bio : "".to_string(),
+                weburl : "".to_string(),
+                discord_url : "".to_string(),
+                mastodon_url : "".to_string(),
+                threads_url : "".to_string(),
              }
 
         }
@@ -808,6 +818,11 @@ pub mod accounts{
                         collection_brand : self.collection_brand.to_owned(),
                         collection_movies : self.collection_movies.to_owned(),
                         collection_place : self.collection_place.to_owned(),
+                        bio : self.bio.to_owned(),
+                        discord_url : self.discord_url.to_owned(),
+                        mastodon_url : self.mastodon_url.to_owned(),
+                        threads_url : self.threads_url.to_owned(),
+                        weburl : self.weburl.to_owned()
                     };
 
                     let _ = col.insert_one(info, None).await;
@@ -1050,6 +1065,11 @@ pub mod accounts{
                         collection_brand : self.collection_brand.to_owned(),
                         collection_movies : self.collection_movies.to_owned(),
                         collection_place : self.collection_place.to_owned(),
+                        bio : self.bio.to_owned(),
+                        discord_url : self.discord_url.to_owned(),
+                        mastodon_url : self.mastodon_url.to_owned(),
+                        threads_url : self.threads_url.to_owned(),
+                        weburl : self.weburl.to_owned()
          };
 
             let collection = db.collection::<Info>("accounts");
@@ -1127,6 +1147,11 @@ pub mod accounts{
                         collection_brand : self.collection_brand.to_owned(),
                         collection_movies : self.collection_movies.to_owned(),
                         collection_place : self.collection_place.to_owned(),
+                        bio : self.bio.to_owned(),
+                        discord_url : self.discord_url.to_owned(),
+                        mastodon_url : self.mastodon_url.to_owned(),
+                        threads_url : self.threads_url.to_owned(),
+                        weburl : self.weburl.to_owned()
             };
 
             let collection = db.collection::<Info>("accounts");
