@@ -2697,6 +2697,14 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
             search_resp.movies = entity.to_owned().collection_movies.len() as i64;
             search_resp.brand = entity.to_owned().collection_brand.len() as i64;
             search_resp.bio = entity.to_owned().bio.to_string();
+            
+            if (entity.bio.len().to_owned() as i64).ge(&200){
+
+                println!("short autobiography maximum words 199  !");
+                return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
             search_resp.bio_char = entity.bio.len().to_owned() as i64;
             search_resp.web = entity.weburl.to_owned();
             search_resp.threads = entity.threads_url.to_owned();

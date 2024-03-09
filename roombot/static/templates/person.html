@@ -121,11 +121,19 @@
                     <article> {{bio}} </article>
                 </div>
                 <div>
-                    <div style="position: relative; top: -2pc;left: 14pc;">
-                        <span class="uk-button uk-button-dark" uk-icon="icon: happy" style="color: darkslategray;"></span>
+                    <div style="position: relative; top: -2pc;left: 13.5pc;">
+                        <form action="" method="post">
+                            <button type="submit" style="border : none; background : transparent;">
+                                <span class="uk-button uk-button-dark" uk-icon="icon: happy" style="color: darkslategray;"></span>
+                            </button>
+                        </form>
                     </div>
-                    <div style="position: relative; top: -1pc;left: 14pc;">
-                        <span class="uk-button uk-button-dark" uk-icon="icon: question" style="color: darkslategray;"></span>
+                    <div style="position: relative; top: -1pc;left: 13.5pc;">
+                        <form action="" method="post">
+                            <button type="submit" style="border : none; background : transparent;">
+                                <span class="uk-button uk-button-dark" uk-icon="icon: question" style="color: darkslategray;"></span>
+                            </button>
+                        </form>
                     </div>
                 </div>
              </div>
@@ -148,6 +156,57 @@
                     </div>
                  </div>
             </div>
+            <button type="button" style="border: none; background: transparent; color : darkslategrey; position: relative; left : -8pc; top : 0pc">
+                <span class="uk-button uk-button-dark" uk-icon="icon: user"> character </span>
+            </button>
+             <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc; height: 25pc; width : 20pc">
+                <ul uk-tab>
+                    <li class="uk-active">
+                        <button type="button" id="_dp02" style="border: none; background: transparent;">
+                            <span class="uk-button uk-button-dark" uk-icon="icon: pencil"> edit </span>
+                        </button>
+                        <div id="editform" style="position: relative; left : 1pc; width: 5pc; visibility: hidden;">
+                            <form action="" method="post">
+                                <span class="uk-label" style="background: transparent;color : darkslategray">Trait # 1</span>
+                                <input type="text" name="p1" placeholder="add any quantity he/ she have?" style="position: relative; top : 0.1pc; left: 1pc; border-radius: 1pc;">
+                                <span class="uk-label" style="background: transparent; color : darkslategray">Trait # 2</span>
+                                <input type="text" name="p2" placeholder="add any quantity he/ she have?" style="position: relative; top : 0.1pc; left : 1pc; border-radius: 1pc;">
+                                <span class="uk-label" style="background: transparent; color : darkslategray">Trait # 3</span>
+                                <input type="text" name="p3" placeholder="add any quantity he/ she have?" style="position: relative; top : 0.1pc; left: 1pc; border-radius: 1pc;">
+                                <span class="uk-label" style="background: transparent; color : darkslategray">Trait # 4</span>
+                                <input type="text" name="p4" placeholder="add any quantity he/ she have?" style="position: relative; top : 0.1pc; left: 1pc; border-radius: 1pc;">
+                                <span class="uk-label" style="background: transparent; color : darkslategray">Trait # 5</span>
+                                <input type="text" name="p5" placeholder="add any quantity he/ she have?" style="position: relative; top : 0.1pc; left: 1pc; border-radius: 1pc;">
+                                <button type="submit" style="border: none; background: transparent;">
+                                    <span class="uk-button uk-button-dark"> submit </span>
+                                </button>
+                                <button type="reset" style="border: none; background: transparent; position: relative; top : -2.5pc; left : 5pc">
+                                    <span class="uk-button uk-button-dark"> cancel </span>
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                    <li class="uk-tab">
+                        <button type="button" id="_dp03" style="border: none; background: transparent; position: relative; top : -22.5pc; left : 7pc">
+                            <span class="uk-button uk-button-dark" uk-icon="icon: users"> taits </span>
+                        </button>
+                        <div id="traits" style="visibility: visible;">
+                            <span style="position: relative; top : -19pc; left: -4pc;"> honest </span>
+                            <span style="position: relative; top : -17pc; left: -7.5pc;"> marketer </span>
+                            <span style="position: relative; top : -15pc; left: -11.5pc;"> emotion </span>
+                            <span style="position: relative; top : -13pc; left: -15.5pc;"> hardwork </span>   
+                        </div>
+                    </li>
+                </ul>
+             </div>
+             <button type="button" style="border: none; background: transparent; color : darkslategrey; position: relative; left : 15pc; top : -2.5pc">
+                <span class="uk-button uk-button-dark" uk-icon="icon: users"> friends </span>
+            </button>
+             <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc; height: 25pc; width : 20pc">
+                <span style="position: relative; top : 1pc; left: 1pc;"> Ahmad </span>
+                <span style="position: relative; top : 3pc; left: -2pc;"> Asif </span>
+                <span style="position: relative; top : 5pc; left: -4pc;"> Alkarm </span>
+            </div>
         </div>
     </div>
 </div>
@@ -165,6 +224,28 @@
         document.getElementById('warns').style.visibility = 'visible';
         document.getElementById('_b01').children[0].innerHTML = '0';
     });
+
+    document.getElementById('_dp02').addEventListener('click', (e)=> {
+
+        if (document.getElementById('editform').style.visibility === 'hidden'){
+
+            document.getElementById('editform').style.visibility = 'visible';
+        }else{
+
+            document.getElementById('editform').style.visibility = 'hidden';
+        }
+    })
+
+    document.getElementById('_dp03').addEventListener('click', (e)=> {
+
+        if (document.getElementById('traits').style.visibility === 'hidden'){
+
+            document.getElementById('traits').style.visibility = 'visible';
+        }else{
+
+            document.getElementById('traits').style.visibility = 'hidden';
+        }
+    })
 
 
     document.getElementById('reset1').addEventListener('click', (e)=>{
