@@ -356,6 +356,7 @@ pub mod accounts{
         pub discord_url : String,
         pub threads_url : String,
         pub mastodon_url : String,
+        pub like : bool,
     }
 
     /// User might choose one or many hobbies ...
@@ -500,6 +501,13 @@ pub mod accounts{
 
     }
 
+    /// Advance traits provide encaplusate user functionalities  
+    pub trait Advance{
+
+        fn positive_bio_rating(&mut self);
+        fn negative_bio_rating(&mut self); 
+    } 
+
     /// open network allow user to control his or her information while build network. 
 
     pub trait OpenNetwork {
@@ -554,6 +562,20 @@ pub mod accounts{
             
             self.personality = atributes;
 
+        }
+    }
+
+
+    impl Advance for Info{
+
+        fn positive_bio_rating(&mut self) {
+            
+            self.like = true;
+        }
+
+        fn negative_bio_rating(&mut self) {
+            
+            self.like = false;
         }
     }
 
@@ -726,6 +748,7 @@ pub mod accounts{
                 discord_url : "".to_string(),
                 mastodon_url : "".to_string(),
                 threads_url : "".to_string(),
+                like : false,
              }
 
         }
@@ -822,7 +845,8 @@ pub mod accounts{
                         discord_url : self.discord_url.to_owned(),
                         mastodon_url : self.mastodon_url.to_owned(),
                         threads_url : self.threads_url.to_owned(),
-                        weburl : self.weburl.to_owned()
+                        weburl : self.weburl.to_owned(),
+                        like : self.like.to_owned(),
                     };
 
                     let _ = col.insert_one(info, None).await;
@@ -1069,7 +1093,8 @@ pub mod accounts{
                         discord_url : self.discord_url.to_owned(),
                         mastodon_url : self.mastodon_url.to_owned(),
                         threads_url : self.threads_url.to_owned(),
-                        weburl : self.weburl.to_owned()
+                        weburl : self.weburl.to_owned(),
+                        like : self.like.to_owned(),
          };
 
             let collection = db.collection::<Info>("accounts");
@@ -1151,7 +1176,8 @@ pub mod accounts{
                         discord_url : self.discord_url.to_owned(),
                         mastodon_url : self.mastodon_url.to_owned(),
                         threads_url : self.threads_url.to_owned(),
-                        weburl : self.weburl.to_owned()
+                        weburl : self.weburl.to_owned(),
+                        like : self.like.to_owned(),
             };
 
             let collection = db.collection::<Info>("accounts");
@@ -1332,6 +1358,68 @@ pub mod accounts{
                 "$set" : {
                     "cfavouite" : self.cfavouite,
                     "network" : bson::to_bson(&self.network).unwrap(),
+                },
+            };
+
+            let update_opts = FindOneAndUpdateOptions::builder().return_document(mongodb::options::ReturnDocument::After).build();
+            while let Some(data) =  collect.find_one_and_update(doc!{ "firstname" : self.firstname.to_owned()}, update_doc.to_owned(), update_opts.to_owned()).await.unwrap(){
+
+                if data.firstname.to_owned().eq(&""){
+
+                    terminal.fg(term::color::RED).unwrap();
+
+                    write!(terminal, "[result] ohh! we found empty bit ... \n  ").unwrap();
+                    
+                    eprintln!("sorry error occurred while updating data ");
+                    return Err(());
+                }
+
+                if data.firstname.to_owned().eq(&self.firstname){
+
+                    terminal.fg(term::color::GREEN).unwrap();
+
+                    write!(terminal, "[result] finally data update .... \n  ").unwrap();
+
+                    println!("congrats operation complete successfuuly");
+                    break;
+                }
+            }
+
+            Ok(())
+
+        }
+
+        /// update rate my bio method update database when any user like or dislike my bio (either that person have positive views or negative )
+        /// # Examples
+        ///
+        /// ```
+        ///     use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     assert_eq!(info.update_rate_my_bio(cred).await, Ok());
+        ///
+        /// ``` 
+
+        pub async fn update_rate_my_bio(&mut self, db : Database) -> Result<(), ()>{
+
+            let collect = db.collection::<Info>("accounts");
+
+            let mut terminal = term::stdout().unwrap();
+
+            terminal.fg(term::color::GREEN).unwrap();
+
+            write!(terminal, "Looking for information .... \n ").unwrap();
+
+            let update_doc = doc! {
+                "$set" : {
+                    "like" : self.like,
                 },
             };
 

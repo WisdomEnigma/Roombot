@@ -14,7 +14,7 @@
 // import libraries
 use actix_files::NamedFile;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use auth::{accounts::{Favourite, Followers}, gatekeeper};
+use auth::{accounts::{Advance, Favourite, Followers}, gatekeeper};
 use gpt_text::openai;
 use serde::{Deserialize, Serialize};
 
@@ -2672,6 +2672,7 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
 
     if resp.is_empty() {
         
+        println!("your data might not update , please report or retry");
         return HttpResponse::BadRequest()
             .body(hbr.render("music_error", &RequestError {}).unwrap());
     }
@@ -2853,6 +2854,57 @@ async fn likes(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
 }
 
+#[post("/user/sociallink/profile/search/{your}/{friend}/{update}/mybio/{appricate}")]
+async fn appreicate(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+    // check whether user login through user credentials.
+    unsafe {
+        let expire = gatekeeper::login_expire(ME.to_owned());
+
+        if expire {
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    let user = SEARCHUSERCREDEN.get().unwrap();
+
+    let mut tofind = auth::accounts::Info::new(
+        user.to_owned().to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+    );
+
+    let minit = tofind.mongo_init().await;
+    let access = tofind.access_credentials(minit);
+
+    unsafe {
+        
+        tofind.set_session(ME.to_owned().to_string());
+
+        let mut dbresp = tofind.getaccount(access.to_owned()).await.unwrap();
+
+        if dbresp.session.to_owned().ne(&ME.to_owned().to_string()){
+
+            dbresp.positive_bio_rating();
+
+            let _bio = dbresp.update_rate_my_bio(access.to_owned()).await.unwrap();
+
+        }
+
+        
+    }
+
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
 
 
 #[post("/user/library/books/{find}/{book}/{record}/{accept}")]
@@ -3115,6 +3167,7 @@ async fn main() -> std::io::Result<()> {
             .service(discover_proximity)
             .service(myfollowers)
             .service(likes)
+            .service(appreicate)
         // .service(register_user)
         // .service(register_face)
         // .service(login)
