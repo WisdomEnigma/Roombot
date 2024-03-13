@@ -195,7 +195,7 @@ pub mod gatekeeper{
                         },
                     ];
 
-                    terminal.fg(term::color::GREEN).unwrap();
+                    terminal.fg(term::color::BLUE).unwrap();
 
                     write!(terminal, "[cred] SIGNUP PROCESS COMPLETE ... \n  ").unwrap();
 
@@ -299,7 +299,7 @@ pub mod gatekeeper{
                 break;
             }
 
-            terminal.fg(term::color::GREEN).unwrap();
+            terminal.fg(term::color::BLUE).unwrap();
 
             write!(terminal, "[result] well done , this is the result of your task... \n ").unwrap();
 
@@ -851,7 +851,7 @@ pub mod accounts{
 
                     let _ = col.insert_one(info, None).await;
                     
-                    terminal.fg(term::color::GREEN).unwrap();
+                    terminal.fg(term::color::BLUE).unwrap();
                 
                     write!(terminal, "[create ] Successfully Create operation complete .... \n   ").unwrap();
                 }
@@ -908,7 +908,7 @@ pub mod accounts{
 
                 }
 
-                terminal.fg(term::color::GREEN).unwrap();
+                terminal.fg(term::color::BLUE).unwrap();
 
                 write!(terminal, "[result] Oh yeah missing piece found ... \n  ").unwrap();
 
@@ -967,7 +967,7 @@ pub mod accounts{
                 break;
             }
 
-            terminal.fg(term::color::GREEN).unwrap();
+            terminal.fg(term::color::BLUE).unwrap();
 
             write!(terminal, "[result] oh yeah ! missing piece found ... \n  ").unwrap();
             
@@ -1031,7 +1031,7 @@ pub mod accounts{
                 break;
             }
 
-            terminal.fg(term::color::GREEN).unwrap();
+            terminal.fg(term::color::BLUE).unwrap();
 
             write!(terminal, "[result] finally ! dots connect .... \n  ").unwrap();
 
@@ -1115,7 +1115,7 @@ pub mod accounts{
                 break;
             }
 
-                terminal.fg(term::color::GREEN).unwrap();
+                terminal.fg(term::color::BLUE).unwrap();
 
                 write!(terminal, "[result] finally ! dots are connected ... ").unwrap();
 
@@ -1203,7 +1203,7 @@ pub mod accounts{
                 break;
             }
 
-                terminal.fg(term::color::GREEN).unwrap();
+                terminal.fg(term::color::BLUE).unwrap();
 
                 write!(terminal, "[result] finally ! uphill task complete .... \n  ").unwrap();
 
@@ -1313,7 +1313,7 @@ pub mod accounts{
                 if data.firstname.to_owned().eq(&self.firstname){
 
 
-                    terminal.fg(term::color::GREEN).unwrap();
+                    terminal.fg(term::color::BLUE).unwrap();
 
                     write!(terminal, "[result] finally ! update your data ... \n ").unwrap();
                     println!("congrats operation complete successfuuly");
@@ -1376,7 +1376,7 @@ pub mod accounts{
 
                 if data.firstname.to_owned().eq(&self.firstname){
 
-                    terminal.fg(term::color::GREEN).unwrap();
+                    terminal.fg(term::color::BLUE).unwrap();
 
                     write!(terminal, "[result] finally data update .... \n  ").unwrap();
 
@@ -1438,7 +1438,7 @@ pub mod accounts{
 
                 if data.firstname.to_owned().eq(&self.firstname){
 
-                    terminal.fg(term::color::GREEN).unwrap();
+                    terminal.fg(term::color::BLUE).unwrap();
 
                     write!(terminal, "[result] finally data update .... \n  ").unwrap();
 
