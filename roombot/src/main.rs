@@ -149,6 +149,16 @@ struct Discover{
     discover : String,
 }
 
+#[derive(Deserialize)]
+struct CTraits{
+
+    p1 : String,
+    p2 : String,
+    p3 : String,
+    p4 : String,
+    p5 : String,
+}
+
 // User choices responses return html template for different html page's.
 
 #[derive(Serialize)]
@@ -283,7 +293,9 @@ struct Searched {
     mastodon : String,
     threads : String,
     web : String,
+    personality : Vec::<String>,
 }
+
 
 #[derive(Serialize, Debug)]
 
@@ -2638,6 +2650,7 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
         discord : "".to_string(),
         mastodon : "".to_string(),
         threads : "".to_string(),
+        personality : Vec::<String>::new(),
     };
     let mut tofind = auth::accounts::Info::new(
         query.to_owned().to_string(),
@@ -2681,7 +2694,7 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
 
         let mut iterate = resp.into_iter();
 
-        for entity in iterate.by_ref() {
+        for mut entity in iterate.by_ref() {
             
             search_q.push(entity.to_owned().firstname + &entity.to_owned().lastname);
             search_resp.session = entity.to_owned().session.clone();
@@ -2711,6 +2724,7 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
             search_resp.threads = entity.threads_url.to_owned();
             search_resp.discord = entity.discord_url.to_owned();
             search_resp.mastodon = entity.mastodon_url.to_owned();
+            search_resp.personality = entity.personality().to_owned();
 
         }
     }
@@ -2957,6 +2971,96 @@ async fn pinpoint(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
     }
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
+
+
+#[post("/user/sociallink/profile/search/{your}/{friend}/{update}/character/{reflection}")]
+async fn reflect(form: web::Form<CTraits>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
+
+
+    let t1 = &form.p1;
+    let t2 = &form.p2;
+    let t3 = &form.p3;
+    let t4 = &form.p4;
+    let t5 = &form.p5;
+
+
+    // check whether user login through user credentials.
+    unsafe {
+        let expire = gatekeeper::login_expire(ME.to_owned());
+
+        if expire {
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    let user = SEARCHUSERCREDEN.get().unwrap();
+
+    let mut tofind = auth::accounts::Info::new(
+        user.to_owned().to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+    );
+
+    let minit = tofind.mongo_init().await;
+    let access = tofind.access_credentials(minit);
+
+    unsafe {
+        
+        tofind.set_session(ME.to_owned().to_string());
+
+        let mut dbresp = tofind.getaccount(access.to_owned()).await.unwrap();
+
+
+        for check in dbresp.personality(){
+
+            if check.ne(&""){
+
+                eprintln!("Sorry ! this character traits box already full");
+
+            }
+        }
+
+        if dbresp.session.to_owned().ne(&ME.to_owned().to_string()){
+            
+            if dbresp.personality()[0].eq(&""){
+
+                dbresp.set_personality(t1.to_string());
+            
+            }else if dbresp.personality()[1].eq(&""){
+
+                dbresp.set_personality(t2.to_string());
+
+            }else if dbresp.personality()[2].eq(&""){
+
+                dbresp.set_personality(t3.to_string());
+
+            } else if dbresp.personality()[3].eq(&""){
+
+                dbresp.set_personality(t4.to_string());
+
+            }else if dbresp.personality()[4].eq(&""){
+
+                dbresp.set_personality(t5.to_string());
+            
+            }
+
+            let _traits = dbresp.update_mytraits(access.to_owned()).await.unwrap();
+        
+        }
+    }
+
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+
 }
 
 
@@ -3222,6 +3326,7 @@ async fn main() -> std::io::Result<()> {
             .service(likes)
             .service(appreicate)
             .service(pinpoint)
+            .service(reflect)
         // .service(register_user)
         // .service(register_face)
         // .service(login)

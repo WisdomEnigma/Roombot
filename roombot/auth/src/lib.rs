@@ -1450,5 +1450,67 @@ pub mod accounts{
             Ok(())
 
         }
+
+        /// update_my traits method update database when any user add my traits or reflection of character
+        /// # Examples
+        ///
+        /// ```
+        ///     use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     assert_eq!(info.update_mytraits(cred).await, Ok());
+        ///
+        /// ``` 
+
+        pub async fn update_mytraits(&mut self, db : Database) -> Result<(), ()>{
+
+            let collect = db.collection::<Info>("accounts");
+
+            let mut terminal = term::stdout().unwrap();
+
+            terminal.fg(term::color::GREEN).unwrap();
+
+            write!(terminal, "Looking for information .... \n ").unwrap();
+
+            let update_doc = doc! {
+                "$set" : {
+                    "personality" : self.personality.clone(),
+                },
+            };
+
+            let update_opts = FindOneAndUpdateOptions::builder().return_document(mongodb::options::ReturnDocument::After).build();
+            while let Some(data) =  collect.find_one_and_update(doc!{ "firstname" : self.firstname.to_owned()}, update_doc.to_owned(), update_opts.to_owned()).await.unwrap(){
+
+                if data.firstname.to_owned().eq(&""){
+
+                    terminal.fg(term::color::RED).unwrap();
+
+                    write!(terminal, "[result] ohh! we found empty bit ... \n  ").unwrap();
+                    
+                    eprintln!("sorry error occurred while updating data ");
+                    return Err(());
+                }
+
+                if data.firstname.to_owned().eq(&self.firstname){
+
+                    terminal.fg(term::color::BLUE).unwrap();
+
+                    write!(terminal, "[result] finally data update .... \n  ").unwrap();
+
+                    println!("congrats operation complete successfuuly");
+                    break;
+                }
+            }
+
+            Ok(())
+
+        }
     }
 }

@@ -166,7 +166,7 @@
                             <span class="uk-button uk-button-dark" uk-icon="icon: pencil"> edit </span>
                         </button>
                         <div id="editform" style="position: relative; left : 1pc; width: 5pc; visibility: hidden;">
-                            <form action="" method="post">
+                            <form action="/user/sociallink/profile/search/{your}/{friend}/{update}/character/{reflection}" method="post">
                                 <span class="uk-label" style="background: transparent;color : darkslategray">Trait # 1</span>
                                 <input type="text" name="p1" placeholder="add any quantity he/ she have?" style="position: relative; top : 0.1pc; left: 1pc; border-radius: 1pc;">
                                 <span class="uk-label" style="background: transparent; color : darkslategray">Trait # 2</span>
@@ -188,14 +188,17 @@
                     </li>
                     <li class="uk-tab">
                         <button type="button" id="_dp03" style="border: none; background: transparent; position: relative; top : -22.5pc; left : 7pc">
-                            <span class="uk-button uk-button-dark" uk-icon="icon: users"> taits </span>
+                            <span class="uk-button uk-button-dark" uk-icon="icon: users"> traits </span>
                         </button>
+                        {{#with personality}}
                         <div id="traits" style="visibility: visible;">
-                            <span style="position: relative; top : -19pc; left: -4pc;"> honest </span>
-                            <span style="position: relative; top : -17pc; left: -7.5pc;"> marketer </span>
-                            <span style="position: relative; top : -15pc; left: -11.5pc;"> emotion </span>
-                            <span style="position: relative; top : -13pc; left: -15.5pc;"> hardwork </span>   
+                            <span style="position: relative; top : -19pc; left: -4pc;">    {{0}} </span>
+                            <span style="position: relative; top : -17pc; left: -6.5pc;">  {{1}} </span>
+                            <span style="position: relative; top : -15pc; left: -9.5pc;"> {{2}} </span>
+                            <span style="position: relative; top : -13pc; left: -14pc;"> {{3}} </span>
+                            <span style="position: relative; top : -11pc; left: -17pc;"> {{4}} </span>   
                         </div>
+                        {{/with}}
                     </li>
                 </ul>
              </div>
