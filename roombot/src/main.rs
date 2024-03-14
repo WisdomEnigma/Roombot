@@ -2616,8 +2616,10 @@ async fn search() -> impl Responder {
 
 #[post("/user/sociallink/profile/search/{your}/{friend}")]
 async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
     // check whether user login through user credentials.
     unsafe {
+        
         let expire = gatekeeper::login_expire(ME.to_owned());
 
         if expire {
@@ -2652,6 +2654,7 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
         threads : "".to_string(),
         personality : Vec::<String>::new(),
     };
+    
     let mut tofind = auth::accounts::Info::new(
         query.to_owned().to_string(),
         "".to_string(),
