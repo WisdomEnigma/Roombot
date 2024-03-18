@@ -125,8 +125,30 @@ struct EditAccount {
 #[derive(Deserialize, Debug)]
 
 struct SearchParam {
-    query: String,
+    query : String,  // firstname
 }
+
+#[derive(Deserialize)]
+
+struct CitySearch{
+
+    qcity : String,  // city
+}
+
+#[derive(Deserialize)]
+
+struct EduSearch{
+
+    qedu : String
+}
+
+#[derive(Deserialize)]
+struct WorkSearch{
+
+    qwork : String
+}
+
+
 
 #[derive(Deserialize)]
 struct VirtualBook {
@@ -2631,6 +2653,7 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
 
     // initalization & declaration
     let query = &form.query;
+
     let mut search_q: Vec<String> = Vec::<String>::new();
     let mut search_resp: Searched = Searched {
         name: search_q.to_owned(),
@@ -2740,6 +2763,254 @@ async fn searching(form: web::Form<SearchParam>, hbr: web::Data<Handlebars<'_>>)
     HttpResponse::Ok().body(hbr.render("person", &search_resp).unwrap())
 }
 
+#[post("/user/sociallink/profile/search/{your}/{friend}/search/{city}/{true}")]
+async fn citypal(form: web::Form<CitySearch>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
+    // check whether user login through user credentials.
+    unsafe {
+        
+        let expire = gatekeeper::login_expire(ME.to_owned());
+
+        if expire {
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    // initalization & declaration
+    let query = &form.qcity;
+
+
+    let mut search_q: Vec<String> = Vec::<String>::new();
+    let mut search_resp: Searched = Searched {
+        name: search_q.to_owned(),
+        counter: 0.to_string(),
+        leads: 0.to_string(),
+        follower: 0.to_string(),
+        session: "".to_string(),
+        fblink : "".to_string(),
+        instalink : "".to_string(),
+        xlink : "".to_string(),
+        youlink : "".to_string(),
+        bio : "".to_string(),
+        bio_char : 0,
+        web : "".to_string(),
+        books : 0,
+        brand : 0,
+        place : 0,
+        movies : 0,
+        discord : "".to_string(),
+        mastodon : "".to_string(),
+        threads : "".to_string(),
+        personality : Vec::<String>::new(),
+    };
+    
+    let mut tofind = auth::accounts::Info::new(
+        "".to_string(), // fname
+        "".to_string(), // lname
+        "".to_string(), // edu
+        "".to_string(), // degree
+        "".to_string(), // workplace
+        "".to_string(), // work
+        query.to_owned().to_string(), // city
+        "".to_string(), // country
+        "".to_string(), // bitcoin
+        "".to_string(), // phonenum
+    );
+
+    let minit = tofind.mongo_init().await;
+    let access = tofind.access_credentials(minit);
+
+    unsafe {
+        tofind.set_session(ME.to_owned().to_string());
+    }
+
+    let resp = tofind.find_pal_city(access.to_owned()).await.unwrap();
+
+    let count = tofind.count_people(access.to_owned()).await.unwrap();
+
+    if resp.is_empty() {
+        
+        println!("your data might not update , please report or retry");
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
+
+    if resp.len().to_owned().ge(&1) {
+
+        let mut iterate = resp.into_iter();
+
+        for mut entity in iterate.by_ref() {
+            
+            search_q.push(entity.to_owned().firstname + &entity.to_owned().lastname);
+            search_resp.session = entity.to_owned().session.clone();
+
+            let _ = SEARCHUSERCREDEN.set(entity.to_owned().firstname);
+
+            search_resp.leads = entity.to_owned().cfavouite.to_string();
+            search_resp.follower = entity.to_owned().cfollowers.to_string();
+
+            search_resp.fblink = entity.to_owned().fblink.to_string();
+            search_resp.instalink = entity.to_owned().instalink.to_string();
+            search_resp.xlink = entity.to_owned().xlink.to_string();
+            search_resp.youlink = entity.to_owned().youlink.to_string();
+            search_resp.books = entity.to_owned().collection_books.len() as i64;
+            search_resp.place = entity.to_owned().collection_place.len() as i64;
+            search_resp.movies = entity.to_owned().collection_movies.len() as i64;
+            search_resp.brand = entity.to_owned().collection_brand.len() as i64;
+            search_resp.bio = entity.to_owned().bio.to_string();
+            
+            if (entity.bio.len().to_owned() as i64).ge(&200){
+
+                println!("short autobiography maximum words 199  !");
+                return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
+            search_resp.bio_char = entity.bio.len().to_owned() as i64;
+            search_resp.web = entity.weburl.to_owned();
+            search_resp.threads = entity.threads_url.to_owned();
+            search_resp.discord = entity.discord_url.to_owned();
+            search_resp.mastodon = entity.mastodon_url.to_owned();
+            search_resp.personality = entity.personality().to_owned();
+
+            
+        }
+    }
+
+    search_resp.name = search_q.to_owned();
+    search_resp.counter = count.to_owned().to_string();
+    
+    
+
+    HttpResponse::Ok().body(hbr.render("person", &search_resp).unwrap())
+}
+
+#[post("/user/sociallink/profile/search/{your}/{friend}/search/edu/pal/{true}")]
+async fn edupal(form: web::Form<EduSearch>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
+    // check whether user login through user credentials.
+    unsafe {
+        
+        let expire = gatekeeper::login_expire(ME.to_owned());
+
+        if expire {
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    // initalization & declaration
+    let query = &form.qedu;
+
+
+    let mut search_q: Vec<String> = Vec::<String>::new();
+    let mut search_resp: Searched = Searched {
+        name: search_q.to_owned(),
+        counter: 0.to_string(),
+        leads: 0.to_string(),
+        follower: 0.to_string(),
+        session: "".to_string(),
+        fblink : "".to_string(),
+        instalink : "".to_string(),
+        xlink : "".to_string(),
+        youlink : "".to_string(),
+        bio : "".to_string(),
+        bio_char : 0,
+        web : "".to_string(),
+        books : 0,
+        brand : 0,
+        place : 0,
+        movies : 0,
+        discord : "".to_string(),
+        mastodon : "".to_string(),
+        threads : "".to_string(),
+        personality : Vec::<String>::new(),
+    };
+    
+    let mut tofind = auth::accounts::Info::new(
+        "".to_string(), // fname
+        "".to_string(), // lname
+        query.to_owned(), // edu
+        "".to_string(), // degree
+        "".to_string(), // workplace
+        "".to_string(), // work
+        "".to_string().to_string(), // city
+        "".to_string(), // country
+        "".to_string(), // bitcoin
+        "".to_string(), // phonenum
+    );
+
+    let minit = tofind.mongo_init().await;
+    let access = tofind.access_credentials(minit);
+
+    unsafe {
+        tofind.set_session(ME.to_owned().to_string());
+    }
+
+    let resp = tofind.find_pal_education(access.to_owned()).await.unwrap();
+
+    let count = tofind.count_people(access.to_owned()).await.unwrap();
+
+    if resp.is_empty() {
+        
+        println!("your data might not update , please report or retry");
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
+
+    if resp.len().to_owned().ge(&1) {
+
+        let mut iterate = resp.into_iter();
+
+        for mut entity in iterate.by_ref() {
+            
+            search_q.push(entity.to_owned().firstname + &entity.to_owned().lastname);
+            search_resp.session = entity.to_owned().session.clone();
+
+            let _ = SEARCHUSERCREDEN.set(entity.to_owned().firstname);
+
+            search_resp.leads = entity.to_owned().cfavouite.to_string();
+            search_resp.follower = entity.to_owned().cfollowers.to_string();
+
+            search_resp.fblink = entity.to_owned().fblink.to_string();
+            search_resp.instalink = entity.to_owned().instalink.to_string();
+            search_resp.xlink = entity.to_owned().xlink.to_string();
+            search_resp.youlink = entity.to_owned().youlink.to_string();
+            search_resp.books = entity.to_owned().collection_books.len() as i64;
+            search_resp.place = entity.to_owned().collection_place.len() as i64;
+            search_resp.movies = entity.to_owned().collection_movies.len() as i64;
+            search_resp.brand = entity.to_owned().collection_brand.len() as i64;
+            search_resp.bio = entity.to_owned().bio.to_string();
+            
+            if (entity.bio.len().to_owned() as i64).ge(&200){
+
+                println!("short autobiography maximum words 199  !");
+                return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
+            search_resp.bio_char = entity.bio.len().to_owned() as i64;
+            search_resp.web = entity.weburl.to_owned();
+            search_resp.threads = entity.threads_url.to_owned();
+            search_resp.discord = entity.discord_url.to_owned();
+            search_resp.mastodon = entity.mastodon_url.to_owned();
+            search_resp.personality = entity.personality().to_owned();
+
+            
+        }
+    }
+
+    search_resp.name = search_q.to_owned();
+    search_resp.counter = count.to_owned().to_string();
+    
+    
+
+    HttpResponse::Ok().body(hbr.render("person", &search_resp).unwrap())
+}
+
 #[post("/user/sociallink/profile/search/{your}/{friend}/{follow}")]
 async fn myfollowers(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
 
@@ -2803,6 +3074,130 @@ async fn myfollowers(hbr: web::Data<Handlebars<'_>>) -> HttpResponse{
     
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
+
+#[post("/user/sociallink/profile/search/{your}/{friend}/search/{work}/peer/{true}")]
+async fn workfriend(form: web::Form<WorkSearch>, hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
+    
+    // check whether user login through user credentials.
+    unsafe {
+        
+        let expire = gatekeeper::login_expire(ME.to_owned());
+
+        if expire {
+            println!("Make sure your account exist in our database ");
+            return HttpResponse::BadRequest()
+                .body(hbr.render("music_error", &RequestError {}).unwrap());
+        }
+    }
+
+    // initalization & declaration
+    let query = &form.qwork;
+
+
+    let mut search_q: Vec<String> = Vec::<String>::new();
+    let mut search_resp: Searched = Searched {
+        name: search_q.to_owned(),
+        counter: 0.to_string(),
+        leads: 0.to_string(),
+        follower: 0.to_string(),
+        session: "".to_string(),
+        fblink : "".to_string(),
+        instalink : "".to_string(),
+        xlink : "".to_string(),
+        youlink : "".to_string(),
+        bio : "".to_string(),
+        bio_char : 0,
+        web : "".to_string(),
+        books : 0,
+        brand : 0,
+        place : 0,
+        movies : 0,
+        discord : "".to_string(),
+        mastodon : "".to_string(),
+        threads : "".to_string(),
+        personality : Vec::<String>::new(),
+    };
+    
+    let mut tofind = auth::accounts::Info::new(
+        "".to_string(), // fname
+        "".to_string(), // lname
+        "".to_string(), // edu
+        "".to_string(), // degree
+        query.to_owned().to_string(), // workplace
+        "".to_string(), // work
+        "".to_string(), // city
+        "".to_string(), // country
+        "".to_string(), // bitcoin
+        "".to_string(), // phonenum
+    );
+
+    let minit = tofind.mongo_init().await;
+    let access = tofind.access_credentials(minit);
+
+    unsafe {
+        tofind.set_session(ME.to_owned().to_string());
+    }
+
+    let resp = tofind.find_pal_work(access.to_owned()).await.unwrap();
+
+    let count = tofind.count_people(access.to_owned()).await.unwrap();
+
+    if resp.is_empty() {
+        
+        println!("your data might not update , please report or retry");
+        return HttpResponse::BadRequest()
+            .body(hbr.render("music_error", &RequestError {}).unwrap());
+    }
+
+    if resp.len().to_owned().ge(&1) {
+
+        let mut iterate = resp.into_iter();
+
+        for mut entity in iterate.by_ref() {
+            
+            search_q.push(entity.to_owned().firstname + &entity.to_owned().lastname);
+            search_resp.session = entity.to_owned().session.clone();
+
+            let _ = SEARCHUSERCREDEN.set(entity.to_owned().firstname);
+
+            search_resp.leads = entity.to_owned().cfavouite.to_string();
+            search_resp.follower = entity.to_owned().cfollowers.to_string();
+
+            search_resp.fblink = entity.to_owned().fblink.to_string();
+            search_resp.instalink = entity.to_owned().instalink.to_string();
+            search_resp.xlink = entity.to_owned().xlink.to_string();
+            search_resp.youlink = entity.to_owned().youlink.to_string();
+            search_resp.books = entity.to_owned().collection_books.len() as i64;
+            search_resp.place = entity.to_owned().collection_place.len() as i64;
+            search_resp.movies = entity.to_owned().collection_movies.len() as i64;
+            search_resp.brand = entity.to_owned().collection_brand.len() as i64;
+            search_resp.bio = entity.to_owned().bio.to_string();
+            
+            if (entity.bio.len().to_owned() as i64).ge(&200){
+
+                println!("short autobiography maximum words 199  !");
+                return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+            }
+
+            search_resp.bio_char = entity.bio.len().to_owned() as i64;
+            search_resp.web = entity.weburl.to_owned();
+            search_resp.threads = entity.threads_url.to_owned();
+            search_resp.discord = entity.discord_url.to_owned();
+            search_resp.mastodon = entity.mastodon_url.to_owned();
+            search_resp.personality = entity.personality().to_owned();
+
+            
+        }
+    }
+
+    search_resp.name = search_q.to_owned();
+    search_resp.counter = count.to_owned().to_string();
+    
+    
+
+    HttpResponse::Ok().body(hbr.render("person", &search_resp).unwrap())
 }
 
 #[post("/user/sociallink/profile/search/{your}/{friend}/{mark}/{favourite}")]
@@ -3330,10 +3725,9 @@ async fn main() -> std::io::Result<()> {
             .service(appreicate)
             .service(pinpoint)
             .service(reflect)
-        // .service(register_user)
-        // .service(register_face)
-        // .service(login)
-        // .service(login_account)
+            .service(citypal)
+            .service(edupal)
+            .service(workfriend)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

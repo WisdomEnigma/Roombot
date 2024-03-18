@@ -33,61 +33,58 @@
 <div class="uk-container" style="position: relative;top: 10pc;width: 26pc;left: 6pc;">
     <form method="post" action="/user/sociallink/profile/search/{your}/{friend}">
         <input class="uk-input" type="text" placeholder="Search your peer" name="query" id="search" style="border: 1px silver dashed; border-radius: 2pc;"/>
-        <p class="uk-text-right" style="position: relative;top: 5pc;left: -11pc;">
-            <button class="uk-button uk-button-primary" type="submit" style="position: relative; top: -5pc; left : 5pc; border-radius: 2pc;">
-                <i class="fa fa-send" aria-hidden="true"></i>
-            </button>
-            <button class="uk-button uk-button-dark" type="button" title="say poetry" id="microphone" style="position: relative;top: -4.9pc;left: 8pc;border: none;background: transparent;">
-                <span class="uk-margin-small-right" uk-icon="icon : microphone"></span>
-            </button>
-            <button class="uk-button uk-button-dark" type="button" style="position: relative;top: -8.9pc;left: 12pc;border: none;background: transparent;">
-                <span class="uk-margin-small-right" uk-icon="icon : more"></span>
-            </button>
-            <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc; height: 5pc; width : 20pc; background: black;">
-                <div>
-                    <button class="uk-button uk-button-dark" type="button" title="city" style="position: relative;top: -0pc;left: 0pc;border: none;background: transparent; color : darkgreen">
-                        <span class="uk-margin-small-right" uk-icon="icon : location"></span>
-                    </button>
-                    <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc; height: 5pc; width : 20pc; position: relative; top : 5pc">
-                        <form action="" method="post">
-                            <input type="text" placeholder="city name where most of your peer living" name="qcity" style="width: 15pc; height: 2pc;border-radius: 2pc;">
-                            <button class="uk-button uk-button-dark" type="button" title="city" style="position: relative; top : -2.5pc ; left : 14pc;border: none;background: transparent; color : darkslategray;">
-                                <span class="uk-margin-small-right" uk-icon="icon : search"></span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                <div>
-                    <button class="uk-button uk-button-dark" type="button" title="education" style="position: relative;top: -2.5pc;left: 5pc;border: none;background: transparent; color : whitesmoke">
-                        <span class="uk-margin-small-right" uk-icon="icon : bag"></span>
-                    </button>
-                    <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc; height: 5pc; width : 20pc; background: black;">
-                        <form action="" method="post">
-                            <input type="text" placeholder="Pal (friends) instiuite " name="qedu" style="width: 15pc; height: 2pc;border-radius: 2pc;">
-                            <button class="uk-button uk-button-dark" type="button" title="education" style="position: relative; top : -2.5pc ; left : 14pc;border: none;background: transparent; color : darkslategray;">
-                                <span class="uk-margin-small-right" uk-icon="icon : search"></span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                <div>
-                    <button class="uk-button uk-button-dark" type="button" title="workplace" style="position: relative;top: -4.7pc;left: 10pc;border: none;background: transparent; color : whitesmoke">
-                        <span class="uk-margin-small-right" uk-icon="icon : history"></span>
-                    </button>
-                    <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc; height: 5pc; width : 20pc; background: black;">
-                        <form action="" method="post">
-                            <input type="text" placeholder="Pal (friends) workplace" name="qwork" style="width: 15pc; height: 2pc;border-radius: 2pc;">
-                            <button class="uk-button uk-button-dark" type="button" title="city" style="position: relative; top : -2.5pc ; left : 14pc;border: none;background: transparent; color : darkslategray;">
-                                <span class="uk-margin-small-right" uk-icon="icon : search"></span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </p>
+        <button class="uk-button uk-button-primary" type="submit" style="position: relative;top: -2.3pc;left: 22pc;border: none;background: transparent; color : black">
+            <i class="fa fa-send" aria-hidden="true"></i>
+        </button>
     </form>
+    <button class="uk-button uk-button-dark" type="button" title="say poetry" id="microphone" style="position: relative;top: -0pc;left: 3pc;border: none;background: transparent;">
+        <span class="uk-margin-small-right" uk-icon="icon : microphone"></span>
+    </button>
+    <div class="uk-container" id="audio"></div>
+    <button class="uk-button uk-button-dark" type="button" style="position: relative; top : -2pc;left : 10pc; background: white;">
+        <span class="uk-margin-small-right" uk-icon="icon : more"></span>
+    </button>
+    <div uk-dropdown="mode: click" id="_dp01" style="border-radius: 2pc; height: 5pc; width : 20pc; background: black;">
+        <div>
+            <button class="uk-button uk-button-dark" type="button" title="city" style="position: relative;top: -0pc;left: 0pc;border: none;background: transparent; color : darkgreen">
+                <span class="uk-margin-small-right" uk-icon="icon : location"></span>
+            </button>
+            <div uk-dropdown="mode: click" id="_dp02" style="height: 5pc;width: 20pc;position: relative;top: -63px;left: -24.5px;max-width: 781px;">
+                <form action="/user/sociallink/profile/search/{your}/{friend}/search/{city}/{true}" method="post">
+                    <input type="text" placeholder="city name where most of your peer living" name="qcity" style="width: 15pc; height: 2pc;border-radius: 2pc;">
+                    <button class="uk-button uk-button-dark" type="submit" title="city" style="position: relative; top : -2.5pc ; left : 14pc;border: none;background: transparent; color : darkslategray;">
+                        <span class="uk-margin-small-right" uk-icon="icon : search"></span>
+                    </button>
+                </form>
+            </div>
+
+            <button class="uk-button uk-button-dark" type="button" title="education" style="position: relative;top: 0pc;left: -2pc;border: none;background: transparent; color : whitesmoke">
+                <span class="uk-margin-small-right" uk-icon="icon : bag"></span>
+            </button>
+            <div uk-dropdown="mode: click" id="_dp03" style="height: 5pc; width : 20pc; background: black;">
+                <form action="/user/sociallink/profile/search/{your}/{friend}/search/edu/pal/{true}" method="post">
+                    <input type="text" placeholder="Instiuite Pal (friends) " name="qedu" style="width: 15pc; height: 2pc;border-radius: 2pc;">
+                    <button class="uk-button uk-button-dark" type="submit" title="education" style="position: relative; top : -2.5pc ; left : 14pc;border: none;background: transparent; color : darkslategray;">
+                        <span class="uk-margin-small-right" uk-icon="icon : search"></span>
+                    </button>
+                </form>
+            </div>
+
+            <button class="uk-button uk-button-dark" type="button" title="workplace" style="position: relative;top: -2.3pc;left: 8pc;border: none;background: transparent; color : whitesmoke">
+                <span class="uk-margin-small-right" uk-icon="icon : history"></span>
+            </button>
+            <div uk-dropdown="mode: click" id="_dp04" style="height: 5pc; width : 20pc;">
+                <form action="/user/sociallink/profile/search/{your}/{friend}/search/{work}/peer/{true}" method="post">
+                    <input type="text" placeholder="Work peers " name="qwork" style="width: 15pc; height: 2pc;border-radius: 2pc;">
+                    <button class="uk-button uk-button-dark" type="submit" title="city" style="position: relative; top : -2.5pc ; left : 14pc;border: none;background: transparent; color : darkslategray;">
+                        <span class="uk-margin-small-right" uk-icon="icon : search"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
-<div class="uk-container" id="audio"></div>
+            
 <script>
     
     function get_microphone_credentials(){

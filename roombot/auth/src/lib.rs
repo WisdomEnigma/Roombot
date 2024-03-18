@@ -974,6 +974,178 @@ pub mod accounts{
             Ok(info)
          }
 
+        /// find_pal_city will find my pal in the city (location) . citywise search  
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), 
+        ///             "".to_string(), "".to_string(),"".to_string(),"".to_string(), 
+        ///             "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     
+        ///     assert_eq!(info.find_pal_city(cred), Ok([Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}]));
+        /// ```
+        pub async fn find_pal_city(&mut self, db : Database) -> Result<Vec<Info>, Vec<Info>>{
+
+            
+            let mut info : Vec::<Info> = Vec::<_>::new();
+ 
+            let col = db.collection::<Info>("accounts");
+ 
+            let mut terminal = term::stdout().unwrap();
+ 
+             terminal.fg(term::color::GREEN).unwrap();
+ 
+             write!(terminal, "Looking for information ... \n ").unwrap();
+ 
+             let mut find_doc = col.find(doc! {"city" : self.city.to_owned()}, FindOptions::builder().sort(doc!{ "city" : 1}).build()).await.unwrap();
+ 
+             while let Ok(Some(record)) = find_doc.try_next().await  {
+
+                 if record.city.to_owned().eq(&"") { 
+ 
+                     terminal.fg(term::color::RED).unwrap();
+     
+                     write!(terminal, "[empty] Human's information is so much scatter connect dot by dot like move mountain ... \n  ").unwrap(); 
+                     return Err(info);
+                 }
+                 
+                 if record.city.to_owned().eq(&self.city){ info.push(record.to_owned());}
+ 
+                 break;
+             }
+ 
+             terminal.fg(term::color::BLUE).unwrap();
+ 
+             write!(terminal, "[result] oh yeah ! missing piece found ... \n  ").unwrap();
+             
+             Ok(info)
+          }
+
+        /// find_pal_education will find my pal in the provide insitution .. education search   
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), 
+        ///             "".to_string(), "".to_string(),"".to_string(),"".to_string(), 
+        ///             "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     
+        ///     assert_eq!(info.find_pal_education(cred), Ok([Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}]));
+        /// ```
+        pub async fn find_pal_education(&mut self, db : Database) -> Result<Vec<Info>, Vec<Info>>{
+
+            
+            let mut info : Vec::<Info> = Vec::<_>::new();
+ 
+            let col = db.collection::<Info>("accounts");
+ 
+            let mut terminal = term::stdout().unwrap();
+ 
+             terminal.fg(term::color::GREEN).unwrap();
+ 
+             write!(terminal, "Looking for information ... \n ").unwrap();
+ 
+             let mut find_doc = col.find(doc! {"institute" : self.institute.to_owned()}, FindOptions::builder().sort(doc!{ "institute" : 1}).build()).await.unwrap();
+ 
+             while let Ok(Some(record)) = find_doc.try_next().await  {
+ 
+                 if record.institute[0].to_owned().eq(&"") { 
+ 
+                     terminal.fg(term::color::RED).unwrap();
+     
+                     write!(terminal, "[empty] Human's information is so much scatter connect dot by dot like move mountain ... \n  ").unwrap(); 
+                     return Err(info);
+                 }
+                 
+                 if record.institute[0].to_owned().eq(&self.institute[0]){ info.push(record.to_owned());}
+ 
+                 break;
+             }
+ 
+             terminal.fg(term::color::BLUE).unwrap();
+ 
+             write!(terminal, "[result] oh yeah ! missing piece found ... \n  ").unwrap();
+             
+             Ok(info)
+          }
+
+        /// find_pal_work find your colegues ... workplace search  
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use auth::accounts::Info;
+        ///
+        ///     let mut info = Info{"abc".to_string(), "xyz".to_string(), 
+        ///             "".to_string(), "".to_string(),"".to_string(),"".to_string(), 
+        ///             "".to_string(), "".to_string(), "b......................1j".tostring()}); 
+        ///     unsafe{
+        /// 
+        ///         my_info.set_session("1568..".to_owned().to_string()); 
+        ///     }
+        /// 
+        ///     let mongo = my_info.mongo_init().await;
+        ///     let cred = my_info.access_credentials(mongo);
+        ///     
+        ///     assert_eq!(info.find_pal_work(cred), Ok([Info{"abc".to_string(), "xyz".to_string(), "".to_string(), "".to_string(),"".to_string(),"".to_string(), "".to_string(), "".to_string(), "b......................1j".tostring()}]));
+        /// ```
+        pub async fn find_pal_work(&mut self, db : Database) -> Result<Vec<Info>, Vec<Info>>{
+
+            
+            let mut info : Vec::<Info> = Vec::<_>::new();
+ 
+            let col = db.collection::<Info>("accounts");
+ 
+            let mut terminal = term::stdout().unwrap();
+ 
+             terminal.fg(term::color::GREEN).unwrap();
+ 
+             write!(terminal, "Looking for information ... \n ").unwrap();
+ 
+             let mut find_doc = col.find(doc! {"workplace" : self.workplace.to_owned()}, FindOptions::builder().sort(doc!{ "workplace" : 1}).build()).await.unwrap();
+ 
+             while let Ok(Some(record)) = find_doc.try_next().await  {
+ 
+                 if record.workplace[0].to_owned().eq(&"") { 
+ 
+                     terminal.fg(term::color::RED).unwrap();
+     
+                     write!(terminal, "[empty] Human's information is so much scatter connect dot by dot like move mountain ... \n  ").unwrap(); 
+                     return Err(info);
+                 }
+                 
+                 if record.workplace[0].to_owned().eq(&self.workplace[0]){ info.push(record.to_owned());}
+
+ 
+                 break;
+             }
+ 
+             terminal.fg(term::color::BLUE).unwrap();
+ 
+             write!(terminal, "[result] oh yeah ! missing piece found ... \n  ").unwrap();
+             
+             Ok(info)
+          }
+ 
         /// transaction status is a powerful function which authorize user & user have access to secure digital wallet for transaction purpose
         /// 
         /// ```
