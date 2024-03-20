@@ -42,7 +42,7 @@ struct TranslateFormData {
 
 #[derive(Deserialize)]
 struct SearchPlaylist {
-    name: String,
+    song: String,
 }
 
 #[derive(Deserialize)]
@@ -58,12 +58,12 @@ struct EpisodeSearch {
 
 #[derive(Deserialize)]
 struct SearchArtist {
-    name: String,
+    artist: String,
 }
 
 #[derive(Deserialize)]
 struct SearchEmotion {
-    name: String,
+    emotion: String,
 }
 
 #[derive(Deserialize)]
@@ -739,7 +739,7 @@ async fn collection(
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
     // parse input values
-    let query = &form.name;
+    let query = &form.song;
 
     // replace space with hypen
     // let q = &query.replace(" ", "-");
@@ -2060,7 +2060,7 @@ async fn search_artist(
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
     // search for artist ["Akon"]
-    let asearch = &form.name;
+    let asearch = &form.artist;
 
     let mut art = Vec::<String>::new();
     art.push(asearch.to_owned().to_string());
@@ -2192,7 +2192,7 @@ async fn search_emotion(
     form: web::Form<SearchEmotion>,
     hbr: web::Data<Handlebars<'_>>,
 ) -> HttpResponse {
-    let emo = &form.name;
+    let emo = &form.emotion;
 
     // warning : search emotion functionality allow you to listen base on your emotion. There maybe possible user are depressed then no song will be played;
 
