@@ -16,412 +16,44 @@
 </head>
 <body>
 
+    <!-- navbar -->
     <a href="/" style="position: relative;left: 40pc;top: 3.9pc;color: black;"><span class="uk-margin-small-right" uk-icon="icon: home"></span></a>
     <button class="uk-button uk-button-default uk-margin-small-right" type="button" uk-toggle="target: #offcanvas-nav-primary" style="position: relative;top: 4pc;left: 48pc;border: none;">
         <i class="fa fa-bars" aria-hidden="true"></i>
     </button>
 
+    <!-- nvarbar optins -->
     <div id="offcanvas-nav-primary" uk-offcanvas="overlay: true">
         <div class="uk-offcanvas-bar uk-flex uk-flex-column">
             <ul class="uk-nav uk-nav-primary uk-nav-center uk-margin-auto-vertical">
-            <i class="fa fa-at" aria-hidden="true" style="position: relative;top: -9pc;color: whitesmoke;font-size: larger;"></i>
-            <span style="position: relative;top: -9pc;left: 1pc;"> {{session}}</span>
-            <li class="uk-active"><a href="#"> Keep on dreaming even if it break your heart! </a></li>
-            <li class="uk-nav-header">Header</li>
-            <li class="uk-nav-divider"></li>
-            <li><a href="/user/imovies"><span class="uk-margin-small-right" uk-icon="icon: play-circle"></span> Movies </a></li>
-            <li><a href="/user/library"><span class="uk-margin-small-right" uk-icon="icon: play"></span> Collection </a></li>
-            <li><a href="/user/library/books"><span class="uk-margin-small-right"></span> <i class="fa fa-book" aria-hidden="true"> Smart </i> </a></li>
-            <li><a href="#"><span class="uk-margin-small-right" uk-icon="icon: heart"></span> <span class="uk-badge"> {{favourite_count}}</span></a></li> 
+                <i class="fa fa-at" aria-hidden="true" style="position: relative;top: -9pc;color: whitesmoke;font-size: larger;"></i>
+                <span style="position: relative;top: -9pc;left: 1pc;"> {{session}}</span>
+                <li class="uk-active"><a href="#"> Keep on dreaming even if it break your heart! </a></li>
+                <li class="uk-nav-header">Header</li>
+                <li class="uk-nav-divider"></li>
+                <li><a href="/user/imovies"><span class="uk-margin-small-right" uk-icon="icon: play-circle"></span> Movies </a></li>
+                <li><a href="/user/library"><span class="uk-margin-small-right" uk-icon="icon: play"></span> Playlist </a></li>
+                <li><a href="/user/library/books"><span class="uk-margin-small-right"></span> <i class="fa fa-book" aria-hidden="true"> Libraries </i> </a></li> 
             </ul>
         </div>
     </div>
 
-    <!-- music ux  -->
-    <div class="container" style="position: relative;top: 11pc;left: 39pc;">
+
+    <!-- confetti -->
+    <div class="container" style="position: relative;top: 11pc;left: 1pc; height : 30pc">
         <canvas id="confetti"></canvas>
-        <h6 style="font-family: Tangerine,serif;font-size: xx-large;color: darkslategray;position: inherit;top: -4pc;"> The real magic is two heart beat at one note </h6>
-        <!-- header include(music_name, artist) -->
-        <div class="spheader" style="position: relative;top: -4pc;left: 3pc;font-family: 'Tangerine';font-size: xx-large;">
-            <h5>{{name}} {{pmusic_artist}}</h5>
-        </div>
-        <!-- body include(engage) -->
-        <div class="spbody" style="position: relative;top: 4pc;width: 37pc;height: 223px;">
-            <img src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_ilink}}" alt="cover_image" style="position: relative;top: -8pc;left: 3pc;width: 10pc;border-radius: 5pc;box-shadow: 1pc 0pc transparent;"/>
-            <button class="btn-music-expand" type="button" style="position: relative;top: 5pc;left: -6pc;border: none;background: transparent; font-size: large;">
-                <i class="fa fa-expand" aria-hidden="true"></i>
-            </button>
-            <!-- music widget -->
-            <div style="position: relative; top: 10pc; left: -19pc;">
-                <audio id="music" controls nodownload style="position: relative;top: -8pc;left: 26pc;width: 26pc; visibility: hidden;" onpause="clip_pause();" onend="clip_end();">
-                    <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/mpeg">
-                    <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/wav">
-                </audio>
-                <!-- user reaction  -->
-                <div class="_f001">
-                    <form action="/me/like" method="post"> 
-                        {{#if favourite}}
-                            <button type="submit" class="likebtn" style="border: none;background: transparent;position: relative;left: 26pc;top: -27pc;font-size: larger;color: red;">
-                                <i class="fa fa-heart" aria-hidden="true"></i>
-                            </button>
-                        {{else}}
-                            <button type="submit" class="likebtn" style="border: none;background: transparent;position: relative;left: 26pc;top: -27pc;color: darkslategrey;font-size: larger;">
-                                <i class="fa fa-heart" aria-hidden="true"></i>
-                            </button>
-                        {{/if}}
-                    </form>    
-                </div>
-                <!-- comments & emoji -->
-                <div class="_f002">
-
-                    <button class="btn-link" type="button" style="position: relative;left: 22pc;top: -183px;border: none;background: transparent;color: slategrey;font-size: larger;">
-                        <i class="fa fa-link" aria-hidden="true"></i>
-                    </button>
-                    <form method="post" action="/me/comment" class="_a002" style="display: none;">
-                        <input type="text" placeholder="typing ..." class="icomment" name="icomment" style="width: 30pc;height: 2pc;border: none;position: relative;top: -11.8pc;left: 23pc;"/>
-                        <button type="submit" style="position: relative;left: 20pc;top: -188px;border: none;background: transparent;color: green;">
-                            <i class="fa fa-commenting" aria-hidden="true"></i>
-                        </button>
-                        <button type="button" uk-button uk-button-default style="position: relative;top: -188px;left: 19.2pc;border: none;background: transparent;color: red;">
-                            <i class="fa fa-smile-o" aria-hidden="true"></i>
-                        </button>
-                        <div uk-dropdown="mode: click" style="border-radius: 2pc;">
-                            <button type="button" class="smile" uk-button uk-button-default title="@Happy" style="border: none; background: transparent; color :darkgoldenrod">
-                                <i class="fa fa-smile-o" aria-hidden="true"></i>
-                            </button>
-                            <button type="button" class="frown" uk-button uk-button-default title="@Sad" style="border: none; background: transparent; color: orange;">
-                                <i class="fa fa-frown-o" aria-hidden="true"></i>
-                            </button>
-                            <button type="button" class="coffee" uk-button uk-button-default title="@Meeting" style="border: none; background: transparent; color : brown">
-                                <i class="fa fa-coffee" aria-hidden="true"></i>
-                            </button>
-                            <button type="button" class="meh" uk-button uk-button-default title="@Emotionless" style="border: none; background: transparent; color: red;">
-                                <i class="fa fa-meh-o" aria-hidden="true"></i>
-                            </button>
-                            <button type="button" class="gift"  uk-button uk-button-default title="@Congratulation" style="border: none; background: transparent; color : blue">
-                                <i class="fa fa-gift" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                    </form>
-                    <script type="text/javascript">
-                        
-                        // Comments length should not be greater than 10 alphabets or a word.
-                        document.getElementsByClassName('icomment')[0].addEventListener('change', (e) =>{
-    
-                            if (document.getElementsByClassName('icomment')[0].value.length > 10){
-                                    alert('Comment should not be greater than 10 words')
-                            }
-                        });
-
-                        // change like button color and store in database...
-                        
-                        document.getElementsByClassName('likebtn')[0].addEventListener('click', e =>{
-
-                            if(document.getElementsByClassName('likebtn')[0].style.color == 'darkslategrey'){
-    
-                                document.getElementsByClassName('likebtn')[0].style.color = 'red';
-
-                            }else{
-    
-                                document.getElementsByClassName('likebtn')[0].style.color = 'darkslategey';
-                            } 
-                        });
-
-
-                        // active comment box for comments on comment
-                        
-                        document.getElementsByClassName('btn-link')[0].addEventListener('click', (e) =>{
-    
-                            if (document.getElementsByClassName('_a002')[0].style.display === 'none' ){
-        
-                                document.getElementsByClassName('_a002')[0].style.display = '';
-                                document.getElementsByClassName('btn-link')[0].style.display = 'none';
-                            }
-                        });
-
-                        // When user press smile , smile added as comment
-
-                        document.getElementsByClassName('smile')[0].addEventListener('click', (e) =>{
-                            document.getElementsByClassName('icomment')[0].value = '🙂';
-                        });
-
-
-                        // When user press frown , frown added as comment
-                        document.getElementsByClassName('frown')[0].addEventListener('click', (e) =>{
-                            document.getElementsByClassName('icomment')[0].value = '🙁';
-                        });
-
-
-                        // When user press coffee , coffee added as comment
-                        document.getElementsByClassName('coffee')[0].addEventListener('click', (e) =>{
-                            document.getElementsByClassName('icomment')[0].value = '☕';
-                        });
-
-
-                        // When user press meh , meh added as comment
-                        document.getElementsByClassName('meh')[0].addEventListener('click', (e) =>{
-                            document.getElementsByClassName('icomment')[0].value = '😐';
-                        });
-
-                        // When user press gift , gift added as comment
-                        document.getElementsByClassName('gift')[0].addEventListener('click', (e) =>{
-                            document.getElementsByClassName('icomment')[0].value = '🎁';
-                        });
-                    
-                    </script>
-                </div>
-                <!-- additional -->
-                <div class="_f003">
-                    <span class="plink" oncopy=clipboard() style="position:relative;top: -17.5pc;left: 29pc;">
-                        {{pmusic_mlink}}
-                   </span>
-                   <span class="copylink" style="position: relative;top: -20pc;font-style: italic;font-family: 'Tangerine';font-size: x-large;left: 7pc;">
-                   </span>
-                   <script type="text/javascript">
-
-                        // clipboard is a copy event signal...
-    
-                        function clipboard(){
-                            document.getElementsByClassName('copylink')[0].innerHTML = "Congratulation link is ready for sharing"
-                        }
-
-                   </script>
-                </div>
-                <!-- comments & reply -->
-                <div class="_f004">
-                    <span class="uk-badge" style="position: relative; top : -15.2pc; left : 55pc;"> {{user_comments}}</span></a></li>
-                    <button type="button" style="border: none; position: relative; top : -15pc;left :55pc; background: transparent; color: black;">
-                        <span class="uk-margin-small-right" uk-icon="icon: comment"></span>
-                    </button>
-                    <div uk-dropdown="mode: click" style="border-radius: 2pc;">
-                        <p>
-                            <span style="font-size: x-small;position: relative;top: 0pc;"> {{comment}} </span>
-                            <div class="_a004" style="position: relative;top: 0pc;">
-                                <form method="post" action="/me/comments/likes" class="_a003">
-                                    <button type="submit" style="position: relative;left: 8pc;top: -2.7pc;border: none;background: transparent;color: red;">
-                                        <i class="fa fa-heart" aria-hidden="true"></i>
-                                    </button>
-                                    <span class="uk-badge" style="position: relative;left: -1pc;top: -2px;font-size: x-small;background: red;">{{comment_like_count}}</span>
-                                </form>
-                            </div> 
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="_a001" style="position: relative;top: 10pc;left: 41pc;"> 
-       
-        <!-- emotions renderer -->
-        <section style="position: relative;width: 18pc;left: -29pc;height: 10pc;font-size: xx-large;top: -11pc;">
-        <!-- emotions  -->
-        <span class="emotion">{{emotion}}</span>
-        
-        <i class="fa fa-frown-o" aria-hidden="true" style="display: none;"></i>
-        <i class="fa fa-fire" aria-hidden="true" style="display: none;"></i>
-        <i class="fa fa-heart" aria-hidden="true" style="display: none;"></i>
-        <i class="fa fa-gift" aria-hidden="true" style="display: none;"></i>
-        <i class="fa fa-snownflake" aria-hidden="true" style="display: none;"></i>
-        
-        <script type="text/javascript">
-            if (document.getElementsByClassName('emotion')[0].innerHTML === "Love"){
-
-                    document.getElementsByClassName('mood')[0].children[3].style.display = "";
-                    document.getElementsByClassName('mood')[0].children[3].style.color = 'red';
-            }
-
-            if (document.getElementsByClassName('emotion')[0].innerHTML === "Sad"){
-
-                document.getElementsByClassName('mood')[0].children[1].style.display = "";
-                document.getElementsByClassName('mood')[0].children[1].style.color = 'red';
-            }
-
-            if (document.getElementsByClassName('emotion')[0].innerHTML === "Passion"){
-
-                document.getElementsByClassName('mood')[0].children[2].style.display = "";
-                document.getElementsByClassName('mood')[0].children[2].style.color = 'red';
-            }
-
-            if (document.getElementsByClassName('emotion')[0].innerHTML === "Mixed"){
-
-                document.getElementsByClassName('fa fa-snownflake')[5].style.display = "";
-                document.getElementsByClassName('mood')[0].children[5].style.color = 'blue';
-            }
-
-
-            if (document.getElementsByClassName('emotion')[0].innerHTML === "Dancing"){
-
-                document.getElementsByClassName('mood')[0].children[4].style.display = "";
-                document.getElementsByClassName('mood')[0].children[4].style.color = 'blue';
-            }
-        
-        </script>
-
-        <!-- animation -->
-        <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 123 94.09" style="width: 300px;">
-            <defs>
-              <style>
-                .cls-1 {
-                  fill: #2c51a3;
-                }
-          
-                .cls-2 {
-                  fill: #faaf4c;
-                }
-          
-                .cls-3 {
-                  fill: #f16279;
-                }
-          
-                .cls-4 {
-                  fill: #78c8aa;
-                }
-          
-                .cls-5 {
-                  fill: none;
-                  stroke-width: 6px;
-                }
-          
-                .cls-5, .cls-6 {
-                  stroke: #000;
-                  stroke-linecap: round;
-                  stroke-miterlimit: 10;
-                }
-                
-                .mask {        
-                  fill: black;
-                  stroke: white;
-                  stroke-width: 5px;
-                }
-                
-                #squiggle-mask-path {
-                  stroke-dasharray: 80;
-                  stroke-dashoffset: 80;
-                  animation: animate-stroke 1s 1.1s forwards cubic-bezier(0,1,.53,1);
-                }
-                
-                #left-line-mask-path {
-                  stroke-dasharray: 38;
-                  stroke-dashoffset: -38;
-                  animation: animate-stroke 1s 1.2s forwards cubic-bezier(0,1,.53,1);
-                }
-                
-                #right-line-mask-path {
-                  stroke-dasharray: 38;
-                  stroke-dashoffset: -38;
-                  animation: animate-stroke 1s 1.2s forwards cubic-bezier(0,1,.53,1);
-                }
-                
-                @keyframes animate-stroke {
-                  100% {
-                    stroke-dashoffset: 0;
-                  }
-                }
-                
-                
-                #mint-burst {
-                  transform: translateY(70px);
-                  animation: move-stars 1s 1s forwards cubic-bezier(0,1,.53,1);
-                }
-                
-                #yellow-burst {
-                  transform: translate(40px, 10px);
-                  animation: move-stars 1s 1s forwards cubic-bezier(0,1,.53,1);
-                }
-                
-                #red-burst {
-                  transform: translate(-40px, 10px);
-                  animation: move-stars 1s 1s forwards cubic-bezier(0,1,.53,1);
-                }
-                      
-                #blue-star {
-                  transform: translate(10px, 40px);
-                  animation: move-stars 1s 1025ms forwards cubic-bezier(0,1,.53,1);
-                  display: inherit;
-                }
-                
-                #yellow-star {
-                  transform: translate(-10px, 45px);
-                  animation: move-stars 1s 1050ms forwards cubic-bezier(0,1,.53,1);
-                }
-                
-                @keyframes move-stars {
-                  100% {
-                    transform: translateY(0);
-                  }
-                }
-          
-                .dot {
-                  animation: reveal-dots 0.9s 1.2s both cubic-bezier(0,1,.53,1);
-                  opacity: 0;
-                  transform: translate(-5px, 10px);
-                  
-                }
-                
-                .dot.left-side {
-                  transform: translate(5px, 10px);
-                }
-                
-                @keyframes reveal-dots {
-                  100% {
-                    opacity: 1;
-                    transform: translate(0, 0);
-                  }
-                }
-              </style>
-             <mask id="squiggle-mask" maskunits="userSpaceOnUse"
-                        maskcontentunits="userSpaceOnUse">
-               <path id="squiggle-mask-path" class="cls-5 mask" d="M56.26,90.4c-.7-3,10.21-7,10.4-11.46.63-3.89-11.14-7.69-9.57-11.62C59.22,62,67.43,60.8,66.86,55.4s-10-6.59-9.48-10.63c.3-2.59,5.8-5.38,9-8.33a5.79,5.79,0,0,0,1.91-3.54" transform="translate(-2.7 -2.61)"/>
-              </mask>
-              
-              <mask id="left-line-mask" maskunits="userSpaceOnUse" maskcontentunits="userSpaceOnUse">
-                <path id="left-line-mask-path" class="cls-6 mask" d="M25.78,62.5s18.38,14.73,15.9,30.91" transform="translate(-2.7 -2.61)"/>
-              </mask>
-              
-              <mask id="right-line-mask" maskunits="userSpaceOnUse" maskcontentunits="userSpaceOnUse">
-                <path id="right-line-mask-path" class="cls-6 mask" d="M95.12,64.5S78.32,73.83,76.8,94.2" transform="translate(-2.7 -2.61)"/>
-              </mask>
-            </defs>
-            <path id="blue-star" class="cls-1" d="M33.3,51.8a2,2,0,0,0,2-.7l3-3.9,4.9.3a2.38,2.38,0,0,0,1.2-.3,1.34,1.34,0,0,0,.6-.7,2,2,0,0,0-.1-2.1l-2.8-4,1.8-4.6a2,2,0,0,0-.4-2.1,1.92,1.92,0,0,0-2-.6l-4.7,1.4L33,31.3a2,2,0,0,0-2.1-.3,2.15,2.15,0,0,0-1.2,1.8l-.1,4.9-4.1,2.7h0a2,2,0,0,0-.9,1.9A2.1,2.1,0,0,0,25.9,44l4.6,1.6,1.3,4.7A2.07,2.07,0,0,0,33.3,51.8Z" transform="translate(-2.7 -2.61)"/>
-            <path id="yellow-star" class="cls-2" d="M91,32.9l-1.7-4.6A2.1,2.1,0,0,0,87.6,27a2,2,0,0,0-1.9.9L83.2,32l-4.9.2h0a2,2,0,0,0-1.7,1.2,2,2,0,0,0,.3,2.1L80,39.3,78.7,44a1.92,1.92,0,0,0,.6,2,2,2,0,0,0,2.1.4L86,44.6l4.1,2.7a1.8,1.8,0,0,0,1.2.3,1.61,1.61,0,0,0,.9-.3,1.89,1.89,0,0,0,1-1.9l-.3-4.9,3.9-3a1.91,1.91,0,0,0,.7-2A2.07,2.07,0,0,0,96,34Z" transform="translate(-2.7 -2.61)"/>
-            <path id="yellow-burst" class="cls-2" d="M16.1,83.8a2,2,0,0,0,2.5-1.4l.7-2.4,1.8,1.8A2,2,0,1,0,24,79.1l-1.8-1.8,2.5-.6a2,2,0,1,0-.9-3.9l-2.5.6L22,71a2,2,0,1,0-3.9-1.1l-.7,2.4-1.8-1.8a2,2,0,0,0-2.9,2.7L14.5,75l-2.5.6a2,2,0,0,0,.9,3.9l2.5-.6-.7,2.4A2,2,0,0,0,16.1,83.8Z" transform="translate(-2.7 -2.61)"/>
-            <path id="red-burst" class="cls-3" d="M108.8,67.4a2,2,0,0,0-2.5,1.4l-.7,2.4-1.8-1.8a2,2,0,1,0-2.9,2.7l1.8,1.8-2.5.6a2,2,0,0,0,.9,3.9l2.5-.6-.7,2.4a2,2,0,0,0,3.9,1.1l.7-2.4,1.8,1.8a2,2,0,1,0,2.9-2.7l-1.8-1.8,2.5-.6a2,2,0,1,0-.9-3.9l-2.5.6.7-2.4A2.17,2.17,0,0,0,108.8,67.4Z" transform="translate(-2.7 -2.61)"/>
-            <path id="mint-burst" class="cls-4" d="M69.5,7,67,7.6l.7-2.4a2,2,0,0,0-1.4-2.5A1.84,1.84,0,0,0,63.9,4l-.7,2.4L61.4,4.6a2,2,0,0,0-2.8-.1,2,2,0,0,0-.1,2.8l1.8,1.8-2.5.6a2,2,0,0,0-1.5,2.4,2,2,0,0,0,2.4,1.5l2.5-.6-.7,2.4a2,2,0,0,0,3.9,1.1l.7-2.4,1.8,1.8a2,2,0,1,0,2.9-2.7L68,11.5l2.5-.6A2,2,0,0,0,72,8.5,2.06,2.06,0,0,0,69.5,7Z" transform="translate(-2.7 -2.61)"/>  
-            <g id="squiggle" mask="url(#squiggle-mask)">
-              <path class="cls-1" d="M56.3,92.3a2.09,2.09,0,0,0,2.1-2c0-1.6,1.6-2.5,4.1-3.8a18.17,18.17,0,0,0,4.1-2.7,6.44,6.44,0,0,0,2.1-4.6c.1-4-3.2-6-5.8-7.6-2.4-1.5-3.9-2.4-3.9-4s1.6-2.5,4.1-3.8c2.7-1.5,6.1-3.3,6.2-7.3s-3.2-6-5.8-7.6c-2.4-1.5-3.9-2.4-3.9-4s1.6-2.5,4.1-3.8c2.7-1.5,6.1-3.3,6.2-7.3a2.05,2.05,0,0,0-4.1-.1c0,1.6-1.6,2.5-4.1,3.8-2.7,1.5-6.1,3.3-6.2,7.3s3.2,6,5.8,7.6c2.4,1.5,3.9,2.4,3.9,4s-1.6,2.5-4.1,3.8c-2.7,1.5-6.1,3.3-6.2,7.3s3.2,6,5.8,7.6c2.4,1.5,3.9,2.4,3.9,4s-1.6,2.5-4.1,3.8c-2.7,1.5-6.1,3.3-6.2,7.3A2,2,0,0,0,56.3,92.3Z" transform="translate(-2.7 -2.61)"/>
-            </g>
-            <g id="right-line" mask="url(#right-line-mask)">
-              <path class="cls-1" d="M94.7,64.5a2,2,0,0,0-2.8-.4c-15.9,11.6-17,27.4-17,28a2,2,0,0,0,1.9,2.1,2.46,2.46,0,0,0,1.5-.5,1.61,1.61,0,0,0,.6-1.3c0-.1,1-14.6,15.4-25A2.07,2.07,0,0,0,94.7,64.5Z" transform="translate(-2.7 -2.61)"/>
-            </g>
-            <g id="left-line" mask="url(#left-line-mask)">
-              <path class="cls-1" d="M35.8,73.3l.2-.2a2,2,0,0,0,.2-2.6A43.54,43.54,0,0,0,29.4,63a1.94,1.94,0,0,0-2.8.2,2,2,0,0,0,.2,2.8A44.29,44.29,0,0,1,33,72.8,2,2,0,0,0,35.8,73.3Z" transform="translate(-2.7 -2.61)"/>
-              <path class="cls-4" d="M41.8,94.4a2.05,2.05,0,0,0,2-2,35.88,35.88,0,0,0-3.3-14.5,2,2,0,0,0-3.6,1.6,32.83,32.83,0,0,1,3,12.7A1.93,1.93,0,0,0,41.8,94.4Z" transform="translate(-2.7 -2.61)"/>
-            </g>
-            
-            <circle id="blue-dot-3" class="cls-1 dot left-side" cx="2" cy="89.29" r="2"/>
-            <circle id="red-dot-4" class="cls-3 dot left-side" cx="24.6" cy="89.79" r="2"/>
-            <circle id="blue-dot-4" class="cls-1 dot" cx="121" cy="86.49" r="2"/>
-            <circle id="blue-dot-5" class="cls-1 dot left-side" cx="42.3" cy="61.89" r="2"/>
-            <circle id="yellow-dot" class="cls-2 dot left-side" cx="31.1" cy="55.99" r="2"/>
-            <circle id="red-dot-1" class="cls-3 dot" cx="63" cy="25.59" r="2"/>
-            <circle id="mint-dot-1" class="cls-4 dot left-side" cx="43.2" cy="22.29" r="2"/>
-            <circle id="mint-dot-2" class="cls-4 dot" cx="96.3" cy="54.69" r="2"/>
-            <circle id="blue-dot-1" class="cls-1 dot" cx="84.3" cy="82.79" r="2"/>
-            <circle id="red-dot-2" class="cls-3 dot left-side" cx="17" cy="52.79" r="2"/>
-            <circle id="red-dot-3" class="cls-3 dot" cx="70.3" cy="73.89" r="2"/>
-            <circle id="blue-dot-2" class="cls-1 dot" cx="79.3" cy="54.29" r="2"/>
-            
-          </svg>
-
         <script type="text/javascript">
             var retina = window.devicePixelRatio,
 
-// Math shorthands
-PI = Math.PI,
-sqrt = Math.sqrt,
-round = Math.round,
-random = Math.random,
+            // Math shorthands
+            
+            PI = Math.PI,
+            sqrt = Math.sqrt,
+            round = Math.round,
+            random = Math.random,
+
 cos = Math.cos,
+
 sin = Math.sin,
 
 // Local WindowAnimationTiming interface
@@ -1128,37 +760,424 @@ _now = Date.now || function () {return new Date().getTime();};
 
 });
         </script>
-       </section>
-    </div>
 
-<script type="text/javascript">
+        <!-- quote -->
+        <h6 style="font-family: Tangerine,serif;font-size: xx-large;color: darkslategray;position: inherit;top: -30pc;left: 30pc"> The real magic is two heart beat at one note </h6>
+        
+        <!-- header include(music_name, artist) -->
+        <div class="spheader" style="position: relative;top: -30pc;left: 34pc;">
+            <h5 style="font-family: 'Tangerine'; font-size: large;">{{name}} {{pmusic_artist}}</h5>
+        </div>
 
-    // clip pause is another event
-    function clip_pause(){
+        <!-- body include(engage) -->
+        <div class="spbody" style="position: relative;top: -20pc;left : 32pc;width: 37pc;height: 223px;">
+            <img src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_ilink}}" alt="cover_image" style="position: relative;top: -8pc;left: 3pc;width: 10pc;border-radius: 5pc;box-shadow: 1pc 0pc transparent;"/>
+        </div>
 
-        alert('Please Resume lovely song');
-    }
+        <div style="position: relative;top: -38pc;left : 30pc;width: 37pc;height: 223px;">
+            <button class="btn-music-expand" type="button" style="position: relative;top: 9pc;left: -6pc;border: none;background: transparent; font-size: large;">
+                <i class="fa fa-expand" aria-hidden="true"></i>
+            </button>
+            <script type="text/javascript">
+                document.getElementsByClassName('btn-music-expand')[0].addEventListener('click', (e) =>{
 
-    // clip end is most important event
+                
+                    if (document.getElementById('music').style.visibility == 'hidden'){
 
-    function clip_end(){
+    
+                        document.getElementById('music').style.visibility = 'visible';
 
-        alert('Congrats ! Song finished , Kindly rate the song ; Artist should be very impressed with you r taste');
-    }    
+                    }else{
 
-    document.getElementsByClassName('btn-music-expand')[0].addEventListener('click', (e) =>{
+    
+                        document.getElementById('music').style.visibility = 'hidden';
 
-        if (document.getElementById('music').style.visibility == 'hidden'){
+                    }
 
-            document.getElementById('music').style.visibility = 'visible';
-        }else{
 
-            document.getElementById('music').style.visibility = 'hidden';
-        }
+                });
+            </script>
+            <!-- music widget -->
+            <div style="position: relative; top: 10pc; left: -19pc;">
+                <audio id="music" controls nodownload style="position: relative;top: -4pc;left: 22pc;width: 26pc; visibility: hidden;" onpause="clip_pause();" onend="clip_end();">
+                    <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/mpeg">
+                    <source src="https://beige-aggressive-bird-900.mypinata.cloud/ipfs/{{pmusic_mlink}}" type="audio/wav">
+                </audio>
+                <script type="text/javascript">
+                
+                    // clip pause is another event
+                    function clip_pause(){
+                
+                        alert('Please Resume lovely song');
+                    }
+                
+                    // clip end is most important event
+                
+                    function clip_end(){
+                
+                        alert('Congrats ! Song finished , Kindly rate the song ; Artist should be very impressed with you r taste');
+                    }    
+                </script>
+            </div>
+        </div>
 
-    });
+        <!-- comments & emoji -->
+        <div class="_f001" style="position: relative;top: -28pc;left : 2pc;width: 37pc;height: 223px;">
+            <button class="btn-link" type="button" style="position: relative;left: 22pc;top: -183px;border: none;background: transparent;color: slategrey;font-size: larger;">
+                <i class="fa fa-link" aria-hidden="true"></i>
+            </button>
+            <script type="text/javascript">
+                // active comment box for comments on comment                       
+                document.getElementsByClassName('btn-link')[0].addEventListener('click', (e) =>{
+    
+                if (document.getElementsByClassName('_a002')[0].style.display === 'none' ){
 
-</script>
+                    document.getElementsByClassName('_a002')[0].style.display = '';
+                    document.getElementsByClassName('btn-link')[0].style.display = 'none';}});
+            </script>
+                <form method="post" action="/me/comment" class="_a002" style="display: none;">
+                    <input type="text" placeholder="typing ..." class="icomment" name="icomment" style="width: 30pc;height: 2pc;border: none;position: relative;top: -11.8pc;left: 23pc;"/>
+                <button type="submit" style="position: relative;left: 20pc;top: -188px;border: none;background: transparent;color: green;">
+                    <i class="fa fa-commenting" aria-hidden="true"></i>
+                </button>
+                <button type="button" uk-button uk-button-default style="position: relative;top: -188px;left: 19.2pc;border: none;background: transparent;color: red;">
+                    <i class="fa fa-smile-o" aria-hidden="true"></i>
+                </button>
+                <div uk-dropdown="mode: click" style="border-radius: 2pc;">
+                    <button type="button" class="smile" uk-button uk-button-default title="@Happy" style="border: none; background: transparent; color :darkgoldenrod">
+                        <i class="fa fa-smile-o" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="frown" uk-button uk-button-default title="@Sad" style="border: none; background: transparent; color: orange;">
+                        <i class="fa fa-frown-o" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="coffee" uk-button uk-button-default title="@Meeting" style="border: none; background: transparent; color : brown">
+                        <i class="fa fa-coffee" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="meh" uk-button uk-button-default title="@Emotionless" style="border: none; background: transparent; color: red;">
+                        <i class="fa fa-meh-o" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="gift"  uk-button uk-button-default title="@Congratulation" style="border: none; background: transparent; color : blue">
+                        <i class="fa fa-gift" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </form>
+                <script type="text/javascript">
+
+                        // Comments length should not be greater than 10 alphabets or a word.
+                        document.getElementsByClassName('icomment')[0].addEventListener('change', (e) =>{
+    
+                            if (document.getElementsByClassName('icomment')[0].value.length > 10){
+            
+                                alert('Comment should not be greater than 10 words')
+                            }
+                        });
+
+                        // When user press smile , smile added as comment
+
+                        document.getElementsByClassName('smile')[0].addEventListener('click', (e) =>{
+                            document.getElementsByClassName('icomment')[0].value = '🙂';
+                        });
+
+
+                        // When user press frown , frown added as comment
+                        document.getElementsByClassName('frown')[0].addEventListener('click', (e) =>{
+                            document.getElementsByClassName('icomment')[0].value = '🙁';
+                        });
+
+
+                        // When user press coffee , coffee added as comment
+                        document.getElementsByClassName('coffee')[0].addEventListener('click', (e) =>{
+                            document.getElementsByClassName('icomment')[0].value = '☕';
+                        });
+
+
+                        // When user press meh , meh added as comment
+                        document.getElementsByClassName('meh')[0].addEventListener('click', (e) =>{
+                            document.getElementsByClassName('icomment')[0].value = '😐';
+                        });
+
+                        // When user press gift , gift added as comment
+                        document.getElementsByClassName('gift')[0].addEventListener('click', (e) =>{
+                            document.getElementsByClassName('icomment')[0].value = '🎁';
+                        });
+                </script>
+            </div>
+        </div>
+        <div class="_f002" style="position: relative;top: -6pc;left : 30pc;width: 37pc;height: 223px;">
+            <form action="/me/like" method="post"> 
+                {{#if favourite}}
+                    <button type="submit" class="likebtn" style="border: none;background: transparent;position: relative;left: 10pc;top: 3pc;font-size: larger;color: red;">
+                        <i class="fa fa-heart" aria-hidden="true"></i>
+                    </button>
+                {{else}}
+                    <button type="submit" class="likebtn" style="border: none;background: transparent;position: relative;left: 10pc;top: 3pc;color: darkslategrey;font-size: larger;">
+                        <i class="fa fa-heart" aria-hidden="true"></i>
+                    </button>
+                {{/if}}
+                <script type="text/javascript">
+                    // change like button color and store in database...
+                        
+                    document.getElementsByClassName('likebtn')[0].addEventListener('click', e =>{
+                    if(document.getElementsByClassName('likebtn')[0].style.color == 'darkslategrey'){
+                        document.getElementsByClassName('likebtn')[0].style.color = 'red';}else{
+                        document.getElementsByClassName('likebtn')[0].style.color = 'darkslategey';} });
+                </script>
+            </form>    
+        </div>
+        <div class="_f003" style="position: relative;top: 17pc;left : 3pc;width: 37pc;height: 223px;">
+            <span class="plink" oncopy=clipboard() style="position:relative;top: -8.5pc;left: 22pc;">
+                {{pmusic_mlink}}
+           </span>
+           <span class="copylink" style="position: relative;top: -4pc;font-style: italic;font-family: 'Tangerine';font-size: x-large;left: 16pc;"></span>
+           <script type="text/javascript">
+
+                // clipboard is a copy event signal...
+
+                function clipboard(){
+                    document.getElementsByClassName('copylink')[0].innerHTML = "Congratulation link is ready for sharing"
+                }
+
+            </script>
+        </div>
+        <div class="_a001" style="position: relative;top: -20pc;left: 50pc;">
+            
+            <!-- emotions renderer -->
+            <section style="position: relative;width: 18pc;left: 15pc;height: 10pc;font-size: xx-large;top: -11pc;">
+                <!-- animation -->
+            <svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 123 94.09" style="width: 300px;">
+            <defs>
+              <style>
+                .cls-1 {
+                  fill: #2c51a3;
+                }
+          
+                .cls-2 {
+                  fill: #faaf4c;
+                }
+          
+                .cls-3 {
+                  fill: #f16279;
+                }
+          
+                .cls-4 {
+                  fill: #78c8aa;
+                }
+          
+                .cls-5 {
+                  fill: none;
+                  stroke-width: 6px;
+                }
+          
+                .cls-5, .cls-6 {
+                  stroke: #000;
+                  stroke-linecap: round;
+                  stroke-miterlimit: 10;
+                }
+                
+                .mask {        
+                  fill: black;
+                  stroke: white;
+                  stroke-width: 5px;
+                }
+                
+                #squiggle-mask-path {
+                  stroke-dasharray: 80;
+                  stroke-dashoffset: 80;
+                  animation: animate-stroke 1s 1.1s forwards cubic-bezier(0,1,.53,1);
+                }
+                
+                #left-line-mask-path {
+                  stroke-dasharray: 38;
+                  stroke-dashoffset: -38;
+                  animation: animate-stroke 1s 1.2s forwards cubic-bezier(0,1,.53,1);
+                }
+                
+                #right-line-mask-path {
+                  stroke-dasharray: 38;
+                  stroke-dashoffset: -38;
+                  animation: animate-stroke 1s 1.2s forwards cubic-bezier(0,1,.53,1);
+                }
+                
+                @keyframes animate-stroke {
+                  100% {
+                    stroke-dashoffset: 0;
+                  }
+                }
+                
+                
+                #mint-burst {
+                  transform: translateY(70px);
+                  animation: move-stars 1s 1s forwards cubic-bezier(0,1,.53,1);
+                }
+                
+                #yellow-burst {
+                  transform: translate(40px, 10px);
+                  animation: move-stars 1s 1s forwards cubic-bezier(0,1,.53,1);
+                }
+                
+                #red-burst {
+                  transform: translate(-40px, 10px);
+                  animation: move-stars 1s 1s forwards cubic-bezier(0,1,.53,1);
+                }
+                      
+                #blue-star {
+                  transform: translate(10px, 40px);
+                  animation: move-stars 1s 1025ms forwards cubic-bezier(0,1,.53,1);
+                  display: inherit;
+                }
+                
+                #yellow-star {
+                  transform: translate(-10px, 45px);
+                  animation: move-stars 1s 1050ms forwards cubic-bezier(0,1,.53,1);
+                }
+                
+                @keyframes move-stars {
+                  100% {
+                    transform: translateY(0);
+                  }
+                }
+          
+                .dot {
+                  animation: reveal-dots 0.9s 1.2s both cubic-bezier(0,1,.53,1);
+                  opacity: 0;
+                  transform: translate(-5px, 10px);
+                  
+                }
+                
+                .dot.left-side {
+                  transform: translate(5px, 10px);
+                }
+                
+                @keyframes reveal-dots {
+                  100% {
+                    opacity: 1;
+                    transform: translate(0, 0);
+                  }
+                }
+              </style>
+             <mask id="squiggle-mask" maskunits="userSpaceOnUse"
+                        maskcontentunits="userSpaceOnUse">
+               <path id="squiggle-mask-path" class="cls-5 mask" d="M56.26,90.4c-.7-3,10.21-7,10.4-11.46.63-3.89-11.14-7.69-9.57-11.62C59.22,62,67.43,60.8,66.86,55.4s-10-6.59-9.48-10.63c.3-2.59,5.8-5.38,9-8.33a5.79,5.79,0,0,0,1.91-3.54" transform="translate(-2.7 -2.61)"/>
+              </mask>
+              
+              <mask id="left-line-mask" maskunits="userSpaceOnUse" maskcontentunits="userSpaceOnUse">
+                <path id="left-line-mask-path" class="cls-6 mask" d="M25.78,62.5s18.38,14.73,15.9,30.91" transform="translate(-2.7 -2.61)"/>
+              </mask>
+              
+              <mask id="right-line-mask" maskunits="userSpaceOnUse" maskcontentunits="userSpaceOnUse">
+                <path id="right-line-mask-path" class="cls-6 mask" d="M95.12,64.5S78.32,73.83,76.8,94.2" transform="translate(-2.7 -2.61)"/>
+              </mask>
+            </defs>
+            <path id="blue-star" class="cls-1" d="M33.3,51.8a2,2,0,0,0,2-.7l3-3.9,4.9.3a2.38,2.38,0,0,0,1.2-.3,1.34,1.34,0,0,0,.6-.7,2,2,0,0,0-.1-2.1l-2.8-4,1.8-4.6a2,2,0,0,0-.4-2.1,1.92,1.92,0,0,0-2-.6l-4.7,1.4L33,31.3a2,2,0,0,0-2.1-.3,2.15,2.15,0,0,0-1.2,1.8l-.1,4.9-4.1,2.7h0a2,2,0,0,0-.9,1.9A2.1,2.1,0,0,0,25.9,44l4.6,1.6,1.3,4.7A2.07,2.07,0,0,0,33.3,51.8Z" transform="translate(-2.7 -2.61)"/>
+            <path id="yellow-star" class="cls-2" d="M91,32.9l-1.7-4.6A2.1,2.1,0,0,0,87.6,27a2,2,0,0,0-1.9.9L83.2,32l-4.9.2h0a2,2,0,0,0-1.7,1.2,2,2,0,0,0,.3,2.1L80,39.3,78.7,44a1.92,1.92,0,0,0,.6,2,2,2,0,0,0,2.1.4L86,44.6l4.1,2.7a1.8,1.8,0,0,0,1.2.3,1.61,1.61,0,0,0,.9-.3,1.89,1.89,0,0,0,1-1.9l-.3-4.9,3.9-3a1.91,1.91,0,0,0,.7-2A2.07,2.07,0,0,0,96,34Z" transform="translate(-2.7 -2.61)"/>
+            <path id="yellow-burst" class="cls-2" d="M16.1,83.8a2,2,0,0,0,2.5-1.4l.7-2.4,1.8,1.8A2,2,0,1,0,24,79.1l-1.8-1.8,2.5-.6a2,2,0,1,0-.9-3.9l-2.5.6L22,71a2,2,0,1,0-3.9-1.1l-.7,2.4-1.8-1.8a2,2,0,0,0-2.9,2.7L14.5,75l-2.5.6a2,2,0,0,0,.9,3.9l2.5-.6-.7,2.4A2,2,0,0,0,16.1,83.8Z" transform="translate(-2.7 -2.61)"/>
+            <path id="red-burst" class="cls-3" d="M108.8,67.4a2,2,0,0,0-2.5,1.4l-.7,2.4-1.8-1.8a2,2,0,1,0-2.9,2.7l1.8,1.8-2.5.6a2,2,0,0,0,.9,3.9l2.5-.6-.7,2.4a2,2,0,0,0,3.9,1.1l.7-2.4,1.8,1.8a2,2,0,1,0,2.9-2.7l-1.8-1.8,2.5-.6a2,2,0,1,0-.9-3.9l-2.5.6.7-2.4A2.17,2.17,0,0,0,108.8,67.4Z" transform="translate(-2.7 -2.61)"/>
+            <path id="mint-burst" class="cls-4" d="M69.5,7,67,7.6l.7-2.4a2,2,0,0,0-1.4-2.5A1.84,1.84,0,0,0,63.9,4l-.7,2.4L61.4,4.6a2,2,0,0,0-2.8-.1,2,2,0,0,0-.1,2.8l1.8,1.8-2.5.6a2,2,0,0,0-1.5,2.4,2,2,0,0,0,2.4,1.5l2.5-.6-.7,2.4a2,2,0,0,0,3.9,1.1l.7-2.4,1.8,1.8a2,2,0,1,0,2.9-2.7L68,11.5l2.5-.6A2,2,0,0,0,72,8.5,2.06,2.06,0,0,0,69.5,7Z" transform="translate(-2.7 -2.61)"/>  
+            <g id="squiggle" mask="url(#squiggle-mask)">
+              <path class="cls-1" d="M56.3,92.3a2.09,2.09,0,0,0,2.1-2c0-1.6,1.6-2.5,4.1-3.8a18.17,18.17,0,0,0,4.1-2.7,6.44,6.44,0,0,0,2.1-4.6c.1-4-3.2-6-5.8-7.6-2.4-1.5-3.9-2.4-3.9-4s1.6-2.5,4.1-3.8c2.7-1.5,6.1-3.3,6.2-7.3s-3.2-6-5.8-7.6c-2.4-1.5-3.9-2.4-3.9-4s1.6-2.5,4.1-3.8c2.7-1.5,6.1-3.3,6.2-7.3a2.05,2.05,0,0,0-4.1-.1c0,1.6-1.6,2.5-4.1,3.8-2.7,1.5-6.1,3.3-6.2,7.3s3.2,6,5.8,7.6c2.4,1.5,3.9,2.4,3.9,4s-1.6,2.5-4.1,3.8c-2.7,1.5-6.1,3.3-6.2,7.3s3.2,6,5.8,7.6c2.4,1.5,3.9,2.4,3.9,4s-1.6,2.5-4.1,3.8c-2.7,1.5-6.1,3.3-6.2,7.3A2,2,0,0,0,56.3,92.3Z" transform="translate(-2.7 -2.61)"/>
+            </g>
+            <g id="right-line" mask="url(#right-line-mask)">
+              <path class="cls-1" d="M94.7,64.5a2,2,0,0,0-2.8-.4c-15.9,11.6-17,27.4-17,28a2,2,0,0,0,1.9,2.1,2.46,2.46,0,0,0,1.5-.5,1.61,1.61,0,0,0,.6-1.3c0-.1,1-14.6,15.4-25A2.07,2.07,0,0,0,94.7,64.5Z" transform="translate(-2.7 -2.61)"/>
+            </g>
+            <g id="left-line" mask="url(#left-line-mask)">
+              <path class="cls-1" d="M35.8,73.3l.2-.2a2,2,0,0,0,.2-2.6A43.54,43.54,0,0,0,29.4,63a1.94,1.94,0,0,0-2.8.2,2,2,0,0,0,.2,2.8A44.29,44.29,0,0,1,33,72.8,2,2,0,0,0,35.8,73.3Z" transform="translate(-2.7 -2.61)"/>
+              <path class="cls-4" d="M41.8,94.4a2.05,2.05,0,0,0,2-2,35.88,35.88,0,0,0-3.3-14.5,2,2,0,0,0-3.6,1.6,32.83,32.83,0,0,1,3,12.7A1.93,1.93,0,0,0,41.8,94.4Z" transform="translate(-2.7 -2.61)"/>
+            </g>
+            
+            <circle id="blue-dot-3" class="cls-1 dot left-side" cx="2" cy="89.29" r="2"/>
+            <circle id="red-dot-4" class="cls-3 dot left-side" cx="24.6" cy="89.79" r="2"/>
+            <circle id="blue-dot-4" class="cls-1 dot" cx="121" cy="86.49" r="2"/>
+            <circle id="blue-dot-5" class="cls-1 dot left-side" cx="42.3" cy="61.89" r="2"/>
+            <circle id="yellow-dot" class="cls-2 dot left-side" cx="31.1" cy="55.99" r="2"/>
+            <circle id="red-dot-1" class="cls-3 dot" cx="63" cy="25.59" r="2"/>
+            <circle id="mint-dot-1" class="cls-4 dot left-side" cx="43.2" cy="22.29" r="2"/>
+            <circle id="mint-dot-2" class="cls-4 dot" cx="96.3" cy="54.69" r="2"/>
+            <circle id="blue-dot-1" class="cls-1 dot" cx="84.3" cy="82.79" r="2"/>
+            <circle id="red-dot-2" class="cls-3 dot left-side" cx="17" cy="52.79" r="2"/>
+            <circle id="red-dot-3" class="cls-3 dot" cx="70.3" cy="73.89" r="2"/>
+            <circle id="blue-dot-2" class="cls-1 dot" cx="79.3" cy="54.29" r="2"/>
+            
+          </svg>
+            </section>
+            
+            <!-- emotions  -->
+            <span class="emotion">{{emotion}}</span>
+                
+            <i class="fa fa-frown-o" aria-hidden="true" style="display: none; color:red; font-size: xx-large;"></i>
+            <i class="fa fa-fire" aria-hidden="true" style="display: none; color:firebrick; font-size: xx-large;"></i>
+            <i class="fa fa-heart" aria-hidden="true" style="display: none; color:red; font-size: xx-large;"></i>
+            <i class="fa fa-gift" aria-hidden="true" style="display: none; color:red; font-size: xx-large;"></i>
+            <i class="fa fa-thermometer-three-quarters" aria-hidden="true" style="display: none;color: firebrick;font-size: xx-large;"></i>
+            <script type="text/javascript">
+                if (document.getElementsByClassName('emotion')[0].innerHTML === "Love"){
+    
+                        document.getElementsByClassName('mood')[0].children[3].style.display = "";
+                        document.getElementsByClassName('mood')[0].children[3].style.color = 'red';
+                }
+    
+                if (document.getElementsByClassName('emotion')[0].innerHTML === "Sad"){
+    
+                    document.getElementsByClassName('mood')[0].children[1].style.display = "";
+                    document.getElementsByClassName('mood')[0].children[1].style.color = 'red';
+                }
+    
+                if (document.getElementsByClassName('emotion')[0].innerHTML === "Passion"){
+    
+                    document.getElementsByClassName('mood')[0].children[2].style.display = "";
+                    document.getElementsByClassName('mood')[0].children[2].style.color = 'red';
+                }
+    
+                if (document.getElementsByClassName('emotion')[0].innerHTML === "Mixed"){
+    
+                    document.getElementsByClassName('fa fa-snownflake')[5].style.display = "";
+                    document.getElementsByClassName('mood')[0].children[5].style.color = 'blue';
+                }
+    
+    
+                if (document.getElementsByClassName('emotion')[0].innerHTML === "Dancing"){
+    
+                    document.getElementsByClassName('mood')[0].children[4].style.display = "";
+                    document.getElementsByClassName('mood')[0].children[4].style.color = 'blue';
+                }
+            
+            </script>
+        </div>
+
+        <!-- comments & reply -->
+        <div class="_f004">
+            <span class="uk-badge" title="total_comments" style="position: relative; top : -24.5pc; left : 57pc;"> {{user_comments}}</span>
+            <span class="uk-badge" title="viewers" style="position: relative; top : -21.5pc;left : 30pc;">{{played}}</span>
+            <button type="button" style="border: none; position: relative; top : -24.5pc;left :57pc; background: transparent; color: black;">
+                <span class="uk-margin-small-right" uk-icon="icon: comment"></span>
+            </button>
+            <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 10pc; width : 25pc">
+                <span title="comments" style="font-size: large;position: relative;top: 0pc;left : -1pc;"> {{comment}} </span>
+                <span title="count_words" style="font-size: medium;position: relative;top: 0pc;left : 6pc;"> {{count}}/100</span>
+                <span title="reply" style="font-size: medium;position: relative;top: 3pc;left : -11pc;">{{user_comments}}</span>
+                <form method="post" action="/me/comments/likes" class="_a003">
+                    <button type="submit" style="position: relative;left: 10pc;top: 4.5pc;border: none;background: transparent;color: red;">
+                        <i class="fa fa-heart" aria-hidden="true"></i>
+                    </button>
+                </form>
+                <span class="uk-badge" style="position: relative;left: 12.5pc;top: 3pc;font-size: x-small;background: green;">{{comment_like_count}}</span>
+            </div>
+        </div>
+
+        <!-- additional details -->
+        <div class="_f005">
+            <button type="button" style="position: relative;left: 70pc;top: -23pc;border: none;background: transparent;color: red;">
+                <span class="uk-margin-small-right" uk-icon="icon: heart"></span>
+            </button>
+            <span class="uk-badge" style="position: relative;left: 70pc;top: -23pc;font-size: x-small;background: red;">{{favourite_count}}</span>
+            <button type="button" style="position: relative;left: 61pc;top: -26pc;border: none;background: transparent;color: darkslategray;">
+                <span class="uk-margin-small-right" uk-icon="icon: grid"></span>
+            </button>
+            <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 10pc; width : 30pc">
+                
+                <span style="color: green;">{{pmusic_compose}}</span>
+                <span style="color: darkslategray;">{{pmusic_genre}}</span>
+                <span style="color: darkslategray">{{pmusic_lyric}}</span>
+            </div>
+        </div>
 
 </body>
-</html>

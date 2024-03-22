@@ -283,6 +283,7 @@ struct SongEngine {
     comment_like_count: i64,
     comment_likes: bool,
     user_comments: i64,
+    count : i64,
 }
 
 #[derive(Serialize)]
@@ -850,6 +851,7 @@ async fn collection(
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.followers_comments.to_owned(),
+                                count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
                         .unwrap(),
@@ -881,6 +883,7 @@ async fn collection(
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.followers_comments.to_owned(),
+                                count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
                         .unwrap(),
@@ -970,6 +973,7 @@ async fn collection(
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.followers_comments.to_owned(),
+                                count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
                         .unwrap(),
@@ -1001,6 +1005,7 @@ async fn collection(
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.followers_comments.to_owned(),
+                                count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
                         .unwrap(),
@@ -2179,6 +2184,7 @@ async fn search_artist(
                     comment_like_count: playlist_song.comment_like_count.to_owned(),
                     comment_likes: playlist_song.comment_likes.to_owned(),
                     user_comments: playlist_song.followers_comments.to_owned(),
+                    count : playlist_song.to_owned().comment.to_owned().len() as i64,
                 },
             )
             .unwrap(),
