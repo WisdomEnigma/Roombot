@@ -1172,11 +1172,91 @@ _now = Date.now || function () {return new Date().getTime();};
             <button type="button" style="position: relative;left: 61pc;top: -26pc;border: none;background: transparent;color: darkslategray;">
                 <span class="uk-margin-small-right" uk-icon="icon: grid"></span>
             </button>
-            <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 10pc; width : 30pc">
+            <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 20pc; width : 30pc">
                 
                 <span style="color: green;">{{pmusic_compose}}</span>
                 <span style="color: darkslategray;">{{pmusic_genre}}</span>
                 <span style="color: darkslategray">{{pmusic_lyric}}</span>
+                <button type="button" style="position: relative;left: 10pc;top: 2pc;border: none;background: transparent;color: blue;">
+                    <span class="uk-margin-small-right" uk-icon="icon: cog"></span>
+                </button>
+                <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 10pc; width : 20pc;">
+                    
+                    <div class="gemini-tt" style="visibility: visible;">
+
+                            <form action="#" method="post">
+                            <input type="password" placeholder="***********************" name="gapi" id="gapi" style="border-radius: 2pc; width: 10pc;">
+                    
+                            <span class="uk-label"> Your Gemini API </span>
+                    
+                            <input type="text" placeholder="" name="query" id="query" style="border-radius: 2pc; width: 10pc;">
+                    
+                            <span class="uk-label"> Any Query ? </span>
+                    
+                            <button type="button" id="process" style="border: none;background: transparent;color: blue;">
+                    
+                                <span class="uk-margin-small-right" uk-icon="icon: check"></span>
+                    
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="generated" style="visibility: hidden;">
+                        <p>
+
+                        </p>
+                    </div>
+
+                    <script type="importmap">
+                        {
+                            "imports": {
+                            "@google/generative-ai": "https://esm.run/@google/generative-ai"
+                            }
+                        }
+                    </script>
+
+                    <script type="module">
+                        
+                        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+                        document.getElementById('process').addEventListener('click', (e) => {
+
+                            const gapi = document.getElementById('gapi').value;        
+
+                            const key_status = gapi.length > 0 && gapi.length == 32 || gapi.length == 39  ?  true : false;  // validate my key
+                            
+                            if (!key_status) { console.log("key length not upto standard", gapi.length); return ;}
+
+                            const query = document.getElementById('query').value;
+
+                            const query_status =  query.length > 0 && query.length <= 50 ? true : false; // validate query
+                            
+                            if (!query_status) { console.log("query length not upto standard", query.length); return; }
+
+                            if (key_status && query_status){
+
+                               const result = model_run();  // run generative ai model gemini and this function return generated data
+
+                                document.getElementsByClassName('gemini-tt')[0].style.visibility = 'hidden';
+                                document.getElementsByClassName('generated')[0].style.visibility = 'visible';
+                                document.getElementsByClassName('generated')[0].children[0].innerHTML = result;
+                            }
+
+                            async function model_run(){
+
+                                const genAI = new GoogleGenerativeAI(gapi);
+                                const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+
+                                const result = await model.generateContent(query);
+                                const response = await result.response;
+                                const text = response.text();
+                                console.log(text);
+
+                                return text;
+                            }
+                        });
+                    </script>
+                </div>
             </div>
         </div>
 
