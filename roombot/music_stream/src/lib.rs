@@ -499,7 +499,8 @@ pub mod pinata_content{
         pub comment : String, 
         pub comment_like_count : i64,
         pub comment_likes : bool,        
-        pub followers_comments : i64,       // total comments on a song
+        pub total_followers_comments : i64,       // total comments on a song
+        pub reply : Vec::<String>,                // replay
     }
 
     /// Emotion Filter enumerate allow further definition. Classification of beats
@@ -561,7 +562,7 @@ pub mod pinata_content{
 
         /// new allow to create instance of Content. 
         pub fn new(id : String, imghash : String, audiohash : String, song : String, views : Emotionfilter, like : bool, like_count: i64, play : i64) -> Self{
-            Self { session: id.to_string(), cid_icontent: imghash.to_string(), cid_mcontent: audiohash.to_string(), song : song.to_string(), like, like_count, play_count : play, emotion : views, comment : "".to_string(),comment_like_count : 0, comment_likes : false, followers_comments : 0,  }
+            Self { session: id.to_string(), cid_icontent: imghash.to_string(), cid_mcontent: audiohash.to_string(), song : song.to_string(), like, like_count, play_count : play, emotion : views, comment : "".to_string(),comment_like_count : 0, comment_likes : false, total_followers_comments : 0, reply : Vec::<String>::new()}
         }
 
 
@@ -602,7 +603,8 @@ pub mod pinata_content{
                         comment : self.comment.clone(),
                         comment_like_count : self.comment_like_count,
                         comment_likes : self.comment_likes,
-                        followers_comments : self.followers_comments,
+                        total_followers_comments : self.total_followers_comments,
+                        reply : self.reply.clone(),
                     },
                 ];
 
@@ -620,7 +622,7 @@ pub mod pinata_content{
         
             let collect = db.collection::<Content>(COLLECTION);
 
-            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
+            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false,total_followers_comments: 0, reply : Vec::<String>::new()};
 
             // find user session from database
             let filter = doc!{ "session" : self.session.to_owned()};
@@ -658,7 +660,7 @@ pub mod pinata_content{
 
             let mut playlist = Vec::<Content>::new();
             
-            playlist.push(Content{ session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0});
+            playlist.push(Content{ session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, total_followers_comments: 0, reply : Vec::<String>::new()});
 
             // search emotion in our record
             
@@ -681,7 +683,7 @@ pub mod pinata_content{
         pub async fn get_playlist(&mut self, db : Database) -> Content{
 
             
-            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
+            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false,total_followers_comments: 0, reply : Vec::<String>::new()};
 
     
             let query = self.find_playlist_with_session(db).await;
@@ -724,7 +726,7 @@ pub mod pinata_content{
 
             let collect = db.collection::<Content>(COLLECTION);
 
-            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
+            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false,total_followers_comments: 0, reply : Vec::<String>::new()};
 
             
 
@@ -749,7 +751,7 @@ pub mod pinata_content{
         /// get playlist by song return song which you want to listen, if song exit in platform.
         pub async fn get_playlist_by_song(&mut self, db : Database) -> Content{
 
-            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0};
+            let mut playlist : Content = Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false,total_followers_comments: 0, reply : Vec::<String>::new()};
 
             
             
@@ -777,7 +779,8 @@ pub mod pinata_content{
                         "comment" : self.comment.clone(),
                         "comment_like_count" : self.comment_like_count,
                         "comment_likes" : self.comment_likes,
-                        "followers_comments" : self.followers_comments,
+                        "total_followers_comments" : self.total_followers_comments,
+                        "reply" : self.reply.clone(),
                     },
                 };
 
@@ -790,7 +793,7 @@ pub mod pinata_content{
                     }
                 }
             
-                Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, followers_comments: 0}
+                Content { session: "".to_string(), cid_icontent: "".to_string(), cid_mcontent: "".to_string(), song : "".to_string(), like : false, like_count: 0, play_count : 0, emotion : Emotionfilter::None, comment : "".to_string(), comment_like_count : 0, comment_likes : false, total_followers_comments : 0, reply : Vec::<String>::new()}
         }
     }
 

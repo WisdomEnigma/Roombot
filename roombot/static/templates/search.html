@@ -1153,12 +1153,15 @@ _now = Date.now || function () {return new Date().getTime();};
             <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 10pc; width : 25pc">
                 <span title="comments" style="font-size: large;position: relative;top: 0pc;left : -1pc;"> {{comment}} </span>
                 <span title="count_words" style="font-size: medium;position: relative;top: 0pc;left : 6pc;"> {{count}}/100</span>
-                <span title="reply" style="font-size: medium;position: relative;top: 3pc;left : -11pc;">{{user_comments}}</span>
                 <form method="post" action="/me/comments/likes" class="_a003">
                     <button type="submit" style="position: relative;left: 10pc;top: 4.5pc;border: none;background: transparent;color: red;">
                         <i class="fa fa-heart" aria-hidden="true"></i>
                     </button>
                 </form>
+
+                {{#with reply}}
+                        <span title="reply" style="font-size: medium;position: relative;top: 3pc;left : -11pc;">{{0}}</span>
+                {{/with}}
                 <span class="uk-badge" style="position: relative;left: 12.5pc;top: 3pc;font-size: x-small;background: green;">{{comment_like_count}}</span>
             </div>
         </div>

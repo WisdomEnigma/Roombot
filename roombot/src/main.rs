@@ -283,6 +283,7 @@ struct SongEngine {
     comment_like_count: i64,
     comment_likes: bool,
     user_comments: i64,
+    reply : Vec::<String>,
     count : i64,
 }
 
@@ -830,6 +831,10 @@ async fn collection(
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
                     let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
 
+
+                    let mut last_user_comment = Vec::<String>::new();
+                    last_user_comment.push(list.comment.to_owned());
+
                     return HttpResponse::Ok().body(
                         hbr.render(
                             "search",
@@ -850,7 +855,8 @@ async fn collection(
                                 comment: list.comment.to_owned(),
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
-                                user_comments: list.followers_comments.to_owned(),
+                                user_comments: list.total_followers_comments.to_owned(),
+                                reply : last_user_comment.clone(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
@@ -862,6 +868,9 @@ async fn collection(
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
                     let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
 
+                    let mut last_user_comment = Vec::<String>::new();
+                    last_user_comment.push(list.comment.to_owned());
+
                     return HttpResponse::Ok().body(
                         hbr.render(
                             "search",
@@ -882,7 +891,8 @@ async fn collection(
                                 comment: list.comment.to_owned(),
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
-                                user_comments: list.followers_comments.to_owned(),
+                                user_comments : list.total_followers_comments.to_owned(),
+                                reply: last_user_comment.to_owned(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
@@ -891,6 +901,7 @@ async fn collection(
                 }
             }
             false => {
+
                 mp_player = mp_player.replace(".mp3", ".wav");
                 let mut record = music::new_beat(
                     mp_player.to_owned().to_string(),
@@ -951,6 +962,9 @@ async fn collection(
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
                     let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
+                    
+                    let mut last_user_comment = Vec::<String>::new();
+                    last_user_comment.push(list.comment.to_owned());
 
                     return HttpResponse::Ok().body(
                         hbr.render(
@@ -972,8 +986,9 @@ async fn collection(
                                 comment: list.comment.to_owned(),
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
-                                user_comments: list.followers_comments.to_owned(),
+                                user_comments: list.total_followers_comments.to_owned(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
+                                reply : last_user_comment.clone(),
                             },
                         )
                         .unwrap(),
@@ -983,6 +998,8 @@ async fn collection(
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
                     let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
+                    let mut last_user_comment = Vec::<String>::new();
+                    last_user_comment.push(list.comment.to_owned());
 
                     return HttpResponse::Ok().body(
                         hbr.render(
@@ -1004,8 +1021,9 @@ async fn collection(
                                 comment: list.comment.to_owned(),
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
-                                user_comments: list.followers_comments.to_owned(),
+                                user_comments: list.total_followers_comments.to_owned(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
+                                reply : last_user_comment.clone(),
                             },
                         )
                         .unwrap(),
@@ -1334,9 +1352,9 @@ async fn commenting(hbr: web::Data<Handlebars<'_>>, form: web::Form<Commenting>)
                     let _update = songdetails.update_song_info(db.to_owned()).await;
                 } else {
                     // update the record, by adding comment
-                    USERCOMMENTS = content.followers_comments.to_owned() + 1;
+                    USERCOMMENTS = content.total_followers_comments.to_owned() + 1;
                     songdetails.comment = comment.to_owned().to_string();
-                    songdetails.followers_comments = USERCOMMENTS;
+                    songdetails.total_followers_comments = USERCOMMENTS;
 
                     let _update = songdetails.update_song_info(db.to_owned()).await;
                 }
@@ -1387,7 +1405,7 @@ async fn likes_on_comment(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                         songdetails.comment_like_count += 1;
                         songdetails.comment_likes = true;
                         songdetails.comment = user_comment.to_owned().to_string();
-                        songdetails.followers_comments = content.followers_comments + 0;
+                        songdetails.total_followers_comments = content.total_followers_comments + 0;
                         let _update = songdetails.update_song_info(db.to_owned()).await;
                     }
                 }
@@ -2162,6 +2180,7 @@ async fn search_artist(
         // complete the process
 
         let playlist_song = content.get_playlist_by_song(db).await;
+        
 
         return HttpResponse::Ok().body(
             hbr.render(
@@ -2183,7 +2202,8 @@ async fn search_artist(
                     comment: playlist_song.comment.to_owned(),
                     comment_like_count: playlist_song.comment_like_count.to_owned(),
                     comment_likes: playlist_song.comment_likes.to_owned(),
-                    user_comments: playlist_song.followers_comments.to_owned(),
+                    user_comments: playlist_song.total_followers_comments.to_owned(),
+                    reply : Vec::<String>::new(),
                     count : playlist_song.to_owned().comment.to_owned().len() as i64,
                 },
             )
@@ -2274,7 +2294,7 @@ async fn search_emotion(
             let comment = data.comment.clone();
             let emotion = data.emotion.clone();
             let comment_like_count = data.comment_like_count.clone();
-            let followers_comments = data.followers_comments.clone();
+            let followers_comments = data.total_followers_comments.clone();
 
             list.song_count = records.len();
 
