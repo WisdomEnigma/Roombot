@@ -1146,33 +1146,34 @@ _now = Date.now || function () {return new Date().getTime();};
         <!-- comments & reply -->
         <div class="_f004">
             <span class="uk-badge" title="total_comments" style="position: relative; top : -24.5pc; left : 57pc;"> {{user_comments}}</span>
-            <span class="uk-badge" title="viewers" style="position: relative; top : -21.5pc;left : 30pc;">{{played}}</span>
+            <span class="uk-badge" title="viewers" style="position: relative;top: -24.5pc;left: 36pc;">{{played}}</span>
             <button type="button" style="border: none; position: relative; top : -24.5pc;left :57pc; background: transparent; color: black;">
                 <span class="uk-margin-small-right" uk-icon="icon: comment"></span>
             </button>
             <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 10pc; width : 25pc">
                 <span title="comments" style="font-size: large;position: relative;top: 0pc;left : -1pc;"> {{comment}} </span>
-                <span title="count_words" style="font-size: medium;position: relative;top: 0pc;left : 6pc;"> {{count}}/100</span>
-                <form method="post" action="/me/comments/likes" class="_a003">
-                    <button type="submit" style="position: relative;left: 10pc;top: 4.5pc;border: none;background: transparent;color: red;">
-                        <i class="fa fa-heart" aria-hidden="true"></i>
-                    </button>
-                </form>
-
+                <span title="count_words" style="font-size: medium;position: relative;top: 6pc;left: -7pc;"> {{count}}/100</span>
                 {{#with reply}}
                         <span title="reply" style="font-size: medium;position: relative;top: 3pc;left : -11pc;">{{0}}</span>
                 {{/with}}
-                <span class="uk-badge" style="position: relative;left: 12.5pc;top: 3pc;font-size: x-small;background: green;">{{comment_like_count}}</span>
+
+                <form method="post" action="/me/comments/likes" class="_a003">
+                    <button type="submit" style="position: relative;left: 10pc;top: 0.5pc;border: none;background: transparent;color: red;">
+                        <i class="fa fa-heart" aria-hidden="true"></i>
+                    </button>
+                </form>
+                
+                <span class="uk-badge" style="position: relative;left: 12.5pc;top: -1pc;font-size: x-small;background: green;">{{comment_like_count}}</span>
             </div>
         </div>
 
         <!-- additional details -->
         <div class="_f005">
-            <button type="button" style="position: relative;left: 70pc;top: -23pc;border: none;background: transparent;color: red;">
+            <button type="button" style="position: relative;left: 48pc;top: -26pc;border: none;background: transparent;color: red;">
                 <span class="uk-margin-small-right" uk-icon="icon: heart"></span>
             </button>
-            <span class="uk-badge" style="position: relative;left: 70pc;top: -23pc;font-size: x-small;background: red;">{{favourite_count}}</span>
-            <button type="button" style="position: relative;left: 61pc;top: -26pc;border: none;background: transparent;color: darkslategray;">
+            <span class="uk-badge" style="position: relative;left: 47pc;top: -26pc;font-size: x-small;background: red;">{{favourite_count}}</span>
+            <button type="button" style="position: relative;left: 65pc;top: -26pc;border: none;background: transparent;color: darkslategray;">
                 <span class="uk-margin-small-right" uk-icon="icon: grid"></span>
             </button>
             <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 20pc; width : 30pc">

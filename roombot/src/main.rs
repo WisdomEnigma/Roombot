@@ -832,8 +832,8 @@ async fn collection(
                     let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
 
 
-                    let mut last_user_comment = Vec::<String>::new();
-                    last_user_comment.push(list.comment.to_owned());
+                    // let mut last_user_comment = Vec::<String>::new();
+                    // last_user_comment.push(list.comment.to_owned());
 
                     return HttpResponse::Ok().body(
                         hbr.render(
@@ -856,7 +856,7 @@ async fn collection(
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.total_followers_comments.to_owned(),
-                                reply : last_user_comment.clone(),
+                                reply : Vec::<String>::new(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
@@ -868,8 +868,8 @@ async fn collection(
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
                     let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
 
-                    let mut last_user_comment = Vec::<String>::new();
-                    last_user_comment.push(list.comment.to_owned());
+                    // let mut last_user_comment = Vec::<String>::new();
+                    // last_user_comment.push(list.comment.to_owned());
 
                     return HttpResponse::Ok().body(
                         hbr.render(
@@ -892,7 +892,7 @@ async fn collection(
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments : list.total_followers_comments.to_owned(),
-                                reply: last_user_comment.to_owned(),
+                                reply: Vec::<String>::new(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
@@ -988,7 +988,7 @@ async fn collection(
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.total_followers_comments.to_owned(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
-                                reply : last_user_comment.clone(),
+                                reply : Vec::<String>::new(),
                             },
                         )
                         .unwrap(),
@@ -1023,7 +1023,7 @@ async fn collection(
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.total_followers_comments.to_owned(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
-                                reply : last_user_comment.clone(),
+                                reply : Vec::<String>::new(),
                             },
                         )
                         .unwrap(),
