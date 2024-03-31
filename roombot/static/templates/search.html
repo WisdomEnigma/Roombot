@@ -1150,20 +1150,48 @@ _now = Date.now || function () {return new Date().getTime();};
             <button type="button" style="border: none; position: relative; top : -24.5pc;left :57pc; background: transparent; color: black;">
                 <span class="uk-margin-small-right" uk-icon="icon: comment"></span>
             </button>
-            <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 10pc; width : 25pc">
+            <div uk-dropdown="mode: click" style="border-radius: 2pc; height : 30pc; width : 25pc">
                 <span title="comments" style="font-size: large;position: relative;top: 0pc;left : -1pc;"> {{comment}} </span>
-                <span title="count_words" style="font-size: medium;position: relative;top: 6pc;left: -7pc;"> {{count}}/100</span>
-                {{#with reply}}
-                        <span title="reply" style="font-size: medium;position: relative;top: 3pc;left : -11pc;">{{0}}</span>
-                {{/with}}
-
-                <form method="post" action="/me/comments/likes" class="_a003">
-                    <button type="submit" style="position: relative;left: 10pc;top: 0.5pc;border: none;background: transparent;color: red;">
-                        <i class="fa fa-heart" aria-hidden="true"></i>
-                    </button>
-                </form>
+                <span title="count_words" style="font-size: medium;position: relative;top: 0pc;left: 9pc;"> {{count}}/100</span>
                 
-                <span class="uk-badge" style="position: relative;left: 12.5pc;top: -1pc;font-size: x-small;background: green;">{{comment_like_count}}</span>
+                <div style="font-size: medium;position: relative;top: 4pc;left : 0pc;">
+                    {{#with reply}}
+                        <span title="reply">{{0}}</span>
+                        <form method="post" action="/me/comments/likes" class="_a003">
+                            <button type="submit" style="position: relative;left: 20pc;top: -0.5pc;border: none;background: transparent;color: red;">
+                                <i class="fa fa-heart" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    {{/with}}
+                </div>
+                <div style="font-size: medium;position: relative;top: 5pc;left : 0pc;">
+                    {{#with reply}}
+                        <span title="reply">{{1}}</span>
+                        <form method="post" action="/me/comments/likes" class="_a003">
+                            <button type="submit" style="position: relative;left: 20pc;top: 0.5pc;border: none;background: transparent;color: red;">
+                                <i class="fa fa-heart" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    {{/with}}
+                </div>
+                <div style="font-size: medium;position: relative;top: 6pc;left : 0pc;">
+                    {{#with reply}}
+                        <span title="reply">{{2}}</span>
+                        <form method="post" action="/me/comments/likes" class="_a003">
+                            <button type="submit" style="position: relative;left: 20pc;top: 1.5pc;border: none;background: transparent;color: red;">
+                                <i class="fa fa-heart" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    {{/with}}
+                </div>
+                <div style="position: relative;top: 8pc;">
+                    <form method="post" action="/me/comment/replay" class="_a002">
+                        <input type="text" placeholder="typing ..." class="replay" name="replay" style="width: 15pc;"/>
+                         <button type="submit" style="background: transparent; border:none; color:blue;">
+                            <i class="fa fa-commenting" aria-hidden="true"></i>
+                        </button>        
+                    </form> 
+                </div>
             </div>
         </div>
 

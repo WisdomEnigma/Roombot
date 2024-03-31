@@ -72,6 +72,13 @@ struct Commenting {
 }
 
 #[derive(Deserialize)]
+
+struct Reaction{
+
+    replay: String,
+}
+
+#[derive(Deserialize)]
 struct MusicStream {
     cover: String,
     artist: String,
@@ -1358,6 +1365,52 @@ async fn commenting(hbr: web::Data<Handlebars<'_>>, form: web::Form<Commenting>)
 
                     let _update = songdetails.update_song_info(db.to_owned()).await;
                 }
+            }
+        }
+    }
+
+    // there may be possible application may be crash for any invalid or poor choice
+    HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
+}
+
+#[post("/me/comment/replay")]
+async fn replay_forward(hbr: web::Data<Handlebars<'_>>, form: web::Form<Reaction>) -> HttpResponse {
+    
+    // user replay
+    let comment = &form.replay;
+
+    if let Ok(client) = gatekeeper::mongodb_client().await {
+        let db = client.database(music::MUSIC_RECORD);
+
+        unsafe {
+            // check whether song already exist in a record ; if so then
+
+            if let Some(song) = GLOBAL_SONG.get() {
+                // does song remain exist in a record
+                if song.to_owned().to_string().is_empty() {
+                    println!("Make sure you don't submit empty form. ");
+                    return HttpResponse::BadRequest()
+                        .body(hbr.render("music_error", &RequestError {}).unwrap());
+                }
+
+                let mut songdetails = pinata_content::Content::new(
+                    ME.to_string(),
+                    "".to_string(),
+                    "".to_string(),
+                    song.to_owned().to_string(),
+                    pinata_content::Emotionfilter::None,
+                    false,
+                    0,
+                    0,
+                );
+
+                // get song from record
+
+                let content = songdetails.get_playlist_by_song(db.to_owned()).await;
+
+                songdetails.reply.push(comment.to_owned().to_string());
+
+                let _update = songdetails.update_song_info(db.to_owned()).await;
             }
         }
     }
@@ -3754,6 +3807,7 @@ async fn main() -> std::io::Result<()> {
             .service(citypal)
             .service(edupal)
             .service(workfriend)
+            .service(replay_forward)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
