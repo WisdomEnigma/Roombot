@@ -1156,33 +1156,42 @@ _now = Date.now || function () {return new Date().getTime();};
                 
                 <div style="font-size: medium;position: relative;top: 4pc;left : 0pc;">
                     {{#with reply}}
-                        <span title="reply">{{0}}</span>
+                        <span title="reply" id="replay">{{0}}</span>
                         <form method="post" action="/me/comments/likes" class="_a003">
-                            <button type="submit" style="position: relative;left: 20pc;top: -0.5pc;border: none;background: transparent;color: red;">
+                            <button type="submit" id="like_com" style="position: relative;left: 20pc;top: -0.5pc;border: none;background: transparent;color: red; visibility: hidden;">
                                 <i class="fa fa-heart" aria-hidden="true"></i>
                             </button>
                         </form>
                     {{/with}}
+                    <script type="text/javascript">
+                        if (document.getElementById('replay').textContent !== '') document.getElementById('like_com').style.visibility = 'visible';  
+                    </script>
                 </div>
                 <div style="font-size: medium;position: relative;top: 5pc;left : 0pc;">
                     {{#with reply}}
-                        <span title="reply">{{1}}</span>
+                        <span title="reply" id="replay">{{1}}</span>
                         <form method="post" action="/me/comments/likes" class="_a003">
-                            <button type="submit" style="position: relative;left: 20pc;top: 0.5pc;border: none;background: transparent;color: red;">
+                            <button type="submit" id="like_com" style="position: relative;left: 20pc;top: 0.5pc;border: none;background: transparent;color: red;visibility: hidden;">
                                 <i class="fa fa-heart" aria-hidden="true"></i>
                             </button>
                         </form>
                     {{/with}}
+                    <script type="text/javascript">
+                        if (document.getElementById('replay').textContent !== '') document.getElementById('like_com').style.visibility = 'visible';  
+                    </script>
                 </div>
                 <div style="font-size: medium;position: relative;top: 6pc;left : 0pc;">
                     {{#with reply}}
-                        <span title="reply">{{2}}</span>
+                        <span title="reply" id="replay">{{2}}</span>
                         <form method="post" action="/me/comments/likes" class="_a003">
-                            <button type="submit" style="position: relative;left: 20pc;top: 1.5pc;border: none;background: transparent;color: red;">
+                            <button type="submit" id="like_com" style="position: relative;left: 20pc;top: 1.5pc;border: none;background: transparent;color: red;visibility: hidden;">
                                 <i class="fa fa-heart" aria-hidden="true"></i>
                             </button>
                         </form>
                     {{/with}}
+                    <script type="text/javascript">
+                        if (document.getElementById('replay').textContent !== '') document.getElementById('like_com').style.visibility = 'visible';  
+                    </script>
                 </div>
                 <div style="position: relative;top: 8pc;">
                     <form method="post" action="/me/comment/replay" class="_a002">

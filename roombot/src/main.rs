@@ -367,9 +367,9 @@ struct DiscoverPersonality{
 // static variables
 
 static mut ME: u64 = 0;
-static mut LIKES: i64 = 0;
-static mut COLORED: bool = false;
-static mut PLAY: i64 = 0;
+// static mut LIKES: i64 = 0;
+// static mut COLORED: bool = false;
+// static mut PLAY: i64 = 0;
 static mut USERCOMMENTS: i64 = 0;
 static GLOBAL_SONG: OnceCell<String> = OnceCell::new();
 static MY_COMMENT: OnceCell<String> = OnceCell::new();
@@ -863,7 +863,7 @@ async fn collection(
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.total_followers_comments.to_owned(),
-                                reply : Vec::<String>::new(),
+                                reply : list.to_owned().reply.to_owned(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
@@ -899,7 +899,7 @@ async fn collection(
                                 comment_like_count: list.comment_like_count.to_owned(),
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments : list.total_followers_comments.to_owned(),
-                                reply: Vec::<String>::new(),
+                                reply: list.to_owned().reply.to_owned(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
                             },
                         )
@@ -995,7 +995,7 @@ async fn collection(
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.total_followers_comments.to_owned(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
-                                reply : Vec::<String>::new(),
+                                reply : list.to_owned().reply.to_owned(),
                             },
                         )
                         .unwrap(),
@@ -1030,7 +1030,7 @@ async fn collection(
                                 comment_likes: list.comment_likes.to_owned(),
                                 user_comments: list.total_followers_comments.to_owned(),
                                 count : list.to_owned().comment.to_owned().len() as i64,
-                                reply : Vec::<String>::new(),
+                                reply : list.to_owned().reply.to_owned(),
                             },
                         )
                         .unwrap(),
@@ -1361,6 +1361,7 @@ async fn commenting(hbr: web::Data<Handlebars<'_>>, form: web::Form<Commenting>)
                     // update the record, by adding comment
                     USERCOMMENTS = content.total_followers_comments.to_owned() + 1;
                     songdetails.comment = comment.to_owned().to_string();
+                    songdetails.reply = content.reply.to_owned();
                     songdetails.total_followers_comments = USERCOMMENTS;
 
                     let _update = songdetails.update_song_info(db.to_owned()).await;
@@ -1408,7 +1409,25 @@ async fn replay_forward(hbr: web::Data<Handlebars<'_>>, form: web::Form<Reaction
 
                 let content = songdetails.get_playlist_by_song(db.to_owned()).await;
 
-                songdetails.reply.push(comment.to_owned().to_string());
+                if songdetails.reply.len().eq(&0){
+
+                    songdetails.reply.push(comment.to_owned().to_string());
+                    songdetails.total_followers_comments = content.total_followers_comments.to_owned()+1;
+                }else{
+
+                    songdetails.reply.push(comment.to_owned().to_string());
+                    songdetails.total_followers_comments = content.total_followers_comments.to_owned()+1;
+                }
+
+                
+                songdetails.comment = content.comment.to_owned();
+                
+                songdetails.cid_icontent = content.cid_icontent.to_owned();
+                songdetails.cid_mcontent = content.cid_mcontent.to_owned();
+                songdetails.like = content.like.to_owned();
+                songdetails.like_count = content.like_count.to_owned();
+                songdetails.emotion = content.emotion.to_owned();
+                songdetails.comment_likes = content.comment_likes.to_owned();
 
                 let _update = songdetails.update_song_info(db.to_owned()).await;
             }
@@ -1451,14 +1470,24 @@ async fn likes_on_comment(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                 if let Some(user_comment) = MY_COMMENT.get() {
                     // check whether commment should not empty
                     if user_comment.to_owned().to_string().is_empty() {
+                        
                         println!("Make sure user have comment before. ");
                         return HttpResponse::BadRequest()
                             .body(hbr.render("music_error", &RequestError {}).unwrap());
                     } else {
+                        
                         songdetails.comment_like_count += 1;
                         songdetails.comment_likes = true;
                         songdetails.comment = user_comment.to_owned().to_string();
+                        songdetails.reply = content.reply.to_owned();
                         songdetails.total_followers_comments = content.total_followers_comments + 0;
+
+                        songdetails.cid_icontent = content.cid_icontent.to_owned();
+                        songdetails.cid_mcontent = content.cid_mcontent.to_owned();
+                        songdetails.like = content.like.to_owned();
+                        songdetails.emotion = content.emotion.to_owned();
+                        
+                        
                         let _update = songdetails.update_song_info(db.to_owned()).await;
                     }
                 }
@@ -1503,13 +1532,13 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
                 0,
             );
 
-            let old = content.get_playlist_by_song(db.to_owned()).await;
-            LIKES = old.like_count;
-            COLORED = old.like;
-            PLAY = old.play_count;
+            let get_data = content.get_playlist_by_song(db.to_owned()).await;
+            
 
             // check whether Likes greater equal 500 && Playing song greater than 1000, active payment gateway and collect service charges.
-            if LIKES >= 500 && PLAY >= 1000 {
+            
+            if get_data.like_count.ge(&500) && get_data.play_count.ge(&1000){
+                
                 let nodeless = INodeless::new(
                     fees,
                     "".to_owned().to_string(),
@@ -1562,23 +1591,40 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
             }
 
             // check whether any user like the song who will not rate song before, then update
-            if LIKES == 0 && !COLORED {
-                LIKES += 1;
-                COLORED = true;
-                PLAY += 1;
+            if get_data.like_count.eq(&0) && !get_data.like {
+                
+                
+                content.like_count = get_data.like_count+1;
+                content.play_count = get_data.play_count+1;
+                content.like = true;
 
-                content.like_count = LIKES;
-                content.play_count = PLAY;
-                content.like = COLORED;
+                content.cid_icontent = get_data.cid_icontent.to_owned();
+                content.cid_mcontent = get_data.cid_mcontent.to_owned();
+                content.emotion = get_data.emotion.to_owned();
+
+                
+                content.reply = get_data.reply.to_owned();
+                content.comment = get_data.comment.to_owned();
 
                 let updater = content.update_song_info(db.to_owned()).await;
 
                 print!("Content update {:?}", updater);
+            
             } else {
+                
+                
                 // no record should be update..
-                content.like_count = LIKES;
-                content.play_count = PLAY;
-                content.like = COLORED;
+                content.like_count += 0 ;
+                content.play_count += 0;
+                content.like = false;
+
+                content.comment = get_data.comment.to_owned();
+                content.reply = get_data.reply.to_owned();
+
+                content.cid_icontent = get_data.cid_icontent.to_owned();
+                content.cid_mcontent = get_data.cid_mcontent.to_owned();
+                content.like = get_data.like.to_owned();
+                content.emotion = get_data.emotion.to_owned();
 
                 let updater = content.update_song_info(db.to_owned()).await;
 
