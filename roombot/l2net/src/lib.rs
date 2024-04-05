@@ -246,7 +246,7 @@ pub mod bitpayee{
     
 
     // Bit Address is a private constant 
-    const BITADDRESS : &str = "bc1quq4vz6wpnvydzqz2fhayh6pzgwmgjxxnu0x8yj";
+    const BITADDRESS : &str = "zpub6nzqmJyAyLPk1RKw7ck9vSgeiEENFQqiz1KUwfBLTzswqgoCD8goW6YoMrHAqq5m4SZ3EFGznVtNQgf5Y6v1XM1bnz2NjsTUbAxFcfe1ki7";
     
     /// Bitenigma is a object which have two public & one private fields. Debug implementation is only on this object
     #[derive(Debug)]
