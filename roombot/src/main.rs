@@ -465,41 +465,41 @@ async fn word2word(
         let fees: u64 = 25;
 
         unsafe {
-            let nodeless = INodeless::new(
-                fees,
-                "".to_owned().to_string(),
-                fees as f64,
-                "translate language".to_owned().to_string(),
-                ME.to_owned().to_string(),
-                lightnode_net::TransactionStatus::Pending,
-                "".to_string(),
-            );
+        //     let nodeless = INodeless::new(
+        //         fees,
+        //         "".to_owned().to_string(),
+        //         fees as f64,
+        //         "translate language".to_owned().to_string(),
+        //         ME.to_owned().to_string(),
+        //         lightnode_net::TransactionStatus::Pending,
+        //         "".to_string(),
+        //     );
 
-            let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-            if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+        //     let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+        //     if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
 
-                println!("Nodeless Bitcoin Gateway down");
-                return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-            }
+        //         println!("Nodeless Bitcoin Gateway down");
+        //         return HttpResponse::BadRequest()
+        //                 .body(hbr.render("music_error", &RequestError {}).unwrap());
+        //     }
 
-            if status
-                .to_owned()
-                .to_string()
-                .eq(&"Device is not connected with internet ".to_string())
-            {
-                println!("Internet disconnect ");
-                return HttpResponse::BadRequest()
-                    .body(hbr.render("music_error", &RequestError {}).unwrap());
-            }
+        //     if status
+        //         .to_owned()
+        //         .to_string()
+        //         .eq(&"Device is not connected with internet ".to_string())
+        //     {
+        //         println!("Internet disconnect ");
+        //         return HttpResponse::BadRequest()
+        //             .body(hbr.render("music_error", &RequestError {}).unwrap());
+        //     }
 
-            if status.to_owned().to_string().eq(&"Payment acccept") {
-                println!("Payment Accepted ");
-                println!(
-                    "Result ready {:?} ",
-                    status.to_owned().to_string().eq(&"Payment acccept")
-                );
-            }
+        //     if status.to_owned().to_string().eq(&"Payment acccept") {
+        //         println!("Payment Accepted ");
+        //         println!(
+        //             "Result ready {:?} ",
+        //             status.to_owned().to_string().eq(&"Payment acccept")
+        //         );
+        //     }
         }
 
         let _gateway = match direct_gateway(fees).await {
@@ -645,59 +645,59 @@ async fn search_movies(
                     Err(e) => panic!("{:?}", e),
                 };
 
-                let nodeless = INodeless::new(
-                    fees,
-                    "".to_string(),
-                    fees as f64,
-                    "enjoy weekend with old stories".to_string(),
-                    ME.to_owned().to_string(),
-                    lightnode_net::TransactionStatus::Pending,
-                    "".to_string(),
-                );
+                // let nodeless = INodeless::new(
+                //     fees,
+                //     "".to_string(),
+                //     fees as f64,
+                //     "enjoy weekend with old stories".to_string(),
+                //     ME.to_owned().to_string(),
+                //     lightnode_net::TransactionStatus::Pending,
+                //     "".to_string(),
+                // );
 
                 let db = client.database(music::MUSIC_RECORD);
-                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+                // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
 
-                        println!("Nodeless Bitcoin Gateway down");
-                        return HttpResponse::BadRequest()
-                                .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
+                //         println!("Nodeless Bitcoin Gateway down");
+                //         return HttpResponse::BadRequest()
+                //                 .body(hbr.render("music_error", &RequestError {}).unwrap());
+                // }
 
-                if status
-                    .to_owned()
-                    .to_string()
-                    .eq(&"Device is not connected with internet ".to_string())
-                {
-                    println!("Internet disconnect ");
-                    return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
+                // if status
+                //     .to_owned()
+                //     .to_string()
+                //     .eq(&"Device is not connected with internet ".to_string())
+                // {
+                //     println!("Internet disconnect ");
+                //     return HttpResponse::BadRequest()
+                //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+                // }
 
-                if status.to_owned().to_string().eq(&"Payment acccept") {
-                    println!("Payment Accepted ");
-                    println!(
-                        "Result ready! {:?} ",
-                        status.to_owned().to_string().eq(&"Payment acccept")
-                    );
+                // if status.to_owned().to_string().eq(&"Payment acccept") {
+                //     println!("Payment Accepted ");
+                //     println!(
+                //         "Result ready! {:?} ",
+                //         status.to_owned().to_string().eq(&"Payment acccept")
+                //     );
 
-                    return HttpResponse::Ok().body(
-                        hbr.render(
-                            "movies",
-                            &MovieRecomend {
-                                title: imovies.name.to_owned().to_string(),
-                                genre_0: imovies.genre[0].to_owned(),
-                                genre_1: imovies.genre[1].to_owned(),
-                                genre_2: imovies.genre[2].to_owned(),
-                                release: imovies.release.to_owned().to_string(),
-                                content: imovies.adult.to_owned(),
-                                watch_min: imovies.watch_min.to_owned() as i64,
-                                official: imovies.official.to_owned().to_string(),
-                            },
-                        )
-                        .unwrap(),
-                    );
-                }
+                //     return HttpResponse::Ok().body(
+                //         hbr.render(
+                //             "movies",
+                //             &MovieRecomend {
+                //                 title: imovies.name.to_owned().to_string(),
+                //                 genre_0: imovies.genre[0].to_owned(),
+                //                 genre_1: imovies.genre[1].to_owned(),
+                //                 genre_2: imovies.genre[2].to_owned(),
+                //                 release: imovies.release.to_owned().to_string(),
+                //                 content: imovies.adult.to_owned(),
+                //                 watch_min: imovies.watch_min.to_owned() as i64,
+                //                 official: imovies.official.to_owned().to_string(),
+                //             },
+                //         )
+                //         .unwrap(),
+                //     );
+                // }
 
                 let _gateway = match direct_gateway(fees).await {
                     Ok(_) => {
@@ -1243,43 +1243,44 @@ async fn newsong_record(
 
                     // once song added on ipfs , artist will pay contract finalize fees
                     if let Ok(_) = content.music_collection(db.to_owned()).await {
+                       
                         println!("Please wait content upload processing not take much time , when you pay fees ... ");
 
-                        let nodeless = INodeless::new(
-                            fees as u64,
-                            email.to_owned().to_string(),
-                            fees as f64,
-                            art[0].to_owned().to_string(),
-                            ME.to_owned().to_string(),
-                            lightnode_net::TransactionStatus::Pending,
-                            "".to_string(),
-                        );
+                        // let nodeless = INodeless::new(
+                        //     fees as u64,
+                        //     email.to_owned().to_string(),
+                        //     fees as f64,
+                        //     art[0].to_owned().to_string(),
+                        //     ME.to_owned().to_string(),
+                        //     lightnode_net::TransactionStatus::Pending,
+                        //     "".to_string(),
+                        // );
 
-                        let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-                        if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+                        // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                        // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
 
-                            println!("Nodeless Bitcoin Gateway down");
-                            return HttpResponse::BadRequest()
-                                    .body(hbr.render("music_error", &RequestError {}).unwrap());
-                        }
+                        //     println!("Nodeless Bitcoin Gateway down");
+                        //     return HttpResponse::BadRequest()
+                        //             .body(hbr.render("music_error", &RequestError {}).unwrap());
+                        // }
 
-                        if status
-                            .to_owned()
-                            .to_string()
-                            .eq(&"Device is not connected with internet ".to_string())
-                        {
-                            println!("Internet disconnect ");
-                            return HttpResponse::BadRequest()
-                                .body(hbr.render("music_error", &RequestError {}).unwrap());
-                        }
+                        // if status
+                        //     .to_owned()
+                        //     .to_string()
+                        //     .eq(&"Device is not connected with internet ".to_string())
+                        // {
+                        //     println!("Internet disconnect ");
+                        //     return HttpResponse::BadRequest()
+                        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+                        // }
 
-                        if status.to_owned().to_string().eq(&"Payment acccept") {
-                            println!("Payment Accepted ");
-                            println!(
-                                "Result ready! {:?} ",
-                                status.to_owned().to_string().eq(&"Payment acccept")
-                            );
-                        }
+                        // if status.to_owned().to_string().eq(&"Payment acccept") {
+                        //     println!("Payment Accepted ");
+                        //     println!(
+                        //         "Result ready! {:?} ",
+                        //         status.to_owned().to_string().eq(&"Payment acccept")
+                        //     );
+                        // }
 
                         let _ = match direct_gateway(fees as u64).await {
                             Ok(_) => {
@@ -1539,43 +1540,43 @@ async fn like_work(hbr: web::Data<Handlebars<'_>>) -> HttpResponse {
             
             if get_data.like_count.ge(&500) && get_data.play_count.ge(&1000){
                 
-                let nodeless = INodeless::new(
-                    fees,
-                    "".to_owned().to_string(),
-                    fees as f64,
-                    "1000 best songs seelctor".to_owned().to_string(),
-                    ME.to_owned().to_string(),
-                    lightnode_net::TransactionStatus::Pending,
-                    "".to_string(),
-                );
+                // let nodeless = INodeless::new(
+                //     fees,
+                //     "".to_owned().to_string(),
+                //     fees as f64,
+                //     "1000 best songs seelctor".to_owned().to_string(),
+                //     ME.to_owned().to_string(),
+                //     lightnode_net::TransactionStatus::Pending,
+                //     "".to_string(),
+                // );
 
-                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+                // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
 
-                        println!("Nodeless Bitcoin Gateway down");
-                        return HttpResponse::BadRequest()
-                            .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
+                //         println!("Nodeless Bitcoin Gateway down");
+                //         return HttpResponse::BadRequest()
+                //             .body(hbr.render("music_error", &RequestError {}).unwrap());
+                // }
 
-                if status
-                    .to_owned()
-                    .to_string()
-                    .eq(&"Device is not connected with internet ".to_string())
-                {
-                    println!("Internet disconnect ");
-                    return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
+                // if status
+                //     .to_owned()
+                //     .to_string()
+                //     .eq(&"Device is not connected with internet ".to_string())
+                // {
+                //     println!("Internet disconnect ");
+                //     return HttpResponse::BadRequest()
+                //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+                // }
 
-                if status.to_owned().to_string().eq(&"Payment acccept") {
-                    println!("Payment Accepted ");
-                    println!(
-                        "Result ready {:?} ",
-                        status.to_owned().to_string().eq(&"Payment acccept")
-                    );
+                // if status.to_owned().to_string().eq(&"Payment acccept") {
+                //     println!("Payment Accepted ");
+                //     println!(
+                //         "Result ready {:?} ",
+                //         status.to_owned().to_string().eq(&"Payment acccept")
+                //     );
 
-                    return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
-                }
+                //     return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
+                // }
 
                 let _gateway = match direct_gateway(fees).await {
                     Ok(_) => {
@@ -1771,52 +1772,52 @@ async fn poetry(
             let fees: u64 = 100;
 
             unsafe {
-                let nodeless = INodeless::new(
-                    fees,
-                    "".to_owned().to_string(),
-                    fees as f64,
-                    "poetry composition".to_owned().to_string(),
-                    ME.to_owned().to_string(),
-                    lightnode_net::TransactionStatus::Pending,
-                    "".to_string(),
-                );
+                // let nodeless = INodeless::new(
+                //     fees,
+                //     "".to_owned().to_string(),
+                //     fees as f64,
+                //     "poetry composition".to_owned().to_string(),
+                //     ME.to_owned().to_string(),
+                //     lightnode_net::TransactionStatus::Pending,
+                //     "".to_string(),
+                // );
 
-                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+                // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
 
-                    println!("Nodeless Bitcoin Gateway down");
-                    return HttpResponse::BadRequest()
-                            .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
+                //     println!("Nodeless Bitcoin Gateway down");
+                //     return HttpResponse::BadRequest()
+                //             .body(hbr.render("music_error", &RequestError {}).unwrap());
+                // }
 
-                if status
-                    .to_owned()
-                    .to_string()
-                    .eq(&"Device is not connected with internet ".to_string())
-                {
-                    println!("Internet disconnect ");
-                    return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
+                // if status
+                //     .to_owned()
+                //     .to_string()
+                //     .eq(&"Device is not connected with internet ".to_string())
+                // {
+                //     println!("Internet disconnect ");
+                //     return HttpResponse::BadRequest()
+                //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+                // }
 
-                if status.to_owned().to_string().eq(&"Payment acccept") {
-                    println!("Payment Accepted ");
-                    println!(
-                        "Result ready! {:?} ",
-                        status.to_owned().to_string().eq(&"Payment acccept")
-                    );
+                // if status.to_owned().to_string().eq(&"Payment acccept") {
+                //     println!("Payment Accepted ");
+                //     println!(
+                //         "Result ready! {:?} ",
+                //         status.to_owned().to_string().eq(&"Payment acccept")
+                //     );
 
-                    return HttpResponse::Ok().body(
-                        hbr.render(
-                            "translate",
-                            &ResponseTranslateForm {
-                                query: input.to_owned().to_string(),
-                                response: responses,
-                            },
-                        )
-                        .unwrap(),
-                    );
-                }
+                //     return HttpResponse::Ok().body(
+                //         hbr.render(
+                //             "translate",
+                //             &ResponseTranslateForm {
+                //                 query: input.to_owned().to_string(),
+                //                 response: responses,
+                //             },
+                //         )
+                //         .unwrap(),
+                //     );
+                // }
 
                 let _ = match direct_gateway(fees).await {
                     Ok(_) => {
@@ -1853,55 +1854,55 @@ async fn poetry(
             let fees: u64 = 500;
 
             unsafe {
-                let nodeless = INodeless::new(
-                    fees,
-                    "".to_owned().to_string(),
-                    fees as f64,
-                    "poetry composition".to_owned().to_string(),
-                    ME.to_owned().to_string(),
-                    lightnode_net::TransactionStatus::Pending,
-                    "".to_string(),
-                );
+                // let nodeless = INodeless::new(
+                //     fees,
+                //     "".to_owned().to_string(),
+                //     fees as f64,
+                //     "poetry composition".to_owned().to_string(),
+                //     ME.to_owned().to_string(),
+                //     lightnode_net::TransactionStatus::Pending,
+                //     "".to_string(),
+                // );
 
-                let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-                if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+                // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+                // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
 
-                        println!("Nodeless Bitcoin Gateway down");
-                        return HttpResponse::BadRequest()
-                                .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
+                //         println!("Nodeless Bitcoin Gateway down");
+                //         return HttpResponse::BadRequest()
+                //                 .body(hbr.render("music_error", &RequestError {}).unwrap());
+                // }
 
-                if status
-                    .to_owned()
-                    .to_string()
-                    .eq(&"Device is not connected with internet ".to_string())
-                {
-                    println!("Internet disconnect ");
-                    return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
+                // if status
+                //     .to_owned()
+                //     .to_string()
+                //     .eq(&"Device is not connected with internet ".to_string())
+                // {
+                //     println!("Internet disconnect ");
+                //     return HttpResponse::BadRequest()
+                //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+                // }
 
-                if status
-                    .to_owned()
-                    .to_string()
-                    .eq(&"Payment acccept".to_string())
-                {
-                    println!("Payment Accepted ");
-                    println!(
-                        "Result ready {:?} ",
-                        status.to_owned().to_string().eq(&"Payment acccept")
-                    );
-                    return HttpResponse::Ok().body(
-                        hbr.render(
-                            "translate",
-                            &ResponseTranslateForm {
-                                query: input.to_owned().to_string(),
-                                response: responses,
-                            },
-                        )
-                        .unwrap(),
-                    );
-                }
+                // if status
+                //     .to_owned()
+                //     .to_string()
+                //     .eq(&"Payment acccept".to_string())
+                // {
+                //     println!("Payment Accepted ");
+                //     println!(
+                //         "Result ready {:?} ",
+                //         status.to_owned().to_string().eq(&"Payment acccept")
+                //     );
+                //     return HttpResponse::Ok().body(
+                //         hbr.render(
+                //             "translate",
+                //             &ResponseTranslateForm {
+                //                 query: input.to_owned().to_string(),
+                //                 response: responses,
+                //             },
+                //         )
+                //         .unwrap(),
+                //     );
+                // }
 
                 let _ = match direct_gateway(fees).await {
                     Ok(_) => {
@@ -2003,58 +2004,58 @@ async fn search_shows(
         let fees: u64 = 100;
 
         unsafe {
-            let nodeless = INodeless::new(
-                fees,
-                "".to_owned().to_string(),
-                fees as f64,
-                "user preference tv season".to_owned().to_string(),
-                ME.to_owned().to_string(),
-                lightnode_net::TransactionStatus::Pending,
-                "".to_string(),
-            );
+            // let nodeless = INodeless::new(
+            //     fees,
+            //     "".to_owned().to_string(),
+            //     fees as f64,
+            //     "user preference tv season".to_owned().to_string(),
+            //     ME.to_owned().to_string(),
+            //     lightnode_net::TransactionStatus::Pending,
+            //     "".to_string(),
+            // );
 
-            let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-            if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+            // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+            // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
 
-                println!("Nodeless Bitcoin Gateway down");
-                return HttpResponse::BadRequest()
-                        .body(hbr.render("music_error", &RequestError {}).unwrap());
-            }
+            //     println!("Nodeless Bitcoin Gateway down");
+            //     return HttpResponse::BadRequest()
+            //             .body(hbr.render("music_error", &RequestError {}).unwrap());
+            // }
 
-            if status
-                .to_owned()
-                .to_string()
-                .eq(&"Device is not connected with internet ".to_string())
-            {
-                println!("Internet disconnect ");
-                return HttpResponse::BadRequest()
-                    .body(hbr.render("music_error", &RequestError {}).unwrap());
-            }
+            // if status
+            //     .to_owned()
+            //     .to_string()
+            //     .eq(&"Device is not connected with internet ".to_string())
+            // {
+            //     println!("Internet disconnect ");
+            //     return HttpResponse::BadRequest()
+            //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+            // }
 
-            if status.to_owned().to_string().eq(&"Payment acccept") {
-                println!("Payment Accepted ");
-                println!(
-                    "Result ready {:?} ",
-                    status.to_owned().to_string().eq(&"Payment acccept")
-                );
+            // if status.to_owned().to_string().eq(&"Payment acccept") {
+            //     println!("Payment Accepted ");
+            //     println!(
+            //         "Result ready {:?} ",
+            //         status.to_owned().to_string().eq(&"Payment acccept")
+            //     );
 
-                return HttpResponse::Ok().body(
-                    hbr.render(
-                        "tv",
-                        &MovieRecomend {
-                            title: imovies.name.to_owned(),
-                            genre_0: imovies.genre[0].to_owned(),
-                            genre_1: imovies.genre[1].to_owned(),
-                            genre_2: imovies.genre[2].to_owned(),
-                            release: imovies.release.to_owned().to_string(),
-                            content: imovies.adult.to_owned(),
-                            watch_min: imovies.watch_min.to_owned() as i64,
-                            official: imovies.official.to_owned(),
-                        },
-                    )
-                    .unwrap(),
-                );
-            }
+            //     return HttpResponse::Ok().body(
+            //         hbr.render(
+            //             "tv",
+            //             &MovieRecomend {
+            //                 title: imovies.name.to_owned(),
+            //                 genre_0: imovies.genre[0].to_owned(),
+            //                 genre_1: imovies.genre[1].to_owned(),
+            //                 genre_2: imovies.genre[2].to_owned(),
+            //                 release: imovies.release.to_owned().to_string(),
+            //                 content: imovies.adult.to_owned(),
+            //                 watch_min: imovies.watch_min.to_owned() as i64,
+            //                 official: imovies.official.to_owned(),
+            //             },
+            //         )
+            //         .unwrap(),
+            //     );
+            // }
 
             let _ = match direct_gateway(fees).await {
                 Ok(_) => {
@@ -2419,44 +2420,44 @@ async fn search_emotion(
         let db = client.database(music::MUSIC_RECORD);
         let fees: u64 = 300;
 
-        let nodeless = INodeless::new(
-            fees,
-            "".to_owned().to_string(),
-            fees as f64,
-            "search your emotion in our playlist... it's too hard "
-                .to_owned()
-                .to_string(),
-            ME.to_owned().to_string(),
-            lightnode_net::TransactionStatus::Pending,
-            "".to_string(),
-        );
+        // let nodeless = INodeless::new(
+        //     fees,
+        //     "".to_owned().to_string(),
+        //     fees as f64,
+        //     "search your emotion in our playlist... it's too hard "
+        //         .to_owned()
+        //         .to_string(),
+        //     ME.to_owned().to_string(),
+        //     lightnode_net::TransactionStatus::Pending,
+        //     "".to_string(),
+        // );
 
-        let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-        if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
+        // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+        // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
 
-            println!("Nodeless Bitcoin Gateway down");
-            return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
-        }
+        //     println!("Nodeless Bitcoin Gateway down");
+        //     return HttpResponse::BadRequest()
+        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+        // }
 
-        if status
-            .to_owned()
-            .to_string()
-            .eq(&"Device is not connected with internet ".to_string())
-        {
-            println!("Internet disconnect ");
-            return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
-        }
+        // if status
+        //     .to_owned()
+        //     .to_string()
+        //     .eq(&"Device is not connected with internet ".to_string())
+        // {
+        //     println!("Internet disconnect ");
+        //     return HttpResponse::BadRequest()
+        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+        // }
 
-        if status.to_owned().to_string().eq(&"Payment acccept") {
-            println!("Payment Accepted ");
-            println!(
-                "Result ready {:?} ",
-                status.to_owned().to_string().eq(&"Payment acccept")
-            );
-            return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
-        }
+        // if status.to_owned().to_string().eq(&"Payment acccept") {
+        //     println!("Payment Accepted ");
+        //     println!(
+        //         "Result ready {:?} ",
+        //         status.to_owned().to_string().eq(&"Payment acccept")
+        //     );
+        //     return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
+        // }
 
         let _ = match direct_gateway(fees).await {
             Ok(_) => {
@@ -2598,45 +2599,45 @@ async fn add_virtual_book(
         let db = client.database(music::MUSIC_RECORD);
         let fees: u64 = books.on_self() as u64;
 
-        let nodeless = INodeless::new(
-            fees,
-            "".to_owned().to_string(),
-            fees as f64,
-            "reader borrow masterpiece and pay for alchemy"
-                .to_owned()
-                .to_string(),
-            books.get_session().await,
-            lightnode_net::TransactionStatus::Pending,
-            "".to_string(),
-        );
+        // let nodeless = INodeless::new(
+        //     fees,
+        //     "".to_owned().to_string(),
+        //     fees as f64,
+        //     "reader borrow masterpiece and pay for alchemy"
+        //         .to_owned()
+        //         .to_string(),
+        //     books.get_session().await,
+        //     lightnode_net::TransactionStatus::Pending,
+        //     "".to_string(),
+        // );
 
-        let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-        if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
+        // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+        // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
 
-            println!("Nodeless Bitcoin Gateway down");
-            return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
-        }
+        //     println!("Nodeless Bitcoin Gateway down");
+        //     return HttpResponse::BadRequest()
+        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+        // }
 
-        if status
-            .to_owned()
-            .to_string()
-            .eq(&"Device is not connected with internet ")
-        {
-            println!("Internet disconnect ");
-            return HttpResponse::BadRequest()
-                .body(hbr.render("music_error", &RequestError {}).unwrap());
-        }
+        // if status
+        //     .to_owned()
+        //     .to_string()
+        //     .eq(&"Device is not connected with internet ")
+        // {
+        //     println!("Internet disconnect ");
+        //     return HttpResponse::BadRequest()
+        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+        // }
 
-        if status.to_owned().to_string().eq(&"Payment acccept") {
-            println!("Payment Accepted ");
-            println!(
-                "Result ready {:?} ",
-                status.to_owned().to_string().eq(&"Payment acccept")
-            );
+        // if status.to_owned().to_string().eq(&"Payment acccept") {
+        //     println!("Payment Accepted ");
+        //     println!(
+        //         "Result ready {:?} ",
+        //         status.to_owned().to_string().eq(&"Payment acccept")
+        //     );
 
-            return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
-        }
+        //     return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
+        // }
 
         let _ = match direct_gateway(fees).await {
             Ok(_) => {
@@ -3634,60 +3635,60 @@ async fn search_book(form: web::Form<Booksearch>, hbr: web::Data<Handlebars<'_>>
     let db = client.database(music::MUSIC_RECORD);
     let fees: u64 = books.on_self() as u64;
 
-    let nodeless = INodeless::new(
-        fees,
-        "".to_owned().to_string(),
-        fees as f64,
-        "reader borrow masterpiece and pay for alchemy"
-            .to_owned()
-            .to_string(),
-        books.get_session().await,
-        lightnode_net::TransactionStatus::Pending,
-        "".to_string(),
-    );
+    // let nodeless = INodeless::new(
+    //     fees,
+    //     "".to_owned().to_string(),
+    //     fees as f64,
+    //     "reader borrow masterpiece and pay for alchemy"
+    //         .to_owned()
+    //         .to_string(),
+    //     books.get_session().await,
+    //     lightnode_net::TransactionStatus::Pending,
+    //     "".to_string(),
+    // );
 
-    let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-    if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
+    // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
+    // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
 
-                    println!("Nodeless Bitcoin Gateway down");
-                    return HttpResponse::BadRequest()
-                                .body(hbr.render("music_error", &RequestError {}).unwrap());
-                }
+    //                 println!("Nodeless Bitcoin Gateway down");
+    //                 return HttpResponse::BadRequest()
+    //                             .body(hbr.render("music_error", &RequestError {}).unwrap());
+    //             }
 
-    if status
-        .to_owned()
-        .to_string()
-        .eq(&"Device is not connected with internet ")
-    {
-        println!("Internet disconnect ");
-        return HttpResponse::BadRequest()
-            .body(hbr.render("music_error", &RequestError {}).unwrap());
-    }
+    // if status
+    //     .to_owned()
+    //     .to_string()
+    //     .eq(&"Device is not connected with internet ")
+    // {
+    //     println!("Internet disconnect ");
+    //     return HttpResponse::BadRequest()
+    //         .body(hbr.render("music_error", &RequestError {}).unwrap());
+    // }
 
-    if status.to_owned().to_string().eq(&"Payment acccept") {
-        println!("Payment Accepted ");
-        println!(
-            "Result ready {:?} ",
-            status.to_owned().to_string().eq(&"Payment acccept")
-        );
+    // if status.to_owned().to_string().eq(&"Payment acccept") {
+    //     println!("Payment Accepted ");
+    //     println!(
+    //         "Result ready {:?} ",
+    //         status.to_owned().to_string().eq(&"Payment acccept")
+    //     );
 
-        return HttpResponse::Ok().body(
-            hbr.render(
-                "book",
-                &GetBook {
-                    name: record.book.to_owned().to_string(),
-                    session: record.coonect.session.to_string(),
-                    author: record.author.to_owned().to_string(),
-                    publisher: record.publisher.to_owned().to_string(),
-                    ipfs_link: "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned()
-                        + &record.ipfs_link.to_owned().to_string(),
-                    description: record.description.to_owned().to_string(),
-                    page: record.page.to_owned().to_string(),
-                },
-            )
-            .unwrap(),
-        );
-    }
+    //     return HttpResponse::Ok().body(
+    //         hbr.render(
+    //             "book",
+    //             &GetBook {
+    //                 name: record.book.to_owned().to_string(),
+    //                 session: record.coonect.session.to_string(),
+    //                 author: record.author.to_owned().to_string(),
+    //                 publisher: record.publisher.to_owned().to_string(),
+    //                 ipfs_link: "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned()
+    //                     + &record.ipfs_link.to_owned().to_string(),
+    //                 description: record.description.to_owned().to_string(),
+    //                 page: record.page.to_owned().to_string(),
+    //             },
+    //         )
+    //         .unwrap(),
+    //     );
+    // }
 
     let _ = match direct_gateway(fees).await {
         Ok(_) => {
