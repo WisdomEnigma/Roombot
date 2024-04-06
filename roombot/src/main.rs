@@ -1665,51 +1665,71 @@ async fn profile(form: web::Form<Authenicate>, hbr: web::Data<Handlebars<'_>>) -
 
     let _ = EMAIL.set(email.to_owned());
 
-    let mut auth = gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string(), email.to_owned());
-
-    unsafe {
-        ME = auth_code;
-    }
+    let mut user = auth::accounts::Info::new(
+        "".to_owned().to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+        "".to_string(),
+    );
 
     // check whether user have profile or new user.
     if let Ok(client) = gatekeeper::mongodb_client().await {
-        
+
         let db = client.database(music::MUSIC_RECORD);
-        let _ = auth.create_record(db).await;
 
-        let mut user = auth::accounts::Info::new(
-            "".to_owned().to_string(),
-            "".to_string(),
-            "".to_string(),
-            "".to_string(),
-            "".to_string(),
-            "".to_string(),
-            "".to_string(),
-            "".to_string(),
-            "".to_string(),
-            "".to_string(),
-        );
 
-        let minit = user.mongo_init().await;
-        let access = user.access_credentials(minit);
-
+        let mut auth = gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string(), email.to_owned());
+        
         unsafe {
-            user.set_session(ME.to_owned().to_string());
+            ME = auth_code;
         }
 
-        let tx_status = user.transaction_status(access.to_owned()).await.unwrap();
+        let lookup_user = auth.find_with_username(db.to_owned()).await.unwrap();
+        let lookup_email = auth.looking_for_email(db.to_owned()).await.unwrap();
 
-        if tx_status.to_owned().to_string().eq(&"No record") {
-            eprintln!("Error [No User]");
-        } else if tx_status
-            .to_owned()
-            .to_string()
-            .eq(&"No bitcoin address provided")
-        {
-            eprintln!("Error [You don't have secure wallet address, Ouuch! You're missing MARVELOUS Experience]");
-        } else {
-            let _ = MY_BITCOIN_ADDR.set(tx_status.to_owned());
+        if !lookup_user && !lookup_email{
+
+            let _ = auth.create_record(db.to_owned()).await;
         }
+
+        if !lookup_user && lookup_email || lookup_user && !lookup_email {
+
+            eprintln!(" check your username or email address"); 
+            HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
+        }
+
+        if lookup_user && lookup_email{
+    
+                let minit = user.mongo_init().await;
+                let access = user.access_credentials(minit);
+
+                unsafe {
+                    user.set_session(ME.to_owned().to_string());
+                }
+
+                let tx_status = user.transaction_status(access.to_owned()).await.unwrap();
+
+                if tx_status.to_owned().to_string().eq(&"No record") {
+            
+                    eprintln!("Error [No User]");
+                } else if tx_status.to_owned().to_string().eq(&"No bitcoin address provided"){
+            
+                        eprintln!("Error [You don't have secure wallet address, Ouuch! You're missing MARVELOUS Experience]");
+                        HttpResponse::BadRequest().body(hbr.render("error", &RequestError {}).unwrap());
+        
+                } else {
+            
+                        let _ = MY_BITCOIN_ADDR.set(tx_status.to_owned());
+                }
+            }
+        
+        
     };
 
     HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap())
@@ -1768,10 +1788,11 @@ async fn poetry(
                 Err(e) => panic!("{:?}", e),
             };
 
-            let db = client.database(music::MUSIC_RECORD);
+            //let db = client.database(music::MUSIC_RECORD);
             let fees: u64 = 100;
 
             unsafe {
+                
                 // let nodeless = INodeless::new(
                 //     fees,
                 //     "".to_owned().to_string(),
@@ -1850,7 +1871,7 @@ async fn poetry(
                 Err(e) => panic!("{:?}", e),
             };
 
-            let db = client.database(music::MUSIC_RECORD);
+            //let db = client.database(music::MUSIC_RECORD);
             let fees: u64 = 500;
 
             unsafe {

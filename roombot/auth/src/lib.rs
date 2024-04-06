@@ -178,7 +178,7 @@ pub mod gatekeeper{
             write!(terminal, "Looking for information.... \n  ").unwrap();
            
            let find_doc = self.find_with_session(self.session.to_string(), db.to_owned()).await.unwrap();
-           
+
            if !verified(find_doc.session.to_owned(), self.session.to_owned()) &&  find_doc.email.to_owned().ne(&self.email){
 
                     let doc = vec![
@@ -207,7 +207,7 @@ pub mod gatekeeper{
         }
 
         /// Again find with username is similar definition create record. This definition find paticular username for yourself. 
-        pub async fn find_with_username(&mut self, value : String, database : Database) -> std::io::Result<()> {
+        pub async fn find_with_username(&mut self, database : Database) -> std::io::Result<bool> {
             
              
             let collection = database.collection::<Authenicate>(DOC_NAME);
@@ -218,7 +218,7 @@ pub mod gatekeeper{
 
                 write!(terminal, "Looking for information ...  \n  ").unwrap();
             
-            let filter = doc!{ "username" : value.to_owned()};
+            let filter = doc!{ "username" : self.username.to_owned()};
 
             let find_opts = FindOptions::builder().sort(doc!{ "username" : 1}).build();
             let mut cursor = collection.find(filter, find_opts).await.unwrap();
@@ -234,7 +234,7 @@ pub mod gatekeeper{
                     panic!("Unforuente query must be empty ");
                 }
 
-                if profile.username != value{
+                if profile.username != self.username.to_owned(){
 
                     terminal.fg(term::color::RED).unwrap();
 
@@ -244,7 +244,57 @@ pub mod gatekeeper{
                 } 
             }
 
-            Ok(())
+            Ok(true)
+        }
+
+        /// check whether this email register or not ... if the case is not true then throw error
+        /// 
+        /// 
+        /// ``` Example 
+        /// 
+        ///         let db = client.database(music::MUSIC_RECORD);
+        ///         let mut auth = gatekeeper::Authenicate::new(auth_code.to_string(), username.to_string(), email.to_owned());
+        ///         let lookup_email = auth.looking_for_email(db.to_owned()).await.unwrap();
+        ///         assert_eq!(look_email, true);
+        /// ```text
+        pub async fn looking_for_email(&mut self, database : Database) -> std::io::Result<bool> {
+            
+             
+            let collection = database.collection::<Authenicate>(DOC_NAME);
+
+            let mut terminal = term::stdout().unwrap();
+
+                terminal.fg(term::color::GREEN).unwrap();
+
+                write!(terminal, "Looking for information ...  \n  ").unwrap();
+            
+            let filter = doc!{ "email" : self.email.to_owned()};
+
+            let find_opts = FindOptions::builder().sort(doc!{ "email" : 1}).build();
+            let mut cursor = collection.find(filter, find_opts).await.unwrap();
+            
+            while let Some(profile) = cursor.try_next().await.unwrap(){
+
+                if profile.email.to_owned().eq(&" "){
+
+                    terminal.fg(term::color::BRIGHT_RED).unwrap();
+
+                    write!(terminal, "[result] by chance ! we found empty bit .... \n  ").unwrap();
+
+                    panic!("Unforuente query must be empty ");
+                }
+
+                if profile.email != self.email.to_owned(){
+
+                    terminal.fg(term::color::RED).unwrap();
+
+                    write!(terminal, "[result] MISSING PIECE NOT CONNECTED ... \n ").unwrap();
+
+                    panic!("No Data found ");
+                } 
+            }
+
+            Ok(true)
         }
 
         /// When user login his or her account. Session will be created... 
