@@ -69,10 +69,22 @@
                         - Fix payment gateway
                         - Improve documentation
                         - Bitcoin direct payment
-# Demo 
-https://youtu.be/ALimUxg9vuA
-https://youtu.be/OhzrGVEhwWo
-https://youtube.com/shorts/edtk_WMpfcg?feature=share
+
+                v0.0.3
+                        - Voice command option
+                        - Improve user account creation functionality
+                        - update account management functionality
+                        - social network feature
+                        - interactive message 
+                        - add bio rating feature
+                        - city search feature
+                        - education search feature
+                        - workplace search feature
+                        - Music generative content
+                        - music generative QA
+                        - different user reply on comments
+
+
 
 # Contact 🏛️
     
