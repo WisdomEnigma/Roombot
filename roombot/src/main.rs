@@ -24,7 +24,7 @@ use directories::UserDirs;
 use dotenv::dotenv;
 use handlebars::Handlebars;
 //use l2net::lightnode_net::{self, INodeless};
-use mongodb::Database;
+//use mongodb::Database;
 use movies::movies_rating::{Content, Emotionfilter, MovieRate};
 use music_stream::{music, pinata_content};
 use once_cell::sync::OnceCell;
@@ -367,9 +367,6 @@ struct DiscoverPersonality{
 // static variables
 
 static mut ME: u64 = 0;
-// static mut LIKES: i64 = 0;
-// static mut COLORED: bool = false;
-// static mut PLAY: i64 = 0;
 static mut USERCOMMENTS: i64 = 0;
 static GLOBAL_SONG: OnceCell<String> = OnceCell::new();
 static MY_COMMENT: OnceCell<String> = OnceCell::new();
@@ -456,7 +453,6 @@ async fn word2word(
     let flag_words = responses.to_owned().len().eq(&10);
 
     if flag_words == true {
-        
 
         let fees: u64 = 25;
 
@@ -738,10 +734,6 @@ async fn collection(
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
                     let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
 
-
-                    // let mut last_user_comment = Vec::<String>::new();
-                    // last_user_comment.push(list.comment.to_owned());
-
                     return HttpResponse::Ok().body(
                         hbr.render(
                             "search",
@@ -774,9 +766,6 @@ async fn collection(
 
                     let _data = GLOBAL_SONG.set(list.song.to_owned().to_string());
                     let _comment = MY_COMMENT.set(list.comment.to_owned().to_string());
-
-                    // let mut last_user_comment = Vec::<String>::new();
-                    // last_user_comment.push(list.comment.to_owned());
 
                     return HttpResponse::Ok().body(
                         hbr.render(
@@ -2099,47 +2088,7 @@ async fn search_emotion(
             Err(e) => panic!("{:?}", e),
         };
 
-        let db = client.database(music::MUSIC_RECORD);
         let fees: u64 = 300;
-
-        // let nodeless = INodeless::new(
-        //     fees,
-        //     "".to_owned().to_string(),
-        //     fees as f64,
-        //     "search your emotion in our playlist... it's too hard "
-        //         .to_owned()
-        //         .to_string(),
-        //     ME.to_owned().to_string(),
-        //     lightnode_net::TransactionStatus::Pending,
-        //     "".to_string(),
-        // );
-
-        // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-        // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address".to_string()){
-
-        //     println!("Nodeless Bitcoin Gateway down");
-        //     return HttpResponse::BadRequest()
-        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
-        // }
-
-        // if status
-        //     .to_owned()
-        //     .to_string()
-        //     .eq(&"Device is not connected with internet ".to_string())
-        // {
-        //     println!("Internet disconnect ");
-        //     return HttpResponse::BadRequest()
-        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
-        // }
-
-        // if status.to_owned().to_string().eq(&"Payment acccept") {
-        //     println!("Payment Accepted ");
-        //     println!(
-        //         "Result ready {:?} ",
-        //         status.to_owned().to_string().eq(&"Payment acccept")
-        //     );
-        //     return HttpResponse::Ok().body(hbr.render("emotions", &list).unwrap());
-        // }
 
         let _ = match direct_gateway(fees).await {
             Ok(_) => {
@@ -2278,48 +2227,9 @@ async fn add_virtual_book(
             Err(e) => panic!("{:?}", e),
         };
 
-        let db = client.database(music::MUSIC_RECORD);
+
+
         let fees: u64 = books.on_self() as u64;
-
-        // let nodeless = INodeless::new(
-        //     fees,
-        //     "".to_owned().to_string(),
-        //     fees as f64,
-        //     "reader borrow masterpiece and pay for alchemy"
-        //         .to_owned()
-        //         .to_string(),
-        //     books.get_session().await,
-        //     lightnode_net::TransactionStatus::Pending,
-        //     "".to_string(),
-        // );
-
-        // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-        // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
-
-        //     println!("Nodeless Bitcoin Gateway down");
-        //     return HttpResponse::BadRequest()
-        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
-        // }
-
-        // if status
-        //     .to_owned()
-        //     .to_string()
-        //     .eq(&"Device is not connected with internet ")
-        // {
-        //     println!("Internet disconnect ");
-        //     return HttpResponse::BadRequest()
-        //         .body(hbr.render("music_error", &RequestError {}).unwrap());
-        // }
-
-        // if status.to_owned().to_string().eq(&"Payment acccept") {
-        //     println!("Payment Accepted ");
-        //     println!(
-        //         "Result ready {:?} ",
-        //         status.to_owned().to_string().eq(&"Payment acccept")
-        //     );
-
-        //     return HttpResponse::Ok().body(hbr.render("home", &Homepage {}).unwrap());
-        // }
 
         let _ = match direct_gateway(fees).await {
             Ok(_) => {
@@ -3313,64 +3223,10 @@ async fn search_book(form: web::Form<Booksearch>, hbr: web::Data<Handlebars<'_>>
         Ok(list) => list,
         Err(e) => panic!("{:?}", e),
     };
-
-    let db = client.database(music::MUSIC_RECORD);
+    
     let fees: u64 = books.on_self() as u64;
 
-    // let nodeless = INodeless::new(
-    //     fees,
-    //     "".to_owned().to_string(),
-    //     fees as f64,
-    //     "reader borrow masterpiece and pay for alchemy"
-    //         .to_owned()
-    //         .to_string(),
-    //     books.get_session().await,
-    //     lightnode_net::TransactionStatus::Pending,
-    //     "".to_string(),
-    // );
-
-    // let status = payment_gateway(nodeless, db.to_owned()).await.unwrap();
-    // if status.to_owned().to_string().eq(&"Sorry ! Nodeless Bitcoin Gateway can not accept your transaction for this time. Please use bitcoin address"){
-
-    //                 println!("Nodeless Bitcoin Gateway down");
-    //                 return HttpResponse::BadRequest()
-    //                             .body(hbr.render("music_error", &RequestError {}).unwrap());
-    //             }
-
-    // if status
-    //     .to_owned()
-    //     .to_string()
-    //     .eq(&"Device is not connected with internet ")
-    // {
-    //     println!("Internet disconnect ");
-    //     return HttpResponse::BadRequest()
-    //         .body(hbr.render("music_error", &RequestError {}).unwrap());
-    // }
-
-    // if status.to_owned().to_string().eq(&"Payment acccept") {
-    //     println!("Payment Accepted ");
-    //     println!(
-    //         "Result ready {:?} ",
-    //         status.to_owned().to_string().eq(&"Payment acccept")
-    //     );
-
-    //     return HttpResponse::Ok().body(
-    //         hbr.render(
-    //             "book",
-    //             &GetBook {
-    //                 name: record.book.to_owned().to_string(),
-    //                 session: record.coonect.session.to_string(),
-    //                 author: record.author.to_owned().to_string(),
-    //                 publisher: record.publisher.to_owned().to_string(),
-    //                 ipfs_link: "https://beige-aggressive-bird-900.mypinata.cloud/ipfs/".to_owned()
-    //                     + &record.ipfs_link.to_owned().to_string(),
-    //                 description: record.description.to_owned().to_string(),
-    //                 page: record.page.to_owned().to_string(),
-    //             },
-    //         )
-    //         .unwrap(),
-    //     );
-    // }
+   
 
     let _ = match direct_gateway(fees).await {
         Ok(_) => {
